@@ -16,10 +16,12 @@ public class ThirdPersonController : MonoBehaviour
     [SerializeField] private float groundedGravity = -2f;
 
     [Header("Crouch")]
-    [SerializeField] private float standingHeight = 2f;
-    [SerializeField] private float crouchHeight = 1f;
-    [SerializeField] private float standingCenterY = 1f;
-    [SerializeField] private float crouchCenterY = 0.5f;
+    [Tooltip("Để trống nếu chưa có animation — khi đó trạng thái ngồi/đứng chỉ được log ra Console.")]
+    [SerializeField] private Animator animator;
+    [SerializeField] private string crouchBoolParameter = "IsCrouching";
+    [SerializeField] private bool logCrouchState = true;
+    [Tooltip("Nếu bật, không cho nhảy khi đang ngồi.")]
+    [SerializeField] private bool blockJumpWhileCrouching = true;
 
     [Header("Input")]
     [SerializeField] private InputActionAsset actions;
@@ -34,6 +36,8 @@ public class ThirdPersonController : MonoBehaviour
     private InputAction crouchAction;
     private float verticalVelocity;
     private bool isCrouching;
+    private int crouchParameterHash;
+    private bool hasCrouchParameter;
 
     private void Awake()
     {
@@ -58,6 +62,33 @@ public class ThirdPersonController : MonoBehaviour
         jumpAction = playerMap.FindAction("Jump", throwIfNotFound: true);
         sprintAction = playerMap.FindAction("Sprint", throwIfNotFound: true);
         crouchAction = playerMap.FindAction("Crouch", throwIfNotFound: true);
+
+        CacheCrouchParameter();
+    }
+
+    private void CacheCrouchParameter()
+    {
+        hasCrouchParameter = false;
+
+        if (animator == null || string.IsNullOrEmpty(crouchBoolParameter))
+        {
+            return;
+        }
+
+        crouchParameterHash = Animator.StringToHash(crouchBoolParameter);
+
+        foreach (var parameter in animator.parameters)
+        {
+            if (parameter.type == AnimatorControllerParameterType.Bool && parameter.nameHash == crouchParameterHash)
+            {
+                hasCrouchParameter = true;
+                return;
+            }
+        }
+
+        Debug.LogWarning(
+            $"[ThirdPersonController] Animator không có bool parameter tên '{crouchBoolParameter}'. " +
+            "Crouch sẽ chỉ log ra Console.", this);
     }
 
     private void OnEnable()
@@ -79,7 +110,36 @@ public class ThirdPersonController : MonoBehaviour
     private void Update()
     {
         HandleCrouch();
+        HandleMovement();
+        ApplyGravity();
+    }
 
+    private void HandleCrouch()
+    {
+        bool wantCrouch = crouchAction.ReadValue<float>() > 0.5f;
+
+        if (wantCrouch == isCrouching)
+        {
+            return;
+        }
+
+        isCrouching = wantCrouch;
+
+        if (hasCrouchParameter)
+        {
+            animator.SetBool(crouchParameterHash, isCrouching);
+        }
+
+        if (logCrouchState)
+        {
+            Debug.Log(isCrouching
+                ? "[Crouch] NGỒI XUỐNG — tốc độ giảm còn 50% (placeholder: chưa có animation)"
+                : "[Crouch] ĐỨNG DẬY — tốc độ trở lại bình thường");
+        }
+    }
+
+    private void HandleMovement()
+    {
         Vector2 input = moveAction.ReadValue<Vector2>();
 
         Vector3 camForward = cameraTransform.forward;
@@ -89,37 +149,16 @@ public class ThirdPersonController : MonoBehaviour
         camForward.Normalize();
         camRight.Normalize();
 
+        Vector3 moveDirection = camForward * input.y + camRight * input.x;
+
         bool sprinting = sprintAction.IsPressed() && input.magnitude > 0.1f && !isCrouching;
         float speedMultiplier = isCrouching ? crouchMultiplier : (sprinting ? sprintMultiplier : 1f);
 
-        Vector3 moveDirection = camForward * input.y + camRight * input.x;
         controller.Move(moveDirection * moveSpeed * speedMultiplier * Time.deltaTime);
 
         if (moveDirection.magnitude > 0.1f)
         {
             RotateTowards(moveDirection);
-        }
-
-        ApplyGravity();
-    }
-
-    private void HandleCrouch()
-    {
-        bool wantCrouch = crouchAction.IsPressed();
-        if (wantCrouch == isCrouching) return;
-
-        isCrouching = wantCrouch;
-
-        float targetHeight = wantCrouch ? crouchHeight : standingHeight;
-        controller.height = targetHeight;
-
-        Vector3 center = controller.center;
-        center.y = wantCrouch ? crouchCenterY : standingCenterY;
-        controller.center = center;
-
-        if (!wantCrouch && controller.isGrounded)
-        {
-            verticalVelocity = groundedGravity;
         }
     }
 
@@ -135,7 +174,8 @@ public class ThirdPersonController : MonoBehaviour
         {
             verticalVelocity = groundedGravity;
 
-            if (jumpAction.WasPressedThisFrame())
+            bool canJump = !(blockJumpWhileCrouching && isCrouching);
+            if (canJump && jumpAction.WasPressedThisFrame())
             {
                 verticalVelocity = Mathf.Sqrt(jumpHeight * -2f * gravity);
             }
