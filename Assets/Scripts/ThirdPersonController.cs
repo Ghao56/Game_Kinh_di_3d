@@ -10,10 +10,16 @@ public class ThirdPersonController : MonoBehaviour
     [SerializeField] private float crouchMultiplier = 0.5f;
     [SerializeField] private float rotationSpeed = 10f;
 
+    [Header("Stamina")]
+    [Tooltip("Để trống nếu không muốn giới hạn chạy nhanh bằng stamina.")]
+    [SerializeField] private StaminaSystem stamina;
+
     [Header("Jump & Gravity")]
     [SerializeField] private float jumpHeight = 1.2f;
     [SerializeField] private float gravity = -20f;
     [SerializeField] private float groundedGravity = -2f;
+    [Tooltip("Bật để log isGrounded mỗi lần ấn Jump — dùng để kiểm tra lỗi nhảy, xong thì tắt.")]
+    [SerializeField] private bool logJumpDebug = true;
 
     [Header("Crouch")]
     [Tooltip("Để trống nếu chưa có animation — khi đó trạng thái ngồi/đứng chỉ được log ra Console.")]
@@ -110,8 +116,15 @@ public class ThirdPersonController : MonoBehaviour
     private void Update()
     {
         HandleCrouch();
-        HandleMovement();
-        ApplyGravity();
+
+        // isGrounded của CharacterController chỉ phản ánh LẦN Move GẦN NHẤT.
+        // Vì vậy phải tính hết vận tốc ngang + dọc trước, rồi gọi Move ĐÚNG MỘT LẦN.
+        Vector3 horizontalVelocity = HandleMovement();
+        UpdateVerticalVelocity();
+
+        Vector3 velocity = horizontalVelocity;
+        velocity.y = verticalVelocity;
+        controller.Move(velocity * Time.deltaTime);
     }
 
     private void HandleCrouch()
@@ -138,7 +151,8 @@ public class ThirdPersonController : MonoBehaviour
         }
     }
 
-    private void HandleMovement()
+    // Trả về vận tốc theo mặt phẳng ngang (m/s). Không gọi controller.Move ở đây.
+    private Vector3 HandleMovement()
     {
         Vector2 input = moveAction.ReadValue<Vector2>();
 
@@ -151,15 +165,22 @@ public class ThirdPersonController : MonoBehaviour
 
         Vector3 moveDirection = camForward * input.y + camRight * input.x;
 
-        bool sprinting = sprintAction.IsPressed() && input.magnitude > 0.1f && !isCrouching;
-        float speedMultiplier = isCrouching ? crouchMultiplier : (sprinting ? sprintMultiplier : 1f);
+        bool wantsSprint = sprintAction.IsPressed() && input.magnitude > 0.1f && !isCrouching;
+        bool sprinting = wantsSprint && (stamina == null || stamina.CanSprint);
 
-        controller.Move(moveDirection * moveSpeed * speedMultiplier * Time.deltaTime);
+        if (stamina != null)
+        {
+            stamina.Tick(sprinting, Time.deltaTime);
+        }
+
+        float speedMultiplier = isCrouching ? crouchMultiplier : (sprinting ? sprintMultiplier : 1f);
 
         if (moveDirection.magnitude > 0.1f)
         {
             RotateTowards(moveDirection);
         }
+
+        return moveDirection * moveSpeed * speedMultiplier;
     }
 
     private void RotateTowards(Vector3 direction)
@@ -168,14 +189,23 @@ public class ThirdPersonController : MonoBehaviour
         transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
     }
 
-    private void ApplyGravity()
+    // Chỉ cập nhật verticalVelocity, việc di chuyển thật sự nằm ở Update().
+    private void UpdateVerticalVelocity()
     {
+        bool jumpPressed = jumpAction.WasPressedThisFrame();
+
+        if (logJumpDebug && jumpPressed)
+        {
+            Debug.Log($"[Jump] pressed | isGrounded={controller.isGrounded} | " +
+                      $"verticalVelocity={verticalVelocity:F2} | crouching={isCrouching}");
+        }
+
         if (controller.isGrounded && verticalVelocity < 0f)
         {
             verticalVelocity = groundedGravity;
 
             bool canJump = !(blockJumpWhileCrouching && isCrouching);
-            if (canJump && jumpAction.WasPressedThisFrame())
+            if (canJump && jumpPressed)
             {
                 verticalVelocity = Mathf.Sqrt(jumpHeight * -2f * gravity);
             }
@@ -184,7 +214,5 @@ public class ThirdPersonController : MonoBehaviour
         {
             verticalVelocity += gravity * Time.deltaTime;
         }
-
-        controller.Move(new Vector3(0f, verticalVelocity, 0f) * Time.deltaTime);
     }
 }
