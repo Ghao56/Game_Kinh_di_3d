@@ -51,7 +51,16 @@ public class Interactor : MonoBehaviour
     }
 
     private void OnEnable() => interactAction?.Enable();
-    private void OnDisable() => interactAction?.Disable();
+
+    private void OnDisable()
+    {
+        interactAction?.Disable();
+        if (currentTarget is Component comp && comp != null)
+        {
+            comp.GetComponentInParent<InteractableGlow>()?.SetHighlighted(false);
+        }
+        currentTarget = null;
+    }
 
     private void Update()
     {
@@ -83,8 +92,21 @@ public class Interactor : MonoBehaviour
 
         if (!ReferenceEquals(nearest, currentTarget))
         {
+            if (currentTarget is Component oldComponent && oldComponent != null)
+            {
+                oldComponent.GetComponentInParent<InteractableGlow>()?.SetHighlighted(false);
+            }
+
             holdTimer = 0f;
             currentTarget = nearest;
+
+            if (nearest is Component newComponent && newComponent != null)
+            {
+                InteractableGlow glow = newComponent.GetComponentInParent<InteractableGlow>();
+                if (glow == null)
+                    glow = newComponent.gameObject.AddComponent<InteractableGlow>();
+                glow.SetHighlighted(true);
+            }
         }
 
         if (currentTarget != null)

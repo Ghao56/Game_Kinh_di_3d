@@ -1227,6 +1227,7 @@ GameObject:
   - component: {fileID: 879169193}
   - component: {fileID: 879169192}
   - component: {fileID: 879169196}
+  - component: {fileID: 879169197}
   m_Layer: 0
   m_Name: paper
   m_TagString: Untagged
@@ -1344,7 +1345,33 @@ MonoBehaviour:
   holdDuration: 0.5
   onInteractEvent:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 0}
+        m_TargetAssemblyTypeName: 
+        m_MethodName: 
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: 
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 0
+--- !u!114 &879169197
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 879169191}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c5f95e400ec1da44989b78476e8b8bbf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::InteractableGlow
+  glowColor: {r: 0.45, g: 0.85, b: 1, a: 1}
+  highlightRenderingLayerBit: 2
 --- !u!1 &900000000
 GameObject:
   m_ObjectHideFlags: 0
