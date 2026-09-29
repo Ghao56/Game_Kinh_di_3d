@@ -33,7 +33,11 @@ public class ThirdPersonController : MonoBehaviour
     [SerializeField] private InputActionAsset actions;
 
     [Header("Camera Reference")]
+    [Tooltip("Transform của Camera. Chỉ dùng làm fallback khi không gán Camera Rig.")]
     [SerializeField] private Transform cameraTransform;
+    [Tooltip("CameraRig (ThirdPersonCamera). Nếu có, hướng di chuyển lấy từ Yaw THÔ của camera " +
+             "nên không bị nhiễu bởi smoothing, sway, shake hay shoulder offset của camera.")]
+    [SerializeField] private ThirdPersonCamera cameraRig;
 
     private CharacterController controller;
     private InputAction moveAction;
@@ -44,6 +48,15 @@ public class ThirdPersonController : MonoBehaviour
     private bool isCrouching;
     private int crouchParameterHash;
     private bool hasCrouchParameter;
+
+    /// <summary>Tốc độ ngang hiện tại chuẩn hoá 0–1 (1 = hết tốc chạy nhanh). Camera dùng để đổi FOV.</summary>
+    public float SpeedNormalized { get; private set; }
+
+    /// <summary>Đang chạy nhanh hay không.</summary>
+    public bool IsSprinting { get; private set; }
+
+    /// <summary>Đang ngồi hay không.</summary>
+    public bool IsCrouching => isCrouching;
 
     private void Awake()
     {
@@ -56,9 +69,11 @@ public class ThirdPersonController : MonoBehaviour
             return;
         }
 
-        if (cameraTransform == null)
+        if (cameraRig == null) cameraRig = FindFirstObjectByType<ThirdPersonCamera>();
+
+        if (cameraRig == null && cameraTransform == null)
         {
-            Debug.LogError("[ThirdPersonController] Chưa gán Camera Transform trong Inspector.", this);
+            Debug.LogError("[ThirdPersonController] Chưa gán Camera Rig hay Camera Transform trong Inspector.", this);
             enabled = false;
             return;
         }
@@ -156,19 +171,31 @@ public class ThirdPersonController : MonoBehaviour
     {
         Vector2 input = moveAction.ReadValue<Vector2>();
 
-        Vector3 camForward = cameraTransform.forward;
-        Vector3 camRight = cameraTransform.right;
-        camForward.y = 0f;
-        camRight.y = 0f;
-        camForward.Normalize();
-        camRight.Normalize();
+        // Ưu tiên Yaw THÔ của camera: ổn định, không bị sway/shake/shoulder offset làm nhiễu hướng đi.
+        // Chỉ fallback về cameraTransform.forward khi không có cameraRig.
+        Vector3 camForward;
+        Vector3 camRight;
+        if (cameraRig != null)
+        {
+            Quaternion yawRotation = Quaternion.Euler(0f, cameraRig.Yaw, 0f);
+            camForward = yawRotation * Vector3.forward;
+            camRight = yawRotation * Vector3.right;
+        }
+        else
+        {
+            camForward = cameraTransform.forward;
+            camRight = cameraTransform.right;
+            camForward.y = 0f;
+            camRight.y = 0f;
+            camForward.Normalize();
+            camRight.Normalize();
+        }
 
         Vector3 moveDirection = camForward * input.y + camRight * input.x;
 
-        RotateTowards(camForward);
-
         bool wantsSprint = sprintAction.IsPressed() && input.magnitude > 0.1f && !isCrouching;
         bool sprinting = wantsSprint && (stamina == null || stamina.CanSprint);
+        IsSprinting = sprinting;
 
         if (stamina != null)
         {
@@ -176,8 +203,19 @@ public class ThirdPersonController : MonoBehaviour
         }
 
         float speedMultiplier = isCrouching ? crouchMultiplier : (sprinting ? sprintMultiplier : 1f);
+        float finalSpeed = moveSpeed * speedMultiplier;
 
-        return moveDirection * moveSpeed * speedMultiplier;
+        SpeedNormalized = moveDirection.sqrMagnitude > 0.0001f
+            ? Mathf.Clamp01(finalSpeed / (moveSpeed * sprintMultiplier))
+            : 0f;
+
+        // Khi ngắm: nhân vật luôn bám theo yaw camera, kể cả khi không có input di chuyển.
+        if (cameraRig != null && cameraRig.IsAiming)
+            transform.rotation = Quaternion.Euler(0f, cameraRig.Yaw, 0f);
+        else
+            RotateTowards(camForward);
+
+        return moveDirection * finalSpeed;
     }
 
     private void RotateTowards(Vector3 direction)
