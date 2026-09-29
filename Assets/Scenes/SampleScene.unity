@@ -14,17 +14,17 @@ OcclusionCullingSettings:
 RenderSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 10
-  m_Fog: 0
-  m_FogColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  m_Fog: 1
+  m_FogColor: {r: 0.7, g: 0.75, b: 0.8, a: 1}
   m_FogMode: 3
-  m_FogDensity: 0.01
+  m_FogDensity: 0.008
   m_LinearFogStart: 0
   m_LinearFogEnd: 300
-  m_AmbientSkyColor: {r: 0.212, g: 0.227, b: 0.259, a: 1}
-  m_AmbientEquatorColor: {r: 0.114, g: 0.125, b: 0.133, a: 1}
-  m_AmbientGroundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
+  m_AmbientSkyColor: {r: 0.55, g: 0.62, b: 0.75, a: 1}
+  m_AmbientEquatorColor: {r: 0.45, g: 0.45, b: 0.42, a: 1}
+  m_AmbientGroundColor: {r: 0.25, g: 0.22, b: 0.18, a: 1}
   m_AmbientIntensity: 1
-  m_AmbientMode: 0
+  m_AmbientMode: 1
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
   m_SkyboxMaterial: {fileID: 10304, guid: 0000000000000000f000000000000000, type: 0}
   m_HaloStrength: 0.5
@@ -37,7 +37,7 @@ RenderSettings:
   m_ReflectionBounces: 1
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
-  m_Sun: {fileID: 0}
+  m_Sun: {fileID: 410087040}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -518,11 +518,11 @@ Light:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 410087039}
-  m_Enabled: 0
+  m_Enabled: 1
   serializedVersion: 12
   m_Type: 1
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 2
+  m_Intensity: 1.2
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -566,7 +566,7 @@ Light:
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
   m_ColorTemperature: 10604
-  m_UseColorTemperature: 1
+  m_UseColorTemperature: 0
   m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
@@ -584,7 +584,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 410087039}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.40821788, y: -0.23456968, z: 0.10938163, w: 0.8754261}
+  m_LocalRotation: {x: 0.40821794, y: -0.23456973, z: 0.10938166, w: 0.8754261}
   m_LocalPosition: {x: 0, y: 3, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -896,14 +896,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5750c18052ecc664d854937f5a71c390, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Interactor
-  interactionRadius: 2.5
-  detectionOffset: {x: 0, y: 1, z: 0}
-  interactableMask:
+  aimRadius: 0.1
+  interactRange: 4
+  maxPlayerDistance: 2
+  hitMask:
     serializedVersion: 2
-    m_Bits: 4294967295
-  maxColliders: 8
+    m_Bits: 51
+  rayCamera: {fileID: 0}
+  interactionOrigin: {fileID: 0}
   actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   promptUI: {fileID: 2042761995}
+  ignoreRoot: {fileID: 0}
+  debugLog: 0
   logInteractions: 0
 --- !u!1 &607308281
 GameObject:
@@ -941,6 +945,142 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &608614655
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 608614657}
+  - component: {fileID: 608614656}
+  m_Layer: 0
+  m_Name: Lighting Manager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &608614656
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 608614655}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 191a80e3e6352854bb9c66dbf14bffd7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LightingManager
+  sunLight: {fileID: 410087040}
+  globalVolume: {fileID: 832575518}
+  day:
+    ambientSky: {r: 0.55, g: 0.62, b: 0.75, a: 1}
+    ambientEquator: {r: 0.45, g: 0.45, b: 0.42, a: 1}
+    ambientGround: {r: 0.25, g: 0.22, b: 0.18, a: 1}
+    ambientIntensity: 1
+    sunIntensity: 1.2
+    sunColor: {r: 1, g: 1, b: 1, a: 1}
+    sunEuler: {x: 50, y: -30, z: 0}
+    skyTint: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+    skyGround: {r: 0.35, g: 0.3, b: 0.25, a: 1}
+    atmosphereThickness: 1
+    skyExposure: 1.3
+    fogColor: {r: 0.7, g: 0.75, b: 0.8, a: 1}
+    fogDensity: 0.008
+    postExposure: 0
+    postContrast: 0
+    postSaturation: 0
+    postHueShift: 0
+    postFilter: {r: 1, g: 1, b: 1, a: 1}
+    postFilterAmount: 0
+  dusk:
+    ambientSky: {r: 0.35, g: 0.25, b: 0.28, a: 1}
+    ambientEquator: {r: 0.28, g: 0.18, b: 0.16, a: 1}
+    ambientGround: {r: 0.12, g: 0.08, b: 0.08, a: 1}
+    ambientIntensity: 0.9
+    sunIntensity: 0.35
+    sunColor: {r: 1, g: 0.55, b: 0.3, a: 1}
+    sunEuler: {x: 4, y: -30, z: 0}
+    skyTint: {r: 0.55, g: 0.32, b: 0.25, a: 1}
+    skyGround: {r: 0.18, g: 0.12, b: 0.1, a: 1}
+    atmosphereThickness: 1.8
+    skyExposure: 1
+    fogColor: {r: 0.35, g: 0.22, b: 0.2, a: 1}
+    fogDensity: 0.02
+    postExposure: -0.2
+    postContrast: 8
+    postSaturation: -10
+    postHueShift: 0
+    postFilter: {r: 1, g: 0.75, b: 0.6, a: 1}
+    postFilterAmount: 0.15
+  night:
+    ambientSky: {r: 0.06, g: 0.07, b: 0.11, a: 1}
+    ambientEquator: {r: 0.05, g: 0.05, b: 0.08, a: 1}
+    ambientGround: {r: 0.02, g: 0.02, b: 0.03, a: 1}
+    ambientIntensity: 0.5
+    sunIntensity: 0.06
+    sunColor: {r: 0.55, g: 0.65, b: 1, a: 1}
+    sunEuler: {x: -12, y: -30, z: 0}
+    skyTint: {r: 0.05, g: 0.06, b: 0.12, a: 1}
+    skyGround: {r: 0.02, g: 0.02, b: 0.03, a: 1}
+    atmosphereThickness: 2.5
+    skyExposure: 0.35
+    fogColor: {r: 0.05, g: 0.06, b: 0.09, a: 1}
+    fogDensity: 0.045
+    reflectionIntensity: 0.3
+    postExposure: -0.5
+    postContrast: 15
+    postSaturation: -25
+    postHueShift: 0
+    postFilter: {r: 0.6, g: 0.7, b: 1, a: 1}
+    postFilterAmount: 0.3
+  duskDuration: 12
+  nightDuration: 18
+  transitionCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  onNightFallen:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!4 &608614657
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 608614655}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &660164075
 GameObject:
   m_ObjectHideFlags: 0
@@ -1296,7 +1436,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ThirdPersonCamera
   target: {fileID: 564524648}
   pivotOffset: {x: 0, y: 1.6, z: 0}
-  distance: 4
+  distance: 2
   mouseSensitivity: 2
   minPitch: -30
   maxPitch: 60
@@ -2674,6 +2814,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::InteractPromptUI
   promptText: {fileID: 138794167}
   fadeSpeed: 5
+  uiCamera: {fileID: 0}
+  screenOffset: {x: 0, y: 40}
+  worldOffset: 0.15
+  edgePadding: 40
 --- !u!1 &2146841244
 GameObject:
   m_ObjectHideFlags: 0
@@ -2712,7 +2856,19 @@ MonoBehaviour:
   holdDuration: 0.5
   onInteractEvent:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 608614656}
+        m_TargetAssemblyTypeName: LightingManager, Assembly-CSharp
+        m_MethodName: StartTransitionToNight
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &2146841246
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2835,3 +2991,4 @@ SceneRoots:
   - {fileID: 2146841250}
   - {fileID: 1106810467}
   - {fileID: 1830906741}
+  - {fileID: 608614657}
