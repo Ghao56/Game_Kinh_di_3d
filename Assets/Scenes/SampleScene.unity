@@ -339,9 +339,9 @@ Camera:
     y: 0
     width: 1
     height: 1
-  near clip plane: 0.3
+  near clip plane: 0.1
   far clip plane: 1000
-  field of view: 60
+  field of view: 55
   orthographic: 0
   orthographic size: 5
   m_Depth: -1
@@ -1435,8 +1435,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ThirdPersonCamera
   target: {fileID: 564524648}
-  pivotOffset: {x: 0, y: 1.6, z: 0}
-  distance: 2
+  pivotOffset: {x: 0, y: 0.5, z: 0}
+  distance: 2.5
   mouseSensitivity: 2
   minPitch: -30
   maxPitch: 60
@@ -1488,7 +1488,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::InteractionOriginFollower
   bodyTarget: {fileID: 564524648}
   lookSource: {fileID: 900000003}
-  eyeHeight: 1.6
+  eyeHeight: 0.5
   drawGizmo: 1
   gizmoRayLength: 2
 --- !u!1 &912982059
