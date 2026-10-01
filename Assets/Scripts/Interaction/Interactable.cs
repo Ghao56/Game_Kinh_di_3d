@@ -2,7 +2,6 @@ using UnityEngine;
 using UnityEngine.Events;
 
 [RequireComponent(typeof(Collider))]
-[RequireComponent(typeof(InteractableGlow))]
 public class Interactable : MonoBehaviour, IInteractable
 {
     [SerializeField] private string promptText = "Tương tác";

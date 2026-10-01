@@ -7,9 +7,7 @@ public class InteractionOriginFollower : MonoBehaviour
     [SerializeField] private Transform lookSource;
 
     [Header("Offset")]
-    [Tooltip("Offset so với bodyTarget. LƯU Ý: bodyTarget đứng ở GIỮA capsule, không phải ở chân. " +
-             "Nhân vật cao 2m: chân ở -0.48, đỉnh đầu ở 1.52. Nên Y = 0.5 là ngực — ray phóng từ đây.")]
-    [SerializeField] private float eyeHeight = 0.5f;
+    [SerializeField] private float eyeHeight = 1.6f;
 
     [Header("Debug")]
     [SerializeField] private bool drawGizmo = true;
