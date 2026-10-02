@@ -1,3 +1,4 @@
+
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
@@ -11,7 +12,7 @@ public class PhoneFlashlight : MonoBehaviour
 
     [Header("Cấu hình Xoay & Bỏ qua điểm gần")]
     [SerializeField] private float rotationSpeed = 15f;
-    [SerializeField] private LayerMask hitLayers = ~0; // nên loại bỏ layer Player, UI, Trigger trong Inspector
+    [SerializeField] private LayerMask hitLayers = ~0;
     [SerializeField] private float minHitDistance = 1.2f;
     [SerializeField] private float maxRayDistance = 100f;
 
@@ -24,10 +25,16 @@ public class PhoneFlashlight : MonoBehaviour
             mainCamera = Camera.main;
 
         if (mainCamera == null)
-            Debug.LogWarning($"[{nameof(PhoneFlashlight)}] Không tìm thấy Camera (kéo tay vào ô mainCamera hoặc gắn tag MainCamera).", this);
+            Debug.LogWarning(
+                $"[{nameof(PhoneFlashlight)}] Không tìm thấy Camera!",
+                this
+            );
 
         if (spotLight == null)
-            Debug.LogWarning($"[{nameof(PhoneFlashlight)}] Chưa gán 'spotLight' trong Inspector!", this);
+            Debug.LogWarning(
+                $"[{nameof(PhoneFlashlight)}] Chưa gán 'spotLight' trong Inspector!",
+                this
+            );
         else
             spotLight.enabled = isFlashlightOn;
     }
@@ -37,8 +44,6 @@ public class PhoneFlashlight : MonoBehaviour
         if (spotLight == null || mainCamera == null) return;
 
         HandleToggleInput();
-
-        spotLight.enabled = isFlashlightOn;
 
         if (isFlashlightOn && !IsPointerOverUI())
             RotateLightToMouse();
@@ -55,7 +60,8 @@ public class PhoneFlashlight : MonoBehaviour
 
     private bool IsPointerOverUI()
     {
-        return EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
+        return EventSystem.current != null &&
+               EventSystem.current.IsPointerOverGameObject();
     }
 
     private void RotateLightToMouse()
@@ -66,10 +72,15 @@ public class PhoneFlashlight : MonoBehaviour
         Ray ray = mainCamera.ScreenPointToRay(mouseScreenPos);
         Vector3 targetPoint;
 
-        if (Physics.Raycast(ray, out RaycastHit hit, maxRayDistance, hitLayers, QueryTriggerInteraction.Ignore))
+        if (Physics.Raycast(
+            ray,
+            out RaycastHit hit,
+            maxRayDistance,
+            hitLayers,
+            QueryTriggerInteraction.Ignore))
         {
-            // Điểm chạm quá gần đèn -> chiếu xa ra 10m theo hướng ray để giữ góc xoay ổn định
-            targetPoint = Vector3.Distance(hit.point, spotLight.transform.position) < minHitDistance
+            targetPoint =
+                Vector3.Distance(hit.point, spotLight.transform.position) < minHitDistance
                 ? ray.GetPoint(10f)
                 : hit.point;
         }
@@ -78,10 +89,14 @@ public class PhoneFlashlight : MonoBehaviour
             targetPoint = ray.GetPoint(20f);
         }
 
-        Vector3 targetDirection = targetPoint - spotLight.transform.position;
+        Vector3 targetDirection =
+            targetPoint - spotLight.transform.position;
+
         if (targetDirection.sqrMagnitude < 0.0001f) return;
 
-        Quaternion targetRotation = Quaternion.LookRotation(targetDirection);
+        Quaternion targetRotation =
+            Quaternion.LookRotation(targetDirection);
+
         spotLight.transform.rotation = Quaternion.Slerp(
             spotLight.transform.rotation,
             targetRotation,
@@ -92,5 +107,8 @@ public class PhoneFlashlight : MonoBehaviour
     public void ToggleFlashlight()
     {
         isFlashlightOn = !isFlashlightOn;
+
+        if (spotLight != null)
+            spotLight.enabled = isFlashlightOn;
     }
 }
