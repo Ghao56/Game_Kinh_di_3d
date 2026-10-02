@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>iPhone Home Screen Mockup</title>
+<style>
+*{box-sizing:border-box}body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#dfe7f5,#f5f7fb);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
+.phone{width:min(395px,94vw);height:min(820px,94vh);background:#090a0c;border:8px solid #08090a;border-radius:52px;padding:6px;box-shadow:0 30px 80px #0004;position:relative}
+.screen{height:100%;border-radius:40px;overflow:hidden;position:relative;background:linear-gradient(160deg,#5079b8 0%,#a7c5e7 42%,#e7cbb0 100%);color:#fff}
+.wallpaper{position:absolute;inset:0;background:
+radial-gradient(circle at 75% 20%,#fff8 0 5%,transparent 24%),
+radial-gradient(circle at 20% 78%,#fff4 0 4%,transparent 22%),
+linear-gradient(145deg,#263f73,#5d8bc0 40%,#d9a776 75%,#765548);z-index:0}
+.wallpaper:after{content:"";position:absolute;inset:0;background:linear-gradient(transparent,#0002)}
+.dynamic{position:absolute;z-index:20;top:10px;left:50%;transform:translateX(-50%);width:120px;height:32px;background:#050506;border-radius:20px;box-shadow:inset 0 0 0 1px #222}
+.cam{position:absolute;right:12px;top:8px;width:8px;height:8px;border-radius:50%;background:#172b4c}
+.status{height:48px;padding:11px 18px 0;display:flex;justify-content:space-between;position:relative;z-index:10;font-size:13px;font-weight:700}
+.right{display:flex;gap:7px;align-items:center}.battery{width:23px;height:11px;border:1.5px solid white;border-radius:3px;position:relative}.battery:after{content:"";position:absolute;right:-3px;top:3px;width:2px;height:5px;background:#fff}.battery i{display:block;width:75%;height:100%;background:#fff;border-radius:2px}
+.home{position:relative;z-index:5;padding:18px 17px 90px;height:calc(100% - 48px);overflow:auto}.home::-webkit-scrollbar{display:none}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:21px 14px}
+.app{text-align:center;color:white;text-shadow:0 1px 3px #0008;font-size:10px;font-weight:600;cursor:pointer;user-select:none}
+.icon{width:59px;height:59px;border-radius:15px;margin:auto auto 5px;display:grid;place-items:center;font-size:30px;box-shadow:0 3px 9px #0004,inset 0 1px 1px #fff7;position:relative}
+.icon:active{transform:scale(.9)}
+.safari{background:linear-gradient(#75c9ff,#1474e6)}.messages{background:linear-gradient(#68e87b,#16a83f)}.photos{background:linear-gradient(135deg,#ff6b6b,#ffd34f,#5adf8b,#4f8cff)}.camera{background:linear-gradient(#777,#222)}
+.music{background:linear-gradient(#ff6b86,#c92e63)}.settings{background:linear-gradient(#aeb5c1,#535c68)}.calendar{background:#fff;color:#222;text-shadow:none}.clock{background:#111}.weather{background:linear-gradient(#42b5f5,#176ce5)}.notes{background:linear-gradient(#fff36a,#ffc928);color:#333}.appstore{background:linear-gradient(#63b8ff,#1670dc)}.calculator{background:#292929}.mail{background:linear-gradient(#68b8ff,#1673db)}.maps{background:linear-gradient(135deg,#7bd18d,#f4e98b,#66a6e8)}
+.calendar .date{font-size:24px;font-weight:700}.calendar small{font-size:8px;color:#d33;position:absolute;top:6px}.clock-face{width:39px;height:39px;border:2px solid #fff;border-radius:50%;position:relative}.clock-face:before{content:"";position:absolute;width:2px;height:14px;background:#fff;left:18px;top:7px;transform:rotate(25deg);transform-origin:bottom}.clock-face:after{content:"";position:absolute;width:2px;height:12px;background:#fff;left:18px;top:18px;transform:rotate(120deg);transform-origin:top}
+.dock{position:absolute;z-index:15;bottom:15px;left:12px;right:12px;height:82px;border-radius:27px;background:#ffffff3b;backdrop-filter:blur(18px);display:grid;grid-template-columns:repeat(4,1fr);align-items:center;padding:8px 12px;border:1px solid #ffffff33}
+.dock .icon{width:55px;height:55px}.dock .app{font-size:0}
+.page{position:absolute;z-index:30;inset:0;background:#f5f6fa;color:#111;transform:translateY(100%);transition:.28s ease;display:flex;flex-direction:column}
+.page.open{transform:translateY(0)}
+.apphead{height:62px;padding:15px 18px 8px;display:flex;align-items:end;justify-content:space-between;border-bottom:1px solid #ddd;background:#fff}
+.apphead h2{margin:0;font-size:21px}.close{border:0;background:#e9edf3;width:35px;height:35px;border-radius:50%;font-size:20px;cursor:pointer}
+.appbody{flex:1;padding:18px;overflow:auto}.big{font-size:50px;text-align:center;margin:20px 0}.card{background:#fff;border-radius:18px;padding:15px;margin-bottom:12px;box-shadow:0 1px 5px #0001}
+.search{background:#e9edf3;border-radius:12px;padding:12px;color:#687386;margin-bottom:15px}
+.appgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.mini{background:#fff;border-radius:15px;padding:15px;text-align:center;box-shadow:0 1px 5px #0001}.mini b{font-size:25px;display:block;margin-bottom:6px}
+.home-indicator{position:absolute;z-index:50;bottom:5px;left:50%;transform:translateX(-50%);width:115px;height:4px;border-radius:5px;background:#fff}
+.toast{position:absolute;z-index:60;top:65px;left:50%;transform:translate(-50%,-15px);background:#111d;color:#fff;padding:9px 14px;border-radius:15px;font-size:11px;opacity:0;transition:.2s;pointer-events:none}.toast.show{opacity:1;transform:translate(-50%,0)}
+@media(max-height:700px){.grid{gap:14px 10px}.icon{width:50px;height:50px;font-size:25px}.dock .icon{width:49px;height:49px}}
+</style>
+</head>
+<body>
+<div class="phone">
+ <div class="screen">
+  <div class="wallpaper"></div>
+  <div class="dynamic"><div class="cam"></div></div>
+  <div class="status"><span id="time">9:41</span><span class="right"><span>▮▮▮</span><span>⌁</span><span class="battery"><i></i></span></span></div>
+
+  <main class="home">
+   <div class="grid">
+    <div class="app" onclick="openApp('Safari','🌐','Tìm kiếm trên web','search')"><div class="icon safari">🧭</div>Safari</div>
+    <div class="app" onclick="openApp('Tin nhắn','💬','Tin nhắn','messages')"><div class="icon messages">💬</div>Tin nhắn</div>
+    <div class="app" onclick="openApp('Ảnh','🌈','Thư viện ảnh','photos')"><div class="icon photos">🌈</div>Ảnh</div>
+    <div class="app" onclick="openApp('Camera','📷','Camera','camera')"><div class="icon camera">📷</div>Camera</div>
+    <div class="app" onclick="openApp('Âm nhạc','♫','Nghe nhạc','music')"><div class="icon music">♫</div>Nhạc</div>
+    <div class="app" onclick="openApp('Cài đặt','⚙','Cài đặt iPhone','settings')"><div class="icon settings">⚙</div>Cài đặt</div>
+    <div class="app" onclick="openApp('Lịch','30','Lịch của bạn','calendar')"><div class="icon calendar"><small>THÁNG 9</small><span class="date">30</span></div>Lịch</div>
+    <div class="app" onclick="openApp('Đồng hồ','◷','Giờ hiện tại','clock')"><div class="icon clock"><div class="clock-face"></div></div>Đồng hồ</div>
+    <div class="app" onclick="openApp('Thời tiết','☀️','Thời tiết hôm nay','weather')"><div class="icon weather">☀️</div>Thời tiết</div>
+    <div class="app" onclick="openApp('Ghi chú','📝','Ghi chú','notes')"><div class="icon notes">📝</div>Ghi chú</div>
+    <div class="app" onclick="openApp('App Store','A','Khám phá ứng dụng','appstore')"><div class="icon appstore">A</div>App Store</div>
+    <div class="app" onclick="openApp('Máy tính','÷','Máy tính','calculator')"><div class="icon calculator">÷</div>Máy tính</div>
+    <div class="app" onclick="openApp('Mail','✉','Hộp thư','mail')"><div class="icon mail">✉</div>Mail</div>
+    <div class="app" onclick="openApp('Bản đồ','🗺️','Bản đồ','maps')"><div class="icon maps">🗺️</div>Bản đồ</div>
+    <div class="app" onclick="openApp('Tài liệu','📁','Tệp của bạn','files')"><div class="icon settings">📁</div>Tệp</div>
+    <div class="app" onclick="openApp('Danh bạ','👥','Danh bạ','contacts')"><div class="icon messages">👥</div>Danh bạ</div>
+   </div>
+  </main>
+
+  <div class="dock">
+   <div class="app" onclick="openApp('Điện thoại','☎','Danh bạ và cuộc gọi','phone')"><div class="icon messages">☎</div>Điện thoại</div>
+   <div class="app" onclick="openApp('Safari','🌐','Tìm kiếm trên web','search')"><div class="icon safari">🧭</div>Safari</div>
+   <div class="app" onclick="openApp('Tin nhắn','💬','Tin nhắn','messages')"><div class="icon messages">💬</div>Tin nhắn</div>
+   <div class="app" onclick="openApp('Nhạc','♫','Nghe nhạc','music')"><div class="icon music">♫</div>Nhạc</div>
+  </div>
+
+  <section class="page" id="appPage">
+   <div class="apphead"><h2 id="appTitle">Ứng dụng</h2><button class="close" onclick="closeApp()">×</button></div>
+   <div class="appbody" id="appBody"></div>
+  </section>
+  <div class="home-indicator"></div>
+  <div class="toast" id="toast"></div>
+ </div>
+</div>
+<script>
+function updateTime(){let d=new Date();document.getElementById('time').textContent=d.toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit',hour12:false})}
+updateTime();setInterval(updateTime,30000);
+const page=document.getElementById('appPage'),title=document.getElementById('appTitle'),body=document.getElementById('appBody');
+function openApp(name,emoji,desc,type){
+ title.textContent=name;
+ let content='';
+ if(type==='search') content='<div class="search">⌕  Tìm kiếm hoặc nhập địa chỉ web</div><div class="big">🌐</div><div class="card"><b>Trang web yêu thích</b><p>Truy cập nhanh các trang web của bạn.</p></div>';
+ else if(type==='messages') content='<div class="card"><b>💬 Minh</b><p>Chào bạn! 👋</p><small>10:24</small></div><div class="card"><b>💬 Nhóm học tập</b><p>Hôm nay chúng ta học lúc 19:00 nhé.</p></div>';
+ else if(type==='photos') content='<div class="appgrid"><div class="mini">🌄<br>Phong cảnh</div><div class="mini">🐱<br>Động vật</div><div class="mini">🏙️<br>Thành phố</div><div class="mini">🌅<br>Kỷ niệm</div></div>';
+ else if(type==='camera') content='<div style="height:430px;border-radius:24px;background:linear-gradient(135deg,#333,#111);display:grid;place-items:center;color:white;font-size:70px">📷</div><div class="big" style="font-size:30px">◉</div>';
+ else if(type==='music') content='<div class="big">🎵</div><div class="card"><b>Bài hát đang phát</b><p>Khám phá âm nhạc yêu thích của bạn.</p><button onclick="toast(\'Đang phát nhạc ▶\')" style="padding:10px 20px;border:0;border-radius:12px;background:#222;color:white">▶ Phát</button></div>';
+ else if(type==='settings') content='<div class="card"><b>📶 Wi-Fi</b><p>Đang kết nối</p></div><div class="card"><b>🔵 Bluetooth</b><p>Đã bật</p></div><div class="card"><b>🔔 Thông báo</b><p>Được phép</p></div><div class="card"><b>🌙 Giao diện</b><p>Sáng</p></div>';
+ else if(type==='calendar') content='<div class="big">30</div><div class="card"><b>Hôm nay</b><p>Không có sự kiện nào.</p></div>';
+ else if(type==='clock') content='<div class="big">🕘</div><div class="card"><b>'+new Date().toLocaleTimeString('vi-VN')+'</b><p>Giờ hiện tại</p></div>';
+ else if(type==='weather') content='<div class="big">☀️</div><div class="card" style="text-align:center"><b style="font-size:34px">29°</b><p>Trời quang · TP. Hồ Chí Minh</p></div>';
+ else if(type==='notes') content='<div class="card"><b>📝 Danh sách công việc</b><p>☐ Hoàn thành bài tập<br>☐ Làm dự án<br>☐ Học tiếng Anh</p></div>';
+ else if(type==='appstore') content='<div class="search">⌕ Tìm kiếm ứng dụng</div><div class="card"><b>⭐ Ứng dụng nổi bật</b><p>Khám phá các ứng dụng mới.</p></div>';
+ else if(type==='calculator') content='<div class="card" style="font-size:35px;text-align:right">0</div><div class="appgrid">'+['7','8','9','÷','4','5','6','×','1','2','3','−','0','.','=','+'].map(x=>'<div class="mini" onclick="toast(\\''+x+'\\')">'+x+'</div>').join('')+'</div>';
+ else if(type==='mail') content='<div class="card"><b>✉ Chào bạn!</b><p>Bạn có thư mới trong hộp thư.</p></div><div class="card"><b>📩 Thông báo hệ thống</b><p>Cập nhật tài khoản thành công.</p></div>';
+ else if(type==='maps') content='<div style="height:400px;border-radius:22px;background:linear-gradient(45deg,#d7e8c4,#f7edbd);display:grid;place-items:center;font-size:55px">🗺️</div>';
+ else if(type==='files') content='<div class="card">📁 Tài liệu học tập</div><div class="card">📁 Dự án</div><div class="card">📄 Bài tập</div>';
+ else if(type==='contacts') content='<div class="card"><b>👤 Minh</b><p>0123 456 789</p></div><div class="card"><b>👤 Tân</b><p>0987 654 321</p></div>';
+ else content='<div class="big">'+emoji+'</div><div class="card"><b>'+desc+'</b><p>Đây là giao diện mô phỏng có thể tương tác.</p></div>';
+ body.innerHTML=content;page.classList.add('open');
+}
+function closeApp(){page.classList.remove('open')}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1200)}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeApp()});
+</script>
+</body>
+</html>
