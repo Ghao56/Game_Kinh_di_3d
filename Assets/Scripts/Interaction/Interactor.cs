@@ -131,6 +131,7 @@ public class Interactor : MonoBehaviour
             if (ignoreRoot != null && col.transform.IsChildOf(ignoreRoot)) continue;
 
             IInteractable it = col.GetComponentInParent<IInteractable>();
+            if (it is IInteractableAvailability availability && !availability.IsAvailable) it = null;
             if (col.isTrigger && it == null) continue;
 
             if (hit.distance < best)
