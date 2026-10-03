@@ -1,0 +1,321 @@
+/* --- Khung Điện Thoại cố định ở góc dưới bên phải --- */
+.phone {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    width: 360px;
+    height: 720px;
+    background-color: #090a0c;
+    border-radius: 48px;
+    border-width: 8px;
+    border-color: #1a1c20;
+    padding: 4px;
+    overflow: hidden;
+}
+
+.screen {
+    width: 100%;
+    height: 100%;
+    border-radius: 40px;
+    overflow: hidden;
+    position: relative;
+    background-color: #263f73;
+}
+
+/* Wallpaper Background */
+.wallpaper {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #3b5998;
+}
+
+/* Nút Icon Bật/Tắt ngoài góc màn hình */
+.phone-icon-btn {
+    position: absolute;
+    bottom: 25px;
+    right: 25px;
+    width: 65px;
+    height: 65px;
+    border-radius: 32px;
+    background-color: rgba(15, 15, 20, 0.85);
+    color: white;
+    font-size: 30px;
+    border-width: 2px;
+    border-color: rgba(255, 255, 255, 0.25);
+    -unity-text-align: middle-center;
+    cursor: pointer;
+}
+
+/* Dynamic Island */
+.dynamic {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    translate: -50% 0;
+    width: 110px;
+    height: 28px;
+    background-color: #000000;
+    border-radius: 18px;
+    z-index: 20;
+}
+
+.cam {
+    position: absolute;
+    right: 10px;
+    top: 8px;
+    width: 10px;
+    height: 10px;
+    border-radius: 5px;
+    background-color: #172b4c;
+}
+
+/* Status Bar */
+.status {
+    height: 44px;
+    padding-top: 10px;
+    padding-left: 20px;
+    padding-right: 20px;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 10;
+}
+
+.time-text {
+    color: white;
+    font-size: 13px;
+    -unity-font-style: bold;
+}
+
+.status-right {
+    flex-direction: row;
+    align-items: center;
+}
+
+.status-signal {
+    color: white;
+    font-size: 11px;
+    margin-right: 5px;
+}
+
+.battery {
+    width: 22px;
+    height: 11px;
+    border-width: 1px;
+    border-color: white;
+    border-radius: 3px;
+    padding: 1px;
+}
+
+.battery-level {
+    width: 80%;
+    height: 100%;
+    background-color: white;
+    border-radius: 1px;
+}
+
+/* Màn Hình Chính */
+.home {
+    flex-grow: 1;
+    padding: 15px;
+    padding-bottom: 90px;
+}
+
+.grid {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+
+/* Item App */
+.app {
+    width: 70px;
+    margin-bottom: 18px;
+    background-color: rgba(0, 0, 0, 0);
+    border-width: 0;
+    align-items: center;
+    padding: 0;
+    cursor: pointer;
+}
+
+.dock-app {
+    margin-bottom: 0;
+}
+
+.icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 15px;
+    justify-content: center;
+    align-items: center;
+    font-size: 28px;
+    color: white;
+}
+
+.app-name {
+    color: white;
+    font-size: 11px;
+    margin-top: 4px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+}
+
+/* Màu sắc Icon các App */
+.icon-safari { background-color: #1474e6; }
+.icon-messages { background-color: #16a83f; }
+.icon-photos { background-color: #ff6b6b; }
+.icon-camera { background-color: #333333; }
+.icon-music { background-color: #c92e63; }
+.icon-settings { background-color: #535c68; }
+.icon-calendar { background-color: #ffffff; color: #222222; flex-direction: column; }
+.calendar-month { color: #d33333; font-size: 8px; -unity-font-style: bold; }
+.calendar-date { color: #222222; font-size: 22px; -unity-font-style: bold; }
+.icon-clock { background-color: #111111; }
+.clock-icon-text { font-size: 32px; }
+.icon-weather { background-color: #176ce5; }
+.icon-notes { background-color: #ffc928; color: #222222; }
+.icon-appstore { background-color: #1670dc; }
+.appstore-text { -unity-font-style: bold; font-size: 26px; }
+.icon-calculator { background-color: #292929; }
+.icon-mail { background-color: #1673db; }
+.icon-maps { background-color: #7bd18d; }
+.icon-files { background-color: #535c68; }
+.icon-contacts { background-color: #16a83f; }
+
+/* Thanh Dock */
+.dock {
+    position: absolute;
+    bottom: 18px;
+    left: 12px;
+    right: 12px;
+    height: 75px;
+    border-radius: 26px;
+    background-color: rgba(255, 255, 255, 0.25);
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    padding-left: 8px;
+    padding-right: 8px;
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Trang Chi Tiết App (Trượt lên) */
+.app-page {
+    position: absolute;
+    left: 0;
+    top: 100%;
+    width: 100%;
+    height: 100%;
+    background-color: #f5f6fa;
+    transition: top 0.28s ease-in-out;
+    z-index: 30;
+    flex-direction: column;
+}
+
+.app-page.open {
+    top: 0;
+}
+
+.apphead {
+    height: 60px;
+    padding-top: 15px;
+    padding-left: 18px;
+    padding-right: 18px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #ffffff;
+    border-bottom-width: 1px;
+    border-bottom-color: #dddddd;
+}
+
+.app-head-title {
+    font-size: 20px;
+    -unity-font-style: bold;
+    color: #111111;
+}
+
+.close-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 16px;
+    background-color: #e9edf3;
+    border-width: 0;
+    font-size: 18px;
+    color: #333333;
+    -unity-text-align: middle-center;
+    cursor: pointer;
+}
+
+.appbody {
+    flex-grow: 1;
+    padding: 16px;
+}
+
+/* Styling Thẻ Nội Dung Trong App (Card View) */
+.card {
+    background-color: #ffffff;
+    border-radius: 14px;
+    padding: 12px;
+    margin-bottom: 10px;
+    border-width: 1px;
+    border-color: #e5e5e5;
+}
+
+.card-title {
+    font-size: 14px;
+    -unity-font-style: bold;
+    color: #111111;
+    margin-bottom: 4px;
+}
+
+.card-text {
+    font-size: 12px;
+    color: #555555;
+    white-space: normal;
+}
+
+.big-emoji {
+    font-size: 45px;
+    -unity-text-align: middle-center;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+/* Home Indicator */
+.home-indicator {
+    position: absolute;
+    bottom: 5px;
+    left: 50%;
+    translate: -50% 0;
+    width: 115px;
+    height: 4px;
+    border-radius: 2px;
+    background-color: #ffffff;
+    border-width: 0;
+    z-index: 50;
+    cursor: pointer;
+}
+
+/* Toast Popup */
+.toast {
+    position: absolute;
+    top: 55px;
+    left: 50%;
+    translate: -50% 0;
+    background-color: rgba(17, 17, 17, 0.9);
+    color: #ffffff;
+    padding: 8px 14px;
+    border-radius: 12px;
+    font-size: 11px;
+    display: none;
+    z-index: 60;
+}
+
+.toast.show {
+    display: flex;
+}
