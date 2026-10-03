@@ -3641,8 +3641,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 708e1684b6b13b64f826738be59f13cc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  flashlight: {fileID: 1846668281}
+  spotLight: {fileID: 0}
+  mainCamera: {fileID: 0}
   isFlashlightOn: 1
+  rotationSpeed: 15
+  hitLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  minHitDistance: 1.2
+  maxRayDistance: 100
+  toggleWithLeftClick: 1
 --- !u!1 &1707621735
 GameObject:
   m_ObjectHideFlags: 0
