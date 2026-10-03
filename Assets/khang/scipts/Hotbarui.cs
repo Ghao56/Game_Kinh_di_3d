@@ -2,20 +2,19 @@ using UnityEngine;
 using UnityEngine.UI;
 
 // Gắn script này vào 1 object cha rỗng trong Canvas.
-// Kéo vào "Slot Texts" đúng 5 (hoặc bằng số throwables) object Text con,
-// theo ĐÚNG THỨ TỰ khớp với "Throwables" bên component ThrowableSelector
-// (Text thứ 0 hiển thị cho throwables[0], v.v).
-// Mỗi ô hiện "Tên: Số lượng", ô đang được chọn có thêm dấu ▲ phía trước.
+// Kéo vào "Slot Texts" đúng 5 (hoặc ít hơn) object Text con.
+// Vị trí hiển thị KHÔNG cố định theo thứ tự khai báo trong ThrowableSelector nữa -
+// mà theo thứ tự NHẶT ĐƯỢC LẦN ĐẦU TIÊN (xem ThrowableSelector.cs).
+// Ô nào chưa từng nhặt, hoặc hiện đang hết hàng (count == 0), sẽ tự ẩn (để trống).
 public class HotbarUI : MonoBehaviour
 {
     public ThrowableSelector selector;
-    public PlayerInventory inventory;
 
     public Text[] slotTexts;
 
     void Update()
     {
-        if (selector == null || inventory == null)
+        if (selector == null)
             return;
 
         for (int i = 0; i < slotTexts.Length; i++)
@@ -23,13 +22,9 @@ public class HotbarUI : MonoBehaviour
             if (slotTexts[i] == null)
                 continue;
 
-            if (i >= selector.throwables.Length)
-            {
-                slotTexts[i].text = "";
-                continue;
-            }
+            IThrowable item = selector.GetItemAt(i);
 
-            if (!(selector.throwables[i] is IThrowable item))
+            if (item == null)
             {
                 slotTexts[i].text = "";
                 continue;
@@ -37,7 +32,7 @@ public class HotbarUI : MonoBehaviour
 
             int count = item.GetCount();
 
-            // Chưa từng nhặt (count == 0) -> ẩn luôn ô này
+            // Hết hàng -> ẩn luôn ô này (vị trí vẫn được giữ, chỉ là không hiện chữ)
             if (count <= 0)
             {
                 slotTexts[i].text = "";
