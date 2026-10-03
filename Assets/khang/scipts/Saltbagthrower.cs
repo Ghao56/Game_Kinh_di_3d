@@ -77,4 +77,9 @@ public class SaltBagThrower : MonoBehaviour, IThrowable
 
         return true;
     }
+
+    public int GetCount()
+    {
+        return inventory != null ? inventory.GetCount(itemId) : 0;
+    }
 }

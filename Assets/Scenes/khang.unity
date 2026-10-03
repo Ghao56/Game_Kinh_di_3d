@@ -1633,6 +1633,7 @@ GameObject:
   m_Component:
   - component: {fileID: 511995813}
   - component: {fileID: 511995812}
+  - component: {fileID: 511995814}
   m_Layer: 0
   m_Name: GameObject
   m_TagString: Untagged
@@ -1687,6 +1688,20 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &511995814
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 511995811}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cc8aabee2f6679a4ba64bdc31669ba5b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CanvasToggle
+  target: {fileID: 1500393852}
+  toggleKey: 32
 --- !u!1 &530179325
 GameObject:
   m_ObjectHideFlags: 0
@@ -1891,37 +1906,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 545648378}
   m_Mesh: {fileID: 10208, guid: 0000000000000000e000000000000000, type: 0}
---- !u!1 &547268098
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 547268099}
-  m_Layer: 0
-  m_Name: GameObject (1)
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &547268099
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 547268098}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1606.8823, y: -0.00002, z: 1040.8988}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &564524644
 GameObject:
   m_ObjectHideFlags: 0
@@ -1939,12 +1923,12 @@ GameObject:
   - component: {fileID: 564524651}
   - component: {fileID: 564524652}
   - component: {fileID: 564524654}
-  - component: {fileID: 564524653}
   - component: {fileID: 564524656}
-  - component: {fileID: 564524655}
+  - component: {fileID: 564524657}
+  - component: {fileID: 564524658}
   m_Layer: 0
   m_Name: PlayerCharacter
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2136,18 +2120,6 @@ MonoBehaviour:
   actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   promptUI: {fileID: 2042761995}
   logInteractions: 0
---- !u!114 &564524653
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 564524644}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7a8b038d5e17cc240bb739a0a38b6105, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerInventory
 --- !u!114 &564524654
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2161,13 +2133,44 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SaltBagThrower
   displayName: "Mu\u1ED1i"
-  inventory: {fileID: 564524653}
+  inventory: {fileID: 564524657}
   itemId: Salt
   projectilePrefab: {fileID: 2710496248691422834, guid: 63b616b70656fb043a77dd295072bb5b, type: 3}
   throwPoint: {fileID: 240830925}
   cameraTransform: {fileID: 330585546}
   throwForce: 15
---- !u!114 &564524655
+--- !u!114 &564524656
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 564524644}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 26d20eca098b83a4998398a40c2f43ce, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WineSprayer
+  displayName: "R\u01B0\u1EE3u"
+  inventory: {fileID: 564524657}
+  itemId: Alcohol
+  projectilePrefab: {fileID: 2384906191286385960, guid: 6fcdcc559ed52e34fa30a55907278078, type: 3}
+  throwPoint: {fileID: 914363183}
+  cameraTransform: {fileID: 330585546}
+  throwForce: 12
+--- !u!114 &564524657
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 564524644}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a8b038d5e17cc240bb739a0a38b6105, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerInventory
+--- !u!114 &564524658
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -2183,25 +2186,6 @@ MonoBehaviour:
   - {fileID: 564524654}
   - {fileID: 564524656}
   throwKey: 20
---- !u!114 &564524656
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 564524644}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 26d20eca098b83a4998398a40c2f43ce, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::WineSprayer
-  displayName: "R\u01B0\u1EE3u"
-  inventory: {fileID: 564524653}
-  itemId: Alcohol
-  projectilePrefab: {fileID: 2384906191286385960, guid: 6fcdcc559ed52e34fa30a55907278078, type: 3}
-  throwPoint: {fileID: 914363183}
-  cameraTransform: {fileID: 330585546}
-  throwForce: 12
 --- !u!1 &607308281
 GameObject:
   m_ObjectHideFlags: 0
@@ -2409,10 +2393,10 @@ MonoBehaviour:
       m_Calls: []
   m_FontData:
     m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
-    m_FontSize: 14
+    m_FontSize: 20
     m_FontStyle: 0
     m_BestFit: 0
-    m_MinSize: 10
+    m_MinSize: 0
     m_MaxSize: 40
     m_Alignment: 0
     m_AlignByGeometry: 0
@@ -2988,10 +2972,10 @@ MonoBehaviour:
       m_Calls: []
   m_FontData:
     m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
-    m_FontSize: 14
+    m_FontSize: 20
     m_FontStyle: 0
     m_BestFit: 0
-    m_MinSize: 10
+    m_MinSize: 0
     m_MaxSize: 40
     m_Alignment: 0
     m_AlignByGeometry: 0
@@ -3240,10 +3224,10 @@ MonoBehaviour:
       m_Calls: []
   m_FontData:
     m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
-    m_FontSize: 14
+    m_FontSize: 20
     m_FontStyle: 0
     m_BestFit: 0
-    m_MinSize: 10
+    m_MinSize: 0
     m_MaxSize: 40
     m_Alignment: 0
     m_AlignByGeometry: 0
@@ -4371,7 +4355,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7665d30d1ffd8224386fefa169642eca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SaltBagInventoryUI
-  inventory: {fileID: 564524653}
+  inventory: {fileID: 0}
 --- !u!1 &1341527837
 GameObject:
   m_ObjectHideFlags: 0
@@ -4461,19 +4445,19 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1341527837}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1167716175}
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 1500393856}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
-  m_Pivot: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 960, y: 540}
+  m_SizeDelta: {x: 1920, y: 1080}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1355458663
 GameObject:
   m_ObjectHideFlags: 0
@@ -5342,6 +5326,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1876016771}
+  - {fileID: 1341527841}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -5795,10 +5780,10 @@ MonoBehaviour:
       m_Calls: []
   m_FontData:
     m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
-    m_FontSize: 14
+    m_FontSize: 20
     m_FontStyle: 0
     m_BestFit: 0
-    m_MinSize: 10
+    m_MinSize: 0
     m_MaxSize: 40
     m_Alignment: 0
     m_AlignByGeometry: 0
@@ -6390,10 +6375,10 @@ MonoBehaviour:
       m_Calls: []
   m_FontData:
     m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
-    m_FontSize: 14
+    m_FontSize: 20
     m_FontStyle: 0
     m_BestFit: 0
-    m_MinSize: 10
+    m_MinSize: 0
     m_MaxSize: 40
     m_Alignment: 0
     m_AlignByGeometry: 0
@@ -6810,6 +6795,7 @@ GameObject:
   - component: {fileID: 1876016773}
   - component: {fileID: 1876016776}
   - component: {fileID: 1876016775}
+  - component: {fileID: 1876016777}
   m_Layer: 5
   m_Name: Hotbar
   m_TagString: Untagged
@@ -6927,6 +6913,26 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
+--- !u!114 &1876016777
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1876016770}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5d18ed0a9212dfa47bcae4b9585c0329, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HotbarUI
+  selector: {fileID: 564524658}
+  inventory: {fileID: 564524657}
+  slotTexts:
+  - {fileID: 665579109}
+  - {fileID: 1721640282}
+  - {fileID: 870656914}
+  - {fileID: 1593844994}
+  - {fileID: 826328513}
 --- !u!1 &1985098473
 GameObject:
   m_ObjectHideFlags: 0
@@ -7523,7 +7529,5 @@ SceneRoots:
   - {fileID: 1355458667}
   - {fileID: 511995813}
   - {fileID: 138006351}
-  - {fileID: 1341527841}
   - {fileID: 1362904906}
   - {fileID: 1500393856}
-  - {fileID: 547268099}

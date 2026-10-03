@@ -29,23 +29,24 @@ public class HotbarUI : MonoBehaviour
                 continue;
             }
 
-            string name = "?";
-            int count = 0;
-
-            if (selector.throwables[i] is SaltBagThrower salt)
+            if (!(selector.throwables[i] is IThrowable item))
             {
-                name = salt.displayName;
-                count = inventory.GetCount(salt.itemId);
+                slotTexts[i].text = "";
+                continue;
             }
-            else if (selector.throwables[i] is WineSprayer wine)
+
+            int count = item.GetCount();
+
+            // Chưa từng nhặt (count == 0) -> ẩn luôn ô này
+            if (count <= 0)
             {
-                name = wine.displayName;
-                count = inventory.GetCount(wine.itemId);
+                slotTexts[i].text = "";
+                continue;
             }
 
             bool selected = (i == selector.CurrentIndex);
 
-            slotTexts[i].text = (selected ? "▲ " : "   ") + $"{i + 1}. {name}: {count}";
+            slotTexts[i].text = (selected ? "➤ " : "   ") + $"{i + 1}. {item.DisplayName}: {count}";
         }
     }
 }

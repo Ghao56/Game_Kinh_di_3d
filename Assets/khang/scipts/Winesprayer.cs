@@ -5,12 +5,12 @@ using UnityEngine;
 // mà không ảnh hưởng gì tới muối.
 public class WineSprayer : MonoBehaviour, IThrowable
 {
-    public string displayName = "Rượu";
+    public string displayName = "Chai rượu";
     public string DisplayName => displayName;
 
     public PlayerInventory inventory;
 
-    public string itemId = "Alcohol";
+    public string itemId = "Wine";
 
     // Prefab giọt/chai rượu bay ra (cần có Rigidbody + Collider + script WineProjectile)
     public GameObject projectilePrefab;
@@ -75,5 +75,10 @@ public class WineSprayer : MonoBehaviour, IThrowable
         Debug.Log($"Đã phun {itemId}, còn lại: {inventory.GetCount(itemId)}");
 
         return true;
+    }
+
+    public int GetCount()
+    {
+        return inventory != null ? inventory.GetCount(itemId) : 0;
     }
 }

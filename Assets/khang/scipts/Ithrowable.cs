@@ -8,4 +8,7 @@ public interface IThrowable
 
     // Thực hiện ném/dùng. Trả về true nếu thành công, false nếu hết hàng/thiếu tham chiếu.
     bool TryThrow();
+
+    // Số lượng hiện có trong kho của vật phẩm này - UI dùng để biết có nên hiện ô này không
+    int GetCount();
 }
