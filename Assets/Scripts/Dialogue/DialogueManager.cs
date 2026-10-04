@@ -211,13 +211,19 @@ public class DialogueManager : MonoBehaviour
             bool hasSpeaker = !string.IsNullOrEmpty(line.speaker);
             if (hasSpeaker)
             {
-                speakerText.text = line.speaker.Trim();
-                speakerText.gameObject.SetActive(true);
+                if (speakerText.text != line.speaker.Trim())
+                {
+                    speakerText.text = line.speaker.Trim();
+                }
+                if (!speakerText.gameObject.activeSelf)
+                {
+                    speakerText.gameObject.SetActive(true);
+                }
             }
             else
             {
-                speakerText.text = string.Empty;
-                speakerText.gameObject.SetActive(false);
+                // Giữ tên speaker hiển thị nếu dòng trước cũng cùng speaker
+                // (không clear text khi trống)
             }
         }
 
