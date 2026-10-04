@@ -31,9 +31,6 @@ public class ThirdPersonController : MonoBehaviour
 
     [Header("Input")]
     [SerializeField] private InputActionAsset actions;
-    
-    // [Header("Input Lock")]
-    // [SerializeField] private bool logInputLockState = false;
 
     [Header("Camera Reference")]
     [SerializeField] private Transform cameraTransform;
@@ -47,9 +44,6 @@ public class ThirdPersonController : MonoBehaviour
     private bool isCrouching;
     private int crouchParameterHash;
     private bool hasCrouchParameter;
-
-    public bool IsGrounded => controller != null && controller.isGrounded;
-    public bool InputLocked => false;
 
     private void Awake()
     {
@@ -76,26 +70,6 @@ public class ThirdPersonController : MonoBehaviour
         crouchAction = playerMap.FindAction("Crouch", throwIfNotFound: true);
 
         CacheCrouchParameter();
-    }
-    
-    public void SetInputLocked(bool locked)
-    {
-        if (inputLocked == locked)
-        {
-            return;
-        }
-        
-        inputLocked = locked;
-        
-        if (logInputLockState)
-        {
-            Debug.Log($"[ThirdPersonController] InputLocked={locked}, IsGrounded={IsGrounded}");
-        }
-        
-        if (locked)
-        {
-            // Xoá sạch vận tốc ngang khi khoá input, giữ verticalVelocity để vẫn rơi tự nhiên
-        }
     }
 
     private void CacheCrouchParameter()
@@ -155,11 +129,7 @@ public class ThirdPersonController : MonoBehaviour
 
     private void HandleCrouch()
     {
-        bool wantCrouch = false;
-        if (!inputLocked)
-        {
-            wantCrouch = crouchAction.ReadValue<float>() > 0.5f;
-        }
+        bool wantCrouch = crouchAction.ReadValue<float>() > 0.5f;
 
         if (wantCrouch == isCrouching)
         {
@@ -184,11 +154,7 @@ public class ThirdPersonController : MonoBehaviour
     // Trả về vận tốc theo mặt phẳng ngang (m/s). Không gọi controller.Move ở đây.
     private Vector3 HandleMovement()
     {
-        Vector2 input = Vector2.zero;
-        if (!inputLocked)
-        {
-            input = moveAction.ReadValue<Vector2>();
-        }
+        Vector2 input = moveAction.ReadValue<Vector2>();
 
         Vector3 camForward = cameraTransform.forward;
         Vector3 camRight = cameraTransform.right;
@@ -199,16 +165,9 @@ public class ThirdPersonController : MonoBehaviour
 
         Vector3 moveDirection = camForward * input.y + camRight * input.x;
 
-        if (!inputLocked && input.magnitude > 0.01f)
-        {
-            RotateTowards(camForward);
-        }
+        RotateTowards(camForward);
 
-        bool wantsSprint = false;
-        if (!inputLocked)
-        {
-            wantsSprint = sprintAction.IsPressed() && input.magnitude > 0.1f && !isCrouching;
-        }
+        bool wantsSprint = sprintAction.IsPressed() && input.magnitude > 0.1f && !isCrouching;
         bool sprinting = wantsSprint && (stamina == null || stamina.CanSprint);
 
         if (stamina != null)
@@ -217,11 +176,6 @@ public class ThirdPersonController : MonoBehaviour
         }
 
         float speedMultiplier = isCrouching ? crouchMultiplier : (sprinting ? sprintMultiplier : 1f);
-
-        if (inputLocked || input.magnitude < 0.001f)
-        {
-            return Vector3.zero;
-        }
 
         return moveDirection * moveSpeed * speedMultiplier;
     }
@@ -235,11 +189,7 @@ public class ThirdPersonController : MonoBehaviour
     // Chỉ cập nhật verticalVelocity, việc di chuyển thật sự nằm ở Update().
     private void UpdateVerticalVelocity()
     {
-        bool jumpPressed = false;
-        if (!inputLocked && Time.frameCount > ignoreJumpUntilFrame)
-        {
-            jumpPressed = jumpAction.WasPressedThisFrame();
-        }
+        bool jumpPressed = jumpAction.WasPressedThisFrame();
 
         if (logJumpDebug && jumpPressed)
         {

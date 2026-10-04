@@ -209,8 +209,16 @@ public class DialogueManager : MonoBehaviour
         if (speakerText != null)
         {
             bool hasSpeaker = !string.IsNullOrEmpty(line.speaker);
-            speakerText.text = hasSpeaker ? line.speaker : string.Empty;
-            speakerText.gameObject.SetActive(hasSpeaker);
+            if (hasSpeaker)
+            {
+                speakerText.text = line.speaker.Trim();
+                speakerText.gameObject.SetActive(true);
+            }
+            else
+            {
+                speakerText.text = string.Empty;
+                speakerText.gameObject.SetActive(false);
+            }
         }
 
         bodyText.text = line.text ?? string.Empty;

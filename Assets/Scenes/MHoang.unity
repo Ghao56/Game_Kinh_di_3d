@@ -1169,7 +1169,6 @@ MonoBehaviour:
   logCrouchState: 1
   blockJumpWhileCrouching: 1
   actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
-  logInputLockState: 0
   cameraTransform: {fileID: 330585546}
 --- !u!114 &564524651
 MonoBehaviour:
@@ -1611,7 +1610,6 @@ MonoBehaviour:
   fadeDuration: 0.15
   jumpHeight: 10
   continuePulseSpeed: 6
-  maxAirWait: 1.5
 --- !u!4 &659219019
 Transform:
   m_ObjectHideFlags: 0
@@ -1883,7 +1881,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DialogueTrigger
   dialogue: {fileID: 11400000, guid: de4dd80ab761f004f9cd6800c1196557, type: 2}
-  triggerOnce: 1
+  triggerOnce: 0
   onFinished:
     m_PersistentCalls:
       m_Calls: []

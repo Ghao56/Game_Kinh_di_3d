@@ -211,7 +211,7 @@ public static class DialogueUISetup
         text.alignment = TextAlignmentOptions.Left;
         text.raycastTarget = false;
         text.richText = true;
-        text.enableWordWrapping = true;
+        text.textWrappingMode = TextWrappingModes.Normal;
         text.overflowMode = TextOverflowModes.Overflow;
         text.text = string.Empty;
         return text;
@@ -245,7 +245,7 @@ public static class DialogueUISetup
         text.alignment = TextAlignmentOptions.TopLeft;
         text.raycastTarget = false;
         text.richText = true;
-        text.enableWordWrapping = true;
+        text.textWrappingMode = TextWrappingModes.Normal;
         text.overflowMode = TextOverflowModes.Overflow;
         text.text = string.Empty;
         return text;

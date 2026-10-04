@@ -36,24 +36,9 @@ public static class DialogueValidate
         Check(Ref(so, "continueIndicator") != null, "continueIndicator được gán");
         Check(Ref(so, "blipSource") != null, "blipSource được gán");
         Check(Ref(so, "blipClip") != null, "blipClip được gán");
-        Check(Ref(so, "controller") != null, "controller được gán (khoá nhân vật)");
-        Check(Ref(so, "cameraRig") != null, "cameraRig được gán (khoá camera)");
-        Check(Ref(so, "interactor") != null, "interactor được gán (chặn tương tác kép)");
-        
-        // Kiểm tra ThirdPersonController có API khoá input mới
-        var controllerComp = Ref(so, "controller") as ThirdPersonController;
-        if (controllerComp != null)
-        {
-            try
-            {
-                var method = typeof(ThirdPersonController).GetMethod("SetInputLocked");
-                Check(method != null, "ThirdPersonController có method SetInputLocked");
-            }
-            catch
-            {
-                Check(false, "ThirdPersonController có method SetInputLocked");
-            }
-        }
+        Check(Ref(so, "controller") != null, "controller được gán");
+        Check(Ref(so, "cameraRig") != null, "cameraRig được gán");
+        Check(Ref(so, "interactor") != null, "interactor được gán");
 
         var canvasGo = GameObject.Find("DialogueCanvas");
         var found = canvasGo != null ? canvasGo.GetComponent<Canvas>() : null;
@@ -82,7 +67,7 @@ public static class DialogueValidate
         {
             Check(!body.raycastTarget, "bodyText raycastTarget = false (không chặn chuột)");
             Check(body.richText, "bodyText bật rich text");
-            Check(body.enableWordWrapping, "bodyText bật wrap chữ");
+            Check(body.textWrappingMode == TextWrappingModes.Normal, "bodyText bật wrap chữ");
         }
         if (speaker != null) Check(!speaker.raycastTarget, "speakerText raycastTarget = false");
 
