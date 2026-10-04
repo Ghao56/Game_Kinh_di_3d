@@ -19,7 +19,6 @@ public class ThirdPersonController : MonoBehaviour
     [SerializeField] private float gravity = -20f;
     [SerializeField] private float groundedGravity = -2f;
     [Tooltip("Bật để log isGrounded mỗi lần ấn Jump — dùng để kiểm tra lỗi nhảy, xong thì tắt.")]
-    [SerializeField] private bool logJumpDebug = true;
 
     [Header("Crouch")]
     [Tooltip("Để trống nếu chưa có animation — khi đó trạng thái ngồi/đứng chỉ được log ra Console.")]
@@ -190,12 +189,6 @@ public class ThirdPersonController : MonoBehaviour
     private void UpdateVerticalVelocity()
     {
         bool jumpPressed = jumpAction.WasPressedThisFrame();
-
-        if (logJumpDebug && jumpPressed)
-        {
-            Debug.Log($"[Jump] pressed | isGrounded={controller.isGrounded} | " +
-                      $"verticalVelocity={verticalVelocity:F2} | crouching={isCrouching}");
-        }
 
         if (controller.isGrounded && verticalVelocity < 0f)
         {
