@@ -31,12 +31,32 @@ public class PhoneFlashlight : MonoBehaviour
             );
 
         if (spotLight == null)
+            spotLight = FindSpotLight();
+
+        if (spotLight == null)
             Debug.LogWarning(
                 $"[{nameof(PhoneFlashlight)}] Chưa gán 'spotLight' trong Inspector!",
                 this
             );
         else
             spotLight.enabled = isFlashlightOn;
+    }
+
+    // Scene MHoang để trống ô 'spotLight' nên đèn không bật được.
+    // Tự dò lại: con trong chính object -> Spot light bất kỳ trong scene (bỏ qua Directional).
+    private Light FindSpotLight()
+    {
+        Light child = GetComponentInChildren<Light>();
+        if (child != null) return child;
+
+        foreach (Light candidate in FindObjectsByType<Light>(FindObjectsSortMode.None))
+        {
+            if (candidate.type != LightType.Spot) continue;
+            if (candidate == RenderSettings.sun) continue;
+            return candidate;
+        }
+
+        return null;
     }
 
     private void Update()

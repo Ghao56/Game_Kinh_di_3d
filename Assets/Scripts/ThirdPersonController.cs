@@ -18,7 +18,6 @@ public class ThirdPersonController : MonoBehaviour
     [SerializeField] private float jumpHeight = 1.2f;
     [SerializeField] private float gravity = -20f;
     [SerializeField] private float groundedGravity = -2f;
-    [Tooltip("Bật để log isGrounded mỗi lần ấn Jump — dùng để kiểm tra lỗi nhảy, xong thì tắt.")]
 
     [Header("Crouch")]
     [Tooltip("Để trống nếu chưa có animation — khi đó trạng thái ngồi/đứng chỉ được log ra Console.")]
