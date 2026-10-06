@@ -117,28 +117,32 @@
     border-radius: 1px;
 }
 
-/* Màn Hình Chính */
+/* Màn Hình Chính: không thanh trượt */
 .home {
     flex-grow: 1;
-    padding: 15px;
-    padding-bottom: 90px;
+    padding: 20px;
+    padding-bottom: 100px;
+    overflow: hidden;
 }
 
 .grid {
     flex-direction: row;
     flex-wrap: wrap;
     justify-content: space-between;
+    align-content: flex-start;
 }
 
 /* Item App */
 .app {
-    width: 70px;
-    margin-bottom: 18px;
+    width: 72px;
+    margin-bottom: 24px;
     background-color: rgba(0, 0, 0, 0);
     border-width: 0;
     align-items: center;
     padding: 0;
     cursor: pointer;
+    flex-shrink: 0;
+    position: relative;
 }
 
 .dock-app {
@@ -153,6 +157,7 @@
     align-items: center;
     font-size: 28px;
     color: white;
+    flex-shrink: 0;
 }
 
 .app-name {
@@ -163,6 +168,27 @@
     -unity-text-align: middle-center;
 }
 
+/* Chấm đỏ thông báo tin nhắn chưa đọc */
+.badge {
+    position: absolute;
+    top: -2px;
+    right: 6px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 4px;
+    border-radius: 9px;
+    background-color: #ff3b30;
+    color: white;
+    font-size: 10px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    display: none;
+}
+
+.badge.show {
+    display: flex;
+}
+
 /* Màu sắc Icon các App */
 .icon-safari { background-color: #1474e6; }
 .icon-messages { background-color: #16a83f; }
@@ -170,22 +196,9 @@
 .icon-camera { background-color: #333333; }
 .icon-music { background-color: #c92e63; }
 .icon-settings { background-color: #535c68; }
-.icon-calendar { background-color: #ffffff; color: #222222; flex-direction: column; }
-.calendar-month { color: #d33333; font-size: 8px; -unity-font-style: bold; }
-.calendar-date { color: #222222; font-size: 22px; -unity-font-style: bold; }
-.icon-clock { background-color: #111111; }
-.clock-icon-text { font-size: 32px; }
 .icon-weather { background-color: #176ce5; }
-.icon-notes { background-color: #ffc928; color: #222222; }
-.icon-appstore { background-color: #1670dc; }
-.appstore-text { -unity-font-style: bold; font-size: 26px; }
-.icon-calculator { background-color: #292929; }
-.icon-mail { background-color: #1673db; }
-.icon-maps { background-color: #7bd18d; }
-.icon-files { background-color: #535c68; }
-.icon-contacts { background-color: #16a83f; }
 
-/* Thanh Dock */
+/* Thanh Dock: 4 app */
 .dock {
     position: absolute;
     bottom: 18px;
@@ -201,9 +214,25 @@
     padding-right: 8px;
     border-width: 1px;
     border-color: rgba(255, 255, 255, 0.3);
+    overflow: hidden;
 }
 
-/* Trang Chi Tiết App (Trượt lên) */
+/* Home Indicator */
+.home-indicator {
+    position: absolute;
+    bottom: 5px;
+    left: 50%;
+    translate: -50% 0;
+    width: 115px;
+    height: 4px;
+    border-radius: 2px;
+    background-color: #ffffff;
+    border-width: 0;
+    z-index: 50;
+    cursor: pointer;
+}
+
+/* Trang Tin Nhắn (trượt lên) */
 .app-page {
     position: absolute;
     left: 0;
@@ -214,6 +243,7 @@
     transition: top 0.28s ease-in-out;
     z-index: 30;
     flex-direction: column;
+    overflow: hidden;
 }
 
 .app-page.open {
@@ -234,7 +264,7 @@
 }
 
 .app-head-title {
-    font-size: 20px;
+    font-size: 18px;
     -unity-font-style: bold;
     color: #111111;
 }
@@ -245,7 +275,7 @@
     border-radius: 16px;
     background-color: #e9edf3;
     border-width: 0;
-    font-size: 18px;
+    font-size: 16px;
     color: #333333;
     -unity-text-align: middle-center;
     cursor: pointer;
@@ -253,52 +283,55 @@
 
 .appbody {
     flex-grow: 1;
-    padding: 16px;
 }
 
-/* Styling Thẻ Nội Dung Trong App (Card View) */
-.card {
-    background-color: #ffffff;
-    border-radius: 14px;
-    padding: 12px;
+/* Ẩn thanh cuộn hiển thị, vẫn cuộn được bằng chuột/kéo */
+.appbody .unity-scroller--vertical {
+    display: none;
+}
+
+.appbody .unity-scroll-view__content-viewport {
+    margin-right: 0;
+}
+
+/* Bong bóng chat */
+.msg-row {
+    padding: 14px 16px 2px 16px;
+}
+
+.msg-bubble {
+    max-width: 78%;
+    padding: 9px 13px;
+    border-radius: 15px;
     margin-bottom: 10px;
-    border-width: 1px;
-    border-color: #e5e5e5;
 }
 
-.card-title {
-    font-size: 14px;
-    -unity-font-style: bold;
+.msg-bubble-father {
+    align-self: flex-start;
+    background-color: #e9e9eb;
+}
+
+.msg-bubble-player {
+    align-self: flex-end;
+    background-color: #1474e6;
+}
+
+.msg-text-father {
     color: #111111;
-    margin-bottom: 4px;
-}
-
-.card-text {
-    font-size: 12px;
-    color: #555555;
+    font-size: 13px;
     white-space: normal;
 }
 
-.big-emoji {
-    font-size: 45px;
-    -unity-text-align: middle-center;
-    margin-top: 10px;
-    margin-bottom: 10px;
+.msg-text-player {
+    color: #ffffff;
+    font-size: 13px;
+    white-space: normal;
 }
 
-/* Home Indicator */
-.home-indicator {
-    position: absolute;
-    bottom: 5px;
-    left: 50%;
-    translate: -50% 0;
-    width: 115px;
-    height: 4px;
-    border-radius: 2px;
-    background-color: #ffffff;
-    border-width: 0;
-    z-index: 50;
-    cursor: pointer;
+.msg-time {
+    font-size: 9px;
+    color: #999999;
+    margin-top: 3px;
 }
 
 /* Toast Popup */
