@@ -163,8 +163,6 @@ public class ThirdPersonController : MonoBehaviour
 
         Vector3 moveDirection = camForward * input.y + camRight * input.x;
 
-        RotateTowards(camForward);
-
         bool wantsSprint = sprintAction.IsPressed() && input.magnitude > 0.1f && !isCrouching;
         bool sprinting = wantsSprint && (stamina == null || stamina.CanSprint);
 
@@ -174,6 +172,11 @@ public class ThirdPersonController : MonoBehaviour
         }
 
         float speedMultiplier = isCrouching ? crouchMultiplier : (sprinting ? sprintMultiplier : 1f);
+
+        if (moveDirection.magnitude > 0.1f)
+        {
+            RotateTowards(moveDirection);
+        }
 
         return moveDirection * moveSpeed * speedMultiplier;
     }
