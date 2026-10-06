@@ -1,0 +1,54 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9d0ffc15a76d9e941a3094f4bd7777c5, type: 3}
+  m_Name: Dialogue_Test
+  m_EditorClassIdentifier: Assembly-CSharp::DialogueData
+  notes: "D\u1EEF li\u1EC7u th\u1EED cho h\u1EC7 th\u1ED1ng tho\u1EA1i. C\xF3 d\u1EA5u
+    ti\u1EBFng Vi\u1EC7t \u0111\u1EA7y \u0111\u1EE7, rich text, '...', '?!', xu\u1ED1ng
+    d\xF2ng."
+  lines:
+  - speaker: "M\u1EB9"
+    text: "Con \u01A1i, m\u1EB9 \u0111\u1EE3i con l\xE2u l\u1EAFm r\u1ED3i... V\xE0o
+      nh\xE0 n\xF3i chuy\u1EC7n v\u1EDBi m\u1EB9 \u0111i."
+    charDelay: 0.035
+    jitter: 0.25
+    commaDelay: 0.1
+    sentenceDelay: 0.28
+    spaceDelay: 0.015
+    newlineDelay: 0.25
+    blipPitchRange: {x: 0.92, y: 1.08}
+    blipVolume: 0.4
+    blipOnSpaces: 0
+  - speaker: 
+    text: "Con <b>kh\xF4ng</b> kh\u1ECFe l\u1EAFm ph\u1EA3i kh\xF4ng? M\u1EB9 lo
+      l\u1EAFng l\u1EAFm... <color=#FF6B6B>\u0110\u1EEBng c\xF3 g\u1EAFng qu\xE1!</color>"
+    charDelay: 0.035
+    jitter: 0.25
+    commaDelay: 0.1
+    sentenceDelay: 0.28
+    spaceDelay: 0.015
+    newlineDelay: 0.25
+    blipPitchRange: {x: 0.92, y: 1.08}
+    blipVolume: 0.4
+    blipOnSpaces: 0
+  - speaker: Con
+    text: "D\u1EA1... <size=90%>Con v\u1EABn \u1ED5n</size>.\n<color=#8BE9FD>M\u1EB9
+      \u0111\u1EEBng kh\xF3c</color>?!"
+    charDelay: 0.032
+    jitter: 0.25
+    commaDelay: 0.1
+    sentenceDelay: 0.28
+    spaceDelay: 0.015
+    newlineDelay: 0.3
+    blipPitchRange: {x: 0.92, y: 1.08}
+    blipVolume: 0.4
+    blipOnSpaces: 0

@@ -1,0 +1,70 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    
+    <!-- Tham chiếu đến file CSS (USS) -->
+    <Style src="iPhonePhoneUI.uss" />
+
+    <ui:VisualElement class="phone">
+        <ui:VisualElement class="screen">
+            <!-- Hình nền -->
+            <ui:VisualElement class="wallpaper" />
+            
+            <!-- Dynamic Island & Thanh trạng thái -->
+            <ui:VisualElement class="dynamic">
+                <ui:VisualElement class="cam" />
+            </ui:VisualElement>
+            <ui:VisualElement class="status">
+                <ui:Label text="09:41" class="time-text" name="time-label" />
+                <ui:Label text="▮▮▮ ⌁ [B]" class="battery-text" />
+            </ui:VisualElement>
+
+            <!-- Màn hình chính (Lưới App) -->
+            <ui:VisualElement class="home">
+                <ui:VisualElement class="grid">
+                    <!-- Nút App Tin nhắn -->
+                    <ui:Button class="app" name="btn-messages">
+                        <ui:VisualElement class="icon messages">
+                            <ui:Label text="💬" class="emoji" />
+                        </ui:VisualElement>
+                        <ui:Label text="Tin nhắn" class="app-name" />
+                    </ui:Button>
+
+                    <!-- Nút App Cài đặt -->
+                    <ui:Button class="app" name="btn-settings">
+                        <ui:VisualElement class="icon settings">
+                            <ui:Label text="⚙" class="emoji" />
+                        </ui:VisualElement>
+                        <ui:Label text="Cài đặt" class="app-name" />
+                    </ui:Button>
+                </ui:VisualElement>
+            </ui:VisualElement>
+
+            <!-- Thanh Dock -->
+            <ui:VisualElement class="dock">
+                <ui:Button class="app dock-app">
+                    <ui:VisualElement class="icon phone-app">
+                        <ui:Label text="☎" class="emoji" />
+                    </ui:VisualElement>
+                </ui:Button>
+                <ui:Button class="app dock-app">
+                    <ui:VisualElement class="icon music">
+                        <ui:Label text="♫" class="emoji" />
+                    </ui:VisualElement>
+                </ui:Button>
+            </ui:VisualElement>
+
+            <!-- Màn hình trong App (Sub Page) -->
+            <ui:VisualElement class="page" name="app-page">
+                <ui:VisualElement class="apphead">
+                    <ui:Label text="Ứng dụng" class="app-title" name="app-title" />
+                    <ui:Button text="×" class="close-btn" name="btn-close" />
+                </ui:VisualElement>
+                <ui:ScrollView class="appbody">
+                    <ui:Label text="" class="app-content" name="app-content" />
+                </ui:ScrollView>
+            </ui:VisualElement>
+
+            <!-- Thanh vuốt về Home -->
+            <ui:VisualElement class="home-indicator" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>
