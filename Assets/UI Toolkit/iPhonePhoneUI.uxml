@@ -1,14 +1,14 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements">
-    <!-- Dòng liên kết Style Sheet (Giúp giao diện hiển thị chuẩn) -->
+    <!-- Dòng liên kết Style Sheet -->
     <ui:Style src="iPhonePhoneUI.uss" />
-    
+
     <!-- Nút Icon nhỏ mở điện thoại ngoài góc màn hình -->
     <ui:Button name="btn-toggle-phone" class="phone-icon-btn" text="📱" />
 
     <!-- Khung Điện Thoại iPhone -->
     <ui:VisualElement class="phone">
         <ui:VisualElement class="screen">
-            
+
             <!-- Wallpaper Background -->
             <ui:VisualElement class="wallpaper" />
 
@@ -28,10 +28,10 @@
                 </ui:VisualElement>
             </ui:VisualElement>
 
-            <!-- Màn Hình Chính (Grid 16 App) -->
-            <ui:ScrollView class="home" show-horizontal-scroller="false" show-vertical-scroller="false">
+            <!-- Màn Hình Chính: 6 app, không ScrollView -->
+            <ui:VisualElement class="home">
                 <ui:VisualElement class="grid">
-                    
+
                     <ui:Button class="app" name="app-safari">
                         <ui:VisualElement class="icon icon-safari"><ui:Label text="🧭" /></ui:VisualElement>
                         <ui:Label text="Safari" class="app-name" />
@@ -40,6 +40,7 @@
                     <ui:Button class="app" name="app-messages">
                         <ui:VisualElement class="icon icon-messages"><ui:Label text="💬" /></ui:VisualElement>
                         <ui:Label text="Tin nhắn" class="app-name" />
+                        <ui:Label name="messages-badge" text="" class="badge" />
                     </ui:Button>
 
                     <ui:Button class="app" name="app-photos">
@@ -52,29 +53,9 @@
                         <ui:Label text="Camera" class="app-name" />
                     </ui:Button>
 
-                    <ui:Button class="app" name="app-music">
-                        <ui:VisualElement class="icon icon-music"><ui:Label text="♫" /></ui:VisualElement>
-                        <ui:Label text="Nhạc" class="app-name" />
-                    </ui:Button>
-
                     <ui:Button class="app" name="app-settings">
                         <ui:VisualElement class="icon icon-settings"><ui:Label text="⚙" /></ui:VisualElement>
                         <ui:Label text="Cài đặt" class="app-name" />
-                    </ui:Button>
-
-                    <ui:Button class="app" name="app-calendar">
-                        <ui:VisualElement class="icon icon-calendar">
-                            <ui:Label text="THÁNG 10" name="calendar-month" class="calendar-month" />
-                            <ui:Label text="01" name="calendar-day" class="calendar-date" />
-                        </ui:VisualElement>
-                        <ui:Label text="Lịch" class="app-name" />
-                    </ui:Button>
-
-                    <ui:Button class="app" name="app-clock">
-                        <ui:VisualElement class="icon icon-clock">
-                            <ui:Label text="◷" class="clock-icon-text" />
-                        </ui:VisualElement>
-                        <ui:Label text="Đồng hồ" class="app-name" />
                     </ui:Button>
 
                     <ui:Button class="app" name="app-weather">
@@ -82,45 +63,10 @@
                         <ui:Label text="Thời tiết" class="app-name" />
                     </ui:Button>
 
-                    <ui:Button class="app" name="app-notes">
-                        <ui:VisualElement class="icon icon-notes"><ui:Label text="📝" /></ui:VisualElement>
-                        <ui:Label text="Ghi chú" class="app-name" />
-                    </ui:Button>
-
-                    <ui:Button class="app" name="app-appstore">
-                        <ui:VisualElement class="icon icon-appstore"><ui:Label text="A" class="appstore-text" /></ui:VisualElement>
-                        <ui:Label text="App Store" class="app-name" />
-                    </ui:Button>
-
-                    <ui:Button class="app" name="app-calculator">
-                        <ui:VisualElement class="icon icon-calculator"><ui:Label text="÷" /></ui:VisualElement>
-                        <ui:Label text="Máy tính" class="app-name" />
-                    </ui:Button>
-
-                    <ui:Button class="app" name="app-mail">
-                        <ui:VisualElement class="icon icon-mail"><ui:Label text="✉" /></ui:VisualElement>
-                        <ui:Label text="Mail" class="app-name" />
-                    </ui:Button>
-
-                    <ui:Button class="app" name="app-maps">
-                        <ui:VisualElement class="icon icon-maps"><ui:Label text="🗺️" /></ui:VisualElement>
-                        <ui:Label text="Bản đồ" class="app-name" />
-                    </ui:Button>
-
-                    <ui:Button class="app" name="app-files">
-                        <ui:VisualElement class="icon icon-files"><ui:Label text="📁" /></ui:VisualElement>
-                        <ui:Label text="Tệp" class="app-name" />
-                    </ui:Button>
-
-                    <ui:Button class="app" name="app-contacts">
-                        <ui:VisualElement class="icon icon-contacts"><ui:Label text="👥" /></ui:VisualElement>
-                        <ui:Label text="Danh bạ" class="app-name" />
-                    </ui:Button>
-
                 </ui:VisualElement>
-            </ui:ScrollView>
+            </ui:VisualElement>
 
-            <!-- Thanh Dock bên dưới -->
+            <!-- Thanh Dock bên dưới: 4 app -->
             <ui:VisualElement class="dock">
                 <ui:Button class="app dock-app" name="dock-phone">
                     <ui:VisualElement class="icon icon-messages"><ui:Label text="☎" /></ui:VisualElement>
@@ -130,24 +76,27 @@
                 </ui:Button>
                 <ui:Button class="app dock-app" name="dock-messages">
                     <ui:VisualElement class="icon icon-messages"><ui:Label text="💬" /></ui:VisualElement>
+                    <ui:Label name="dock-messages-badge" text="" class="badge" />
                 </ui:Button>
                 <ui:Button class="app dock-app" name="dock-music">
                     <ui:VisualElement class="icon icon-music"><ui:Label text="♫" /></ui:VisualElement>
                 </ui:Button>
             </ui:VisualElement>
 
-            <!-- Trang Chi Tiết App (Trượt từ dưới lên) -->
-            <ui:VisualElement name="app-page" class="app-page">
-                <ui:VisualElement class="apphead">
-                    <ui:Label text="Ứng dụng" name="app-title" class="app-head-title" />
-                    <ui:Button text="×" name="btn-close" class="close-btn" />
-                </ui:VisualElement>
-                <ui:ScrollView name="app-body" class="appbody" show-horizontal-scroller="false">
-                </ui:ScrollView>
-            </ui:VisualElement>
-
             <!-- Thanh Home Indicator ở đáy điện thoại -->
             <ui:Button name="btn-home" class="home-indicator" />
+
+            <!-- Trang Tin Nhắn -->
+            <ui:VisualElement name="app-page" class="app-page">
+                <ui:VisualElement class="apphead">
+                    <ui:Label name="app-title" text="Cha" class="app-head-title" />
+                    <ui:Button name="btn-close" text="✕" class="close-btn" />
+                </ui:VisualElement>
+
+                <ui:ScrollView name="message-scroll" class="appbody" mode="Vertical">
+                    <ui:VisualElement name="message-list" />
+                </ui:ScrollView>
+            </ui:VisualElement>
 
             <!-- Thông báo Toast dạng popup -->
             <ui:Label name="toast" class="toast" text="" />
