@@ -31,7 +31,6 @@ public class AmbienceZone : MonoBehaviour
     [Header("Debug")]
     [SerializeField] private bool logTransitions;
 
-    private bool playerInside;
     private bool fired;
 
     private void Awake()
@@ -51,7 +50,6 @@ public class AmbienceZone : MonoBehaviour
     {
         if (!IsPlayer(other)) return;
 
-        playerInside = true;
         Enter();
     }
 
@@ -59,7 +57,6 @@ public class AmbienceZone : MonoBehaviour
     {
         if (!IsPlayer(other)) return;
 
-        playerInside = false;
         Exit();
     }
 
@@ -108,7 +105,7 @@ public class AmbienceZone : MonoBehaviour
 
     private void Exit()
     {
-        if (!playerInside && !fired) return;
+        if (!fired) return;
 
         AudioManager manager = AudioManager.Instance;
         if (manager == null) return;

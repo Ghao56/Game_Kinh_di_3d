@@ -228,7 +228,7 @@ public static class DialogueFontSetup
         Debug.Log($"[DialogueFontSetup] Đã thêm '{asset.name}' vào TMP fallback fonts ({fallbacks.Count} mục).");
     }
 
-    private static void EnsureFolder(string folder)
+    internal static void EnsureFolder(string folder)
     {
         if (string.IsNullOrEmpty(folder) || AssetDatabase.IsValidFolder(folder)) return;
 
