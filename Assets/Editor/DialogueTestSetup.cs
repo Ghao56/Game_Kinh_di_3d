@@ -6,7 +6,6 @@ using UnityEngine.SceneManagement;
 /// Tạo DialogueData mẫu và một DialogueTrigger thử ngay cạnh người chơi trong MHoang.
 public static class DialogueTestSetup
 {
-    private const string ScenePath = "Assets/Scenes/MHoang.unity";
     private const string DataFolder = "Assets/Dialogue";
     private const string DataPath = DataFolder + "/Dialogue_Test.asset";
     private const string TriggerName = "DialogueTrigger_Test";
@@ -17,7 +16,12 @@ public static class DialogueTestSetup
         DialogueFontSetup.EnsureFolder(DataFolder);
         CreateOrUpdateData();
 
-        Scene scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+        Scene scene = SceneManager.GetActiveScene();
+        if (!scene.isLoaded || string.IsNullOrEmpty(scene.path))
+        {
+            Debug.LogError("[DialogueTestSetup] Hãy mở scene đã lưu (vd TestCutscreen.unity) trước khi chạy.");
+            return;
+        }
 
         var player = Object.FindFirstObjectByType<ThirdPersonController>();
         if (player == null)
@@ -93,28 +97,22 @@ public static class DialogueTestSetup
             created = true;
         }
 
-        data.notes = "Dữ liệu thử cho hệ thống thoại. Có dấu tiếng Việt đầy đủ, rich text, '...', '?!', xuống dòng.";
+        data.notes = "Thoại cutscene: Vào đi… rồi *Thở dài.";
         data.lines = new[]
         {
             new DialogueLine
             {
-                speaker = "Mẹ",
-                text = "Con ơi, mẹ đợi con lâu lắm rồi... Vào nhà nói chuyện với mẹ đi.",
+                speaker = string.Empty,
+                text = "Vào đi…",
                 charDelay = 0.035f,
                 sentenceDelay = 0.28f
             },
             new DialogueLine
             {
                 speaker = string.Empty,
-                text = "Con <b>không</b> khỏe lắm phải không? Mẹ lo lắng lắm... <color=#FF6B6B>Đừng có gắng quá!</color>",
-                charDelay = 0.035f
-            },
-            new DialogueLine
-            {
-                speaker = "Con",
-                text = "Dạ... <size=90%>Con vẫn ổn</size>.\n<color=#8BE9FD>Mẹ đừng khóc</color>?!",
-                charDelay = 0.032f,
-                newlineDelay = 0.3f
+                text = "*Thở dài",
+                charDelay = 0.035f,
+                sentenceDelay = 0.28f
             },
         };
 
@@ -125,7 +123,7 @@ public static class DialogueTestSetup
 
     private static void VerifySaved(Scene scene)
     {
-        EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+        EditorSceneManager.OpenScene(scene.path, OpenSceneMode.Single);
 
         GameObject trigger = GameObject.Find(TriggerName);
         if (trigger == null)

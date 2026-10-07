@@ -1163,7 +1163,6 @@ MonoBehaviour:
   jumpHeight: 1.2
   gravity: -20
   groundedGravity: -2
-  logJumpDebug: 1
   animator: {fileID: 0}
   crouchBoolParameter: IsCrouching
   logCrouchState: 1
@@ -1199,18 +1198,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5750c18052ecc664d854937f5a71c390, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Interactor
-  aimRadius: 0.1
-  interactRange: 4
-  maxPlayerDistance: 2
-  hitMask:
+  interactionRadius: 2.5
+  detectionOffset: {x: 0, y: 1, z: 0}
+  interactableMask:
     serializedVersion: 2
-    m_Bits: 51
-  rayCamera: {fileID: 0}
-  interactionOrigin: {fileID: 0}
+    m_Bits: 4294967295
+  maxColliders: 8
   actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   promptUI: {fileID: 2042761995}
-  ignoreRoot: {fileID: 0}
-  debugLog: 0
   logInteractions: 0
 --- !u!1 &607308281
 GameObject:
@@ -1600,7 +1595,7 @@ MonoBehaviour:
   continueIndicator: {fileID: 2076463124}
   blipSource: {fileID: 659219017}
   blipClip: {fileID: 8300000, guid: e32df3f5101308443a9752e56a65b613, type: 3}
-  minBlipInterval: 0.045
+  minBlipInterval: 0
   controller: {fileID: 564524650}
   cameraRig: {fileID: 900000004}
   interactor: {fileID: 564524652}
@@ -1915,7 +1910,7 @@ Transform:
   m_GameObject: {fileID: 774617068}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -2.83, y: -0.03, z: 17.50331}
+  m_LocalPosition: {x: 1.5559542, y: 2.5970275, z: 17.50331}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2203,29 +2198,11 @@ MonoBehaviour:
   target: {fileID: 564524648}
   pivotOffset: {x: 0, y: 0.5, z: 0}
   distance: 2.5
-  shoulderOffset: 0.55
-  shoulderSwapSmoothTime: 0.1
   mouseSensitivity: 2
-  stickSensitivity: 120
-  stickDeadzone: 0.15
   minPitch: -30
   maxPitch: 60
   startPitch: 15
-  lookSmoothTime: 0.04
-  followSmoothTime: 0.08
-  verticalSmoothTime: 0.15
-  collisionRadius: 0.25
-  collisionMask:
-    serializedVersion: 2
-    m_Bits: 4294967291
-  minDistance: 0.35
-  recoverSpeed: 6
-  pitchUpDistanceLoss: 0.6
-  outputCamera: {fileID: 0}
-  fieldOfView: 55
-  nearClipPlane: 0.1
   actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
-  drawGizmos: 1
 --- !u!1 &900000005
 GameObject:
   m_ObjectHideFlags: 0
@@ -3611,7 +3588,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 30
+  m_fontSize: 28
   m_fontSizeBase: 28
   m_fontWeight: 400
   m_enableAutoSizing: 0
@@ -4887,7 +4864,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 32
+  m_fontSize: 30
   m_fontSizeBase: 30
   m_fontWeight: 400
   m_enableAutoSizing: 0
@@ -4996,10 +4973,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::InteractPromptUI
   promptText: {fileID: 138794167}
   fadeSpeed: 5
-  uiCamera: {fileID: 0}
-  screenOffset: {x: 0, y: 40}
-  worldOffset: 0.15
-  edgePadding: 40
 --- !u!1 &2062685121
 GameObject:
   m_ObjectHideFlags: 0

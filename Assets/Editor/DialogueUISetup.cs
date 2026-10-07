@@ -9,7 +9,6 @@ using UnityEngine.UI;
 /// Chạy lại nhiều lần vẫn an toàn (tìm object theo tên, tái dùng nếu đã có).
 public static class DialogueUISetup
 {
-    private const string ScenePath = "Assets/Scenes/MHoang.unity";
     private const string BlipPath = "Assets/Sound/Dialogue_Blip.wav";
     private const string FontAssetPath = "Assets/TextMesh Pro/Resources/Fonts & Materials/BeVietnamPro-Regular SDF.asset";
 
@@ -37,7 +36,12 @@ public static class DialogueUISetup
             return;
         }
 
-        Scene scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+        Scene scene = SceneManager.GetActiveScene();
+        if (!scene.isLoaded || string.IsNullOrEmpty(scene.path))
+        {
+            Debug.LogError("[DialogueUISetup] Hãy mở scene đã lưu (vd TestCutscreen.unity) trước khi chạy.");
+            return;
+        }
 
         var font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(FontAssetPath);
         if (font == null)
@@ -114,7 +118,7 @@ public static class DialogueUISetup
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
 
-        Debug.Log($"[DialogueUISetup] Xong trong '{ScenePath}'. " +
+        Debug.Log($"[DialogueUISetup] Xong trong '{scene.path}'. " +
                   $"Canvas sortingOrder={SortingOrder}, panel cao {PanelHeight}px, " +
                   $"font={(font != null ? font.name : "CHƯA GÁN")}, blip={(clip != null ? clip.name : "null")}.");
     }
