@@ -37,6 +37,12 @@ public class DialogueLine
 
     [Tooltip("Phát blip cả ở khoảng trắng. Thường để tắt để đỡ rối.")]
     public bool blipOnSpaces = false;
+
+    [Tooltip("Tự sang dòng tiếp / tự đóng thoại sau khi gõ xong, không cần bấm. Bỏ tick để chờ người chơi bấm.")]
+    public bool autoAdvance = false;
+
+    [Min(0f)] [Tooltip("Giây chờ sau khi gõ xong dòng auto trước khi tự chuyển tiếp.")]
+    public float autoAdvanceDelay = 1.5f;
 }
 
 [CreateAssetMenu(fileName = "DialogueData", menuName = "Dialogue/Dialogue Data")]

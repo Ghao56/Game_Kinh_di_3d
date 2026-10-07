@@ -25,6 +25,8 @@ MonoBehaviour:
     blipPitchRange: {x: 0.92, y: 1.08}
     blipVolume: 0.4
     blipOnSpaces: 0
+    autoAdvance: 1
+    autoAdvanceDelay: 2
   - speaker: 
     text: "*Th\u1ECF d\xE0i"
     charDelay: 0.035
@@ -36,3 +38,5 @@ MonoBehaviour:
     blipPitchRange: {x: 0.92, y: 1.08}
     blipVolume: 0.4
     blipOnSpaces: 0
+    autoAdvance: 1
+    autoAdvanceDelay: 1.5
