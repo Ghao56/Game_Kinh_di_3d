@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9d0ffc15a76d9e941a3094f4bd7777c5, type: 3}
+  m_Name: Dialogue_MotherTalk
+  m_EditorClassIdentifier: Assembly-CSharp::DialogueData
+  notes: "Placeholder: vi\u1EBFt l\u1EDDi m\u1EB9 d\u1EB7n '\u0111\u1EEBng m\u1EDF
+    c\u1EEDa' v\xE0o d\xF2ng d\u01B0\u1EDBi."
+  lines:
+  - speaker: "M\u1EB9"
+    text: 
+    charDelay: 0.035
+    jitter: 0.25
+    commaDelay: 0.1
+    sentenceDelay: 0.28
+    spaceDelay: 0.015
+    newlineDelay: 0.25
+    blipPitchRange: {x: 0.92, y: 1.08}
+    blipVolume: 0.4
+    blipOnSpaces: 0
+    autoAdvance: 0
+    autoAdvanceDelay: 1.5

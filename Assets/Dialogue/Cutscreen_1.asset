@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9d0ffc15a76d9e941a3094f4bd7777c5, type: 3}
+  m_Name: Cutscreen_1
+  m_EditorClassIdentifier: Assembly-CSharp::DialogueData
+  notes: "Tho\u1EA1i cutscene TestCutscreen."
+  lines:
+  - speaker: 
+    text: "V\xE0o \u0111i\u2026"
+    charDelay: 0.035
+    jitter: 0.25
+    commaDelay: 0.1
+    sentenceDelay: 0.28
+    spaceDelay: 0.015
+    newlineDelay: 0.25
+    blipPitchRange: {x: 0.92, y: 1.08}
+    blipVolume: 0.4
+    blipOnSpaces: 0
+    autoAdvance: 1
+    autoAdvanceDelay: 2
+  - speaker: 
+    text: "*Th\u1ECF d\xE0i"
+    charDelay: 0.035
+    jitter: 0.25
+    commaDelay: 0.1
+    sentenceDelay: 0.28
+    spaceDelay: 0.015
+    newlineDelay: 0.25
+    blipPitchRange: {x: 0.92, y: 1.08}
+    blipVolume: 0.4
+    blipOnSpaces: 0
+    autoAdvance: 1
+    autoAdvanceDelay: 1.5

@@ -35,7 +35,7 @@ public static class PaperNoteSetup
             return;
         }
 
-        string scenePath = "Assets/Scenes/SampleScene.unity";
+        string scenePath = "Assets/Scenes/MHoang.unity";
         Scene activeScene = SceneManager.GetActiveScene();
         if (activeScene.path != scenePath)
         {
