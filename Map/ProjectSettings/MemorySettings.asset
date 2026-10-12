@@ -10,7 +10,10 @@ MemorySettings:
     m_ThreadGfxBlockSize: -1
     m_CacheBlockSize: -1
     m_TypetreeBlockSize: -1
+<<<<<<< Updated upstream
     m_RemapperInitialCapacity: -1
+=======
+>>>>>>> Stashed changes
     m_ProfilerBlockSize: -1
     m_ProfilerEditorBlockSize: -1
     m_BucketAllocatorGranularity: -1
