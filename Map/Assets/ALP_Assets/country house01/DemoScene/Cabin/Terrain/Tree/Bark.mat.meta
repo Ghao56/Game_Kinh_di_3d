@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 25a2a90fae5b18048a9de819d474ab17
+timeCreated: 1502498716
+licenseType: Store
+NativeFormatImporter:
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 98014
+  packageName: Cabin Environment
+  packageVersion: 1.0
+  assetPath: Assets/Cabin/Terrain/Tree/Bark.mat
+  uploadId: 195923
