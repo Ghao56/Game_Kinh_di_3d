@@ -43,7 +43,7 @@ public static class StoryQuestSetup
             return;
         }
 
-        const string scenePath = "Assets/Scenes/SampleScene.unity";
+        const string scenePath = "Assets/Scenes/MHoang.unity";
         Scene activeScene = SceneManager.GetActiveScene();
         if (activeScene.path != scenePath)
         {

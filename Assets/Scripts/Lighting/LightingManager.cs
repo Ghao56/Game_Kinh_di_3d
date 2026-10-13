@@ -132,7 +132,7 @@ public class LightingManager : MonoBehaviour
         if (TransitionProgress < 1f) return;
 
         IsTransitioning = false;
-        if (Target == LightingState.Night) onNightFallen?.Invoke();
+        if (Target == LightingState.Night) { onNightFallen?.Invoke(); FlowBus.Raise("night_fallen"); }
     }
 
     private void OnDestroy()

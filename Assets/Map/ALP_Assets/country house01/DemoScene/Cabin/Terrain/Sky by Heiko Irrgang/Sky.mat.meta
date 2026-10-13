@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: 5489b58387d36b046bd0950e5a01a1eb
+timeCreated: 1502638608
+licenseType: Store
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 98014
+  packageName: Cabin Environment
+  packageVersion: 1.0
+  assetPath: Assets/Cabin/Terrain/Sky by Heiko Irrgang/Sky.mat
+  uploadId: 195923

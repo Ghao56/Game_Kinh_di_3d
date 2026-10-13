@@ -257,10 +257,24 @@ public class DialogueManager : MonoBehaviour
 
         if (!skipped)
         {
-            while (true)
+            if (line.autoAdvance)
             {
-                if (ConsumeAdvance()) break;
-                yield return null;
+                // Tự chuyển: vẫn cho bấm để skip nhanh, nhưng không bắt buộc.
+                float waited = 0f;
+                while (waited < line.autoAdvanceDelay)
+                {
+                    if (ConsumeAdvance()) break;
+                    waited += Time.unscaledDeltaTime;
+                    yield return null;
+                }
+            }
+            else
+            {
+                while (true)
+                {
+                    if (ConsumeAdvance()) break;
+                    yield return null;
+                }
             }
         }
 

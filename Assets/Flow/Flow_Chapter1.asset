@@ -1,0 +1,164 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0bea1bad35f52774f944a93aaa802500, type: 3}
+  m_Name: Flow_Chapter1
+  m_EditorClassIdentifier: Assembly-CSharp::FlowDefinition
+  notes: "Lu\u1ED3ng ch\u01B0\u01A1ng 1 \u2014 scene MHoang. S\u1EEDa b\u01B0\u1EDBc
+    \u1EDF \u0111\xE2y, kh\xF4ng c\u1EA7n \u0111\u1EE5ng code."
+  steps:
+  - id: S0_Intro
+    note: "M\u1EDF \u0111\u1EA7u: tho\u1EA1i 'V\xE0o \u0111i\u2026'"
+    completeWhen:
+      type: 6
+      signal: 
+      questId: 
+      objectiveId: 
+      seconds: 0
+    onEnter:
+    - type: 1
+      text: 
+      dialogue: {fileID: 11400000, guid: de4dd80ab761f004f9cd6800c1196557, type: 2}
+      target: {fileID: 0}
+      boolValue: 1
+      lightingState: 1
+      immediate: 0
+    onExit: []
+    nextStepId: S1_Explore
+  - id: S1_Explore
+    note: "B\u1EAFt \u0111\u1EA7u quest kh\xE1m ph\xE1 nh\xE0"
+    completeWhen:
+      type: 4
+      signal: 
+      questId: explore_house
+      objectiveId: 
+      seconds: 0
+    onEnter:
+    - type: 0
+      text: explore_house
+      dialogue: {fileID: 0}
+      target: {fileID: 0}
+      boolValue: 1
+      lightingState: 1
+      immediate: 0
+    onExit: []
+    nextStepId: S2_GoToMother
+  - id: S2_GoToMother
+    note: "\u0110i t\u1EDBi ph\xF2ng m\u1EB9 (Pad_MotherCare ph\xE1t enter_mother_room)"
+    completeWhen:
+      type: 2
+      signal: enter_mother_room
+      questId: 
+      objectiveId: 
+      seconds: 0
+    onEnter:
+    - type: 6
+      text: "\u0110i \u0111\u1EBFn ph\xF2ng m\u1EB9."
+      dialogue: {fileID: 0}
+      target: {fileID: 0}
+      boolValue: 1
+      lightingState: 1
+      immediate: 0
+    onExit: []
+    nextStepId: S3_MotherCare
+  - id: S3_MotherCare
+    note: "B\u1EAFt \u0111\u1EA7u quest ch\u0103m s\xF3c m\u1EB9 (3 m\u1EE5c ti\xEAu
+      t\u1EF1 do)"
+    completeWhen:
+      type: 4
+      signal: 
+      questId: mother_care
+      objectiveId: 
+      seconds: 0
+    onEnter:
+    - type: 0
+      text: mother_care
+      dialogue: {fileID: 0}
+      target: {fileID: 0}
+      boolValue: 1
+      lightingState: 1
+      immediate: 0
+    onExit: []
+    nextStepId: S4_MotherTalk
+  - id: S4_MotherTalk
+    note: "M\u1EB9 d\u1EB7n \u0111\u1EEBng m\u1EDF c\u1EEDa"
+    completeWhen:
+      type: 6
+      signal: 
+      questId: 
+      objectiveId: 
+      seconds: 0
+    onEnter:
+    - type: 1
+      text: 
+      dialogue: {fileID: 11400000, guid: 42547f517c79df646bfea861c0a96bc2, type: 2}
+      target: {fileID: 0}
+      boolValue: 1
+      lightingState: 1
+      immediate: 0
+    onExit: []
+    nextStepId: S5_Dusk
+  - id: S5_Dusk
+    note: "Ch\u1EA1ng v\u1EA1ng (LightingManager kh\xF4ng c\xF3 event dusk xong n\xEAn
+      ch\u1EDD 12s)"
+    completeWhen:
+      type: 1
+      signal: 
+      questId: 
+      objectiveId: 
+      seconds: 12
+    onEnter:
+    - type: 3
+      text: 
+      dialogue: {fileID: 0}
+      target: {fileID: 0}
+      boolValue: 1
+      lightingState: 1
+      immediate: 0
+    onExit: []
+    nextStepId: S6_Night
+  - id: S6_Night
+    note: "\u0110\xEAm xu\u1ED1ng + ti\u1EBFng g\xF5 c\u1EEDa"
+    completeWhen:
+      type: 7
+      signal: 
+      questId: 
+      objectiveId: 
+      seconds: 0
+    onEnter:
+    - type: 3
+      text: 
+      dialogue: {fileID: 0}
+      target: {fileID: 0}
+      boolValue: 1
+      lightingState: 2
+      immediate: 0
+    - type: 2
+      text: knock_door
+      dialogue: {fileID: 0}
+      target: {fileID: 0}
+      boolValue: 1
+      lightingState: 1
+      immediate: 0
+    onExit: []
+    nextStepId: S7_Final
+  - id: S7_Final
+    note: "B\u01B0\u1EDBc cu\u1ED1i: Cube 'M\u1EDF' d\xF9ng \u0111\u01B0\u1EE3c m\u1ED9t
+      l\u1EA7n"
+    completeWhen:
+      type: 8
+      signal: 
+      questId: 
+      objectiveId: 
+      seconds: 0
+    onEnter: []
+    onExit: []
+    nextStepId: 

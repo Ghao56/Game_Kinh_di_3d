@@ -1,0 +1,245 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3723d1429d865ff47a3c166ca9929482, type: 3}
+  m_Name: SfxLibrary_Main
+  m_EditorClassIdentifier: Assembly-CSharp::SfxLibrary
+  entries:
+  - key: rain_loop
+    group: Ambience
+    clips: []
+    volume: 1
+    pitchRange: {x: 0.97, y: 1.03}
+    spatialBlend: 0
+    minDistance: 1
+    maxDistance: 40
+    caption: 
+    cooldown: 0.05
+  - key: house_ambience
+    group: Ambience
+    clips: []
+    volume: 1
+    pitchRange: {x: 0.97, y: 1.03}
+    spatialBlend: 0
+    minDistance: 1
+    maxDistance: 40
+    caption: 
+    cooldown: 0.05
+  - key: knock_door
+    group: SFX
+    clips: []
+    volume: 1
+    pitchRange: {x: 0.97, y: 1.03}
+    spatialBlend: 1
+    minDistance: 1
+    maxDistance: 25
+    caption: '[KNOCK]'
+    cooldown: 0.05
+  - key: footsteps_ceiling
+    group: SFX
+    clips: []
+    volume: 1
+    pitchRange: {x: 0.97, y: 1.03}
+    spatialBlend: 1
+    minDistance: 1
+    maxDistance: 25
+    caption: '[FOOTSTEPS ABOVE]'
+    cooldown: 0.05
+  - key: door_creak
+    group: SFX
+    clips: []
+    volume: 1
+    pitchRange: {x: 0.97, y: 1.03}
+    spatialBlend: 1
+    minDistance: 1
+    maxDistance: 18
+    caption: '[CREAK]'
+    cooldown: 0.05
+  - key: door_open
+    group: SFX
+    clips: []
+    volume: 1
+    pitchRange: {x: 0.97, y: 1.03}
+    spatialBlend: 1
+    minDistance: 1
+    maxDistance: 18
+    caption: '[DOOR OPENS]'
+    cooldown: 0.05
+  - key: door_close
+    group: SFX
+    clips: []
+    volume: 1
+    pitchRange: {x: 0.97, y: 1.03}
+    spatialBlend: 1
+    minDistance: 1
+    maxDistance: 18
+    caption: '[DOOR CLOSES]'
+    cooldown: 0.05
+  - key: door_locked
+    group: SFX
+    clips: []
+    volume: 1
+    pitchRange: {x: 0.97, y: 1.03}
+    spatialBlend: 1
+    minDistance: 1
+    maxDistance: 18
+    caption: '[LOCKED]'
+    cooldown: 0.05
+  - key: memory_thud
+    group: SFX
+    clips: []
+    volume: 1
+    pitchRange: {x: 0.97, y: 1.03}
+    spatialBlend: 1
+    minDistance: 1
+    maxDistance: 30
+    caption: 
+    cooldown: 0.05
+  - key: phone_vibrate
+    group: UI
+    clips: []
+    volume: 1
+    pitchRange: {x: 0.97, y: 1.03}
+    spatialBlend: 0
+    minDistance: 1
+    maxDistance: 5
+    caption: 
+    cooldown: 0.05
+  - key: phone_signal_lost
+    group: UI
+    clips: []
+    volume: 1
+    pitchRange: {x: 0.97, y: 1.03}
+    spatialBlend: 0
+    minDistance: 1
+    maxDistance: 5
+    caption: '[NO SIGNAL]'
+    cooldown: 0.05
+  - key: mom_voice_lines
+    group: Voice
+    clips: []
+    volume: 1
+    pitchRange: {x: 0.97, y: 1.03}
+    spatialBlend: 0
+    minDistance: 1
+    maxDistance: 10
+    caption: 
+    cooldown: 0.05
+  - key: caller_voice
+    group: Voice
+    clips: []
+    volume: 1
+    pitchRange: {x: 0.97, y: 1.03}
+    spatialBlend: 0
+    minDistance: 1
+    maxDistance: 10
+    caption: '[CALLER]'
+    cooldown: 0.05
+  - key: nam_voice
+    group: Voice
+    clips: []
+    volume: 1
+    pitchRange: {x: 0.97, y: 1.03}
+    spatialBlend: 0
+    minDistance: 1
+    maxDistance: 10
+    caption: '[VOICE]'
+    cooldown: 0.05
+  - key: footstep_walk
+    group: SFX
+    clips: []
+    volume: 1
+    pitchRange: {x: 0.97, y: 1.03}
+    spatialBlend: 1
+    minDistance: 1
+    maxDistance: 15
+    caption: 
+    cooldown: 0.05
+  - key: footstep_sprint
+    group: SFX
+    clips: []
+    volume: 1
+    pitchRange: {x: 0.97, y: 1.03}
+    spatialBlend: 1
+    minDistance: 1
+    maxDistance: 18
+    caption: 
+    cooldown: 0.05
+  - key: footstep_crouch
+    group: SFX
+    clips: []
+    volume: 1
+    pitchRange: {x: 0.97, y: 1.03}
+    spatialBlend: 1
+    minDistance: 1
+    maxDistance: 12
+    caption: 
+    cooldown: 0.05
+  - key: footstep_wood_walk
+    group: SFX
+    clips: []
+    volume: 1
+    pitchRange: {x: 0.97, y: 1.03}
+    spatialBlend: 1
+    minDistance: 1
+    maxDistance: 15
+    caption: 
+    cooldown: 0.05
+  - key: footstep_wood_sprint
+    group: SFX
+    clips: []
+    volume: 1
+    pitchRange: {x: 0.97, y: 1.03}
+    spatialBlend: 1
+    minDistance: 1
+    maxDistance: 18
+    caption: 
+    cooldown: 0.05
+  - key: footstep_wood_crouch
+    group: SFX
+    clips: []
+    volume: 1
+    pitchRange: {x: 0.97, y: 1.03}
+    spatialBlend: 1
+    minDistance: 1
+    maxDistance: 12
+    caption: 
+    cooldown: 0.05
+  - key: footstep_tile_walk
+    group: SFX
+    clips: []
+    volume: 1
+    pitchRange: {x: 0.97, y: 1.03}
+    spatialBlend: 1
+    minDistance: 1
+    maxDistance: 15
+    caption: 
+    cooldown: 0.05
+  - key: footstep_tile_sprint
+    group: SFX
+    clips: []
+    volume: 1
+    pitchRange: {x: 0.97, y: 1.03}
+    spatialBlend: 1
+    minDistance: 1
+    maxDistance: 18
+    caption: 
+    cooldown: 0.05
+  - key: footstep_tile_crouch
+    group: SFX
+    clips: []
+    volume: 1
+    pitchRange: {x: 0.97, y: 1.03}
+    spatialBlend: 1
+    minDistance: 1
+    maxDistance: 12
+    caption: 
+    cooldown: 0.05

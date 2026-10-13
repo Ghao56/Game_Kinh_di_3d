@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 08e10d99e34a5b448b209528cb28ea4a
+timeCreated: 1502638557
+licenseType: Store
+TextScriptImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 98014
+  packageName: Cabin Environment
+  packageVersion: 1.0
+  assetPath: Assets/Cabin/Terrain/Sky by Heiko Irrgang/LICENSE.txt
+  uploadId: 195923

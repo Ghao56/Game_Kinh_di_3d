@@ -13,7 +13,7 @@ using UnityEngine.SceneManagement;
 /// Required của explore_house sống trong asset, tool không ghi đè giá trị đó.
 public static class QuestZoneSetup
 {
-    private const string ScenePath = "Assets/Scenes/SampleScene.unity";
+    private const string ScenePath = "Assets/Scenes/MHoang.unity";
     private const string ZoneParentName = "Quest Zones";
     private const string InteractableParentName = "Quest Interactables";
 

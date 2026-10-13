@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class LightingDiagnosticsRunner
 {
-    private const string ScenePath = "Assets/Scenes/SampleScene.unity";
+    private const string ScenePath = "Assets/Scenes/MHoang.unity";
 
     [MenuItem("Tools/Chay chan doan anh sang (batchmode)")]
     public static void RunBatch()

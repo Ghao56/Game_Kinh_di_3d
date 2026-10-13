@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: c3efb4f4cf372834ea40068955c091e5
+timeCreated: 1502142744
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 98014
+  packageName: Cabin Environment
+  packageVersion: 1.0
+  assetPath: Assets/Cabin/Terrain/terrain.asset
+  uploadId: 195923

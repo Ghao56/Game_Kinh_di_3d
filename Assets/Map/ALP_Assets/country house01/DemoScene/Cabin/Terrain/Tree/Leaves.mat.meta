@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 89b05dd405b019748bc9366aa4f358eb
+timeCreated: 1502498716
+licenseType: Store
+NativeFormatImporter:
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 98014
+  packageName: Cabin Environment
+  packageVersion: 1.0
+  assetPath: Assets/Cabin/Terrain/Tree/Leaves.mat
+  uploadId: 195923
