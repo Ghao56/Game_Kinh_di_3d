@@ -2135,7 +2135,7 @@ MonoBehaviour:
   displayName: "Mu\u1ED1i"
   inventory: {fileID: 564524657}
   itemId: Salt
-  projectilePrefab: {fileID: 2710496248691422834, guid: 63b616b70656fb043a77dd295072bb5b, type: 3}
+  projectilePrefab: {fileID: 6630362379582083564, guid: ac6945e4008ae9a4988d4e25f9c40b9a, type: 3}
   throwPoint: {fileID: 240830925}
   cameraTransform: {fileID: 330585546}
   throwForce: 15
@@ -6926,7 +6926,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HotbarUI
   selector: {fileID: 564524658}
-  inventory: {fileID: 564524657}
   slotTexts:
   - {fileID: 665579109}
   - {fileID: 1721640282}
