@@ -62,15 +62,19 @@ public class SaltBagThrower : MonoBehaviour, IThrowable
             }
         }
 
+        // Prefab kiểu vật lý cũ (có Rigidbody) thì đẩy lực bay như trước.
+        // Prefab kiểu Particle System (như chùm hạt muối) thì không cần -
+        // bản thân Particle System tự phát hạt theo hướng đã xoay ở trên khi Instantiate.
         Rigidbody rb = projectile.GetComponent<Rigidbody>();
+        ParticleSystem ps = projectile.GetComponent<ParticleSystem>();
 
         if (rb != null)
         {
             rb.AddForce(throwDirection * throwForce, ForceMode.VelocityChange);
         }
-        else
+        else if (ps == null)
         {
-            Debug.LogWarning($"Prefab {itemId} không có Rigidbody nên sẽ không bay!");
+            Debug.LogWarning($"Prefab {itemId} không có Rigidbody lẫn ParticleSystem nên sẽ không bay!");
         }
 
         Debug.Log($"Đã ném {itemId}, còn lại: {inventory.GetCount(itemId)}");

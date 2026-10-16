@@ -4,6 +4,12 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Scenes/UI menu.unity
+    guid: 53b82d5abe373a642803436af9f7988a
+  - enabled: 1
+    path: Assets/Scenes/khang.unity
+    guid: 94ca93beb57378e40a6277f587e4483c
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0
