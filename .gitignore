@@ -24,6 +24,9 @@ MemoryCaptures/
 *.VC.db
 .vsconfig
 
+# opencode local config (chua MCP Unity, may nao co Unity moi can)
+.opencode/
+
 sysinfo.txt
 *.apk
 *.aab

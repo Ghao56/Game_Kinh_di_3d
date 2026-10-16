@@ -35,7 +35,7 @@ public class FlowInteractable : MonoBehaviour, IInteractable, IInteractableAvail
     {
         get
         {
-            if (used) return false;
+            if (oneShot && used) return false;
 
             StoryFlowManager flow = StoryFlowManager.Instance;
             if (flow == null) return false;
