@@ -27,33 +27,6 @@ public class SaltSprayCollision : MonoBehaviour
     {
         Destroy(gameObject, lifeTime);
     }
-
-    //void OnCollisionEnter(Collision collision)
-    //{
-    //    bool hitEnemy =
-    //        collision.transform.CompareTag(enemyTag) ||
-    //        collision.transform.root.CompareTag(enemyTag);
-
-    //    if (!hitEnemy)
-    //        return;
-
-    //    Debug.Log("NÉM TRÚNG QUÁI!");
-
-    //    IStunnable stunnable =
-    //        collision.transform.GetComponentInParent<IStunnable>();
-
-    //    if (stunnable != null)
-    //        stunnable.Stun(stunDuration);
-
-    //    ParticleSystem ps = GetComponent<ParticleSystem>();
-
-    //    if (ps != null)
-    //    {
-    //        ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
-    //    }
-
-    //    Destroy(gameObject);
-    //}
     private void OnTriggerEnter(Collider other)
     {
         bool hitEnemy =
