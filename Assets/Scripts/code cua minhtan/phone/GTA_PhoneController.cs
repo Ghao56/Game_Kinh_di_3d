@@ -13,7 +13,7 @@ public class GTA_PhoneController : MonoBehaviour
     [SerializeField] private Behaviour[] scriptsToDisableWhenPhoneOpen;
 
     [Header("Settings")]
-    [SerializeField] private Key openKey = Key.F;
+    [SerializeField] public Key openKey = Key.P; // P = Phone. F bị chiếm bởi ném đồ nên đổi sang P
     [SerializeField] private Key messageKey = Key.T;
     [SerializeField] private float speed = 10f;
     [SerializeField] private bool useUnscaledTime = true;
@@ -29,6 +29,10 @@ public class GTA_PhoneController : MonoBehaviour
 
     private void Awake()
     {
+        // Ép về phím P: scene có thể đang serialize vẫn giữ F (phím ném đồ), 
+        // giá trị trong Inspector sẽ bị ghi đè để khỏi đụng nhau.
+        openKey = Key.P;
+
         if (phoneRect == null)
             phoneRect = GetComponent<RectTransform>();
 
@@ -65,7 +69,7 @@ public class GTA_PhoneController : MonoBehaviour
         var keyboard = Keyboard.current;
         if (keyboard == null) return;
 
-        // Bấm F: bật / tắt điện thoại
+        // Bấm P: bật / tắt điện thoại
         if (keyboard[openKey].wasPressedThisFrame)
             TogglePhone();
 

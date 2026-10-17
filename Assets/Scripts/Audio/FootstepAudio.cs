@@ -56,6 +56,7 @@ public class FootstepAudio : MonoBehaviour
 
     private Vector3 lastPosition;
     private float distanceSinceStep;
+    private string lastStepKey; // key bước cuối - dùng để cắt đuôi khi dừng.
 
     private void Awake()
     {
@@ -78,6 +79,7 @@ public class FootstepAudio : MonoBehaviour
         // Đang rơi / trên không trung -> không có bước chân.
         if (characterController != null && !characterController.isGrounded)
         {
+            CutStepTail();
             distanceSinceStep = 0f;
             return;
         }
@@ -85,13 +87,17 @@ public class FootstepAudio : MonoBehaviour
         float travelled = new Vector3(delta.x, 0f, delta.z).magnitude;
 
         // timeScale = 0 (pause) -> deltaTime = 0 -> travelled = 0 -> tự nhiên đứng yên.
-        if (travelled <= 0.0001f)
+        // Ngưỡng 2mm/frame + tốc độ tối thiểu 0.8 m/s: lọc hẳn micro-slide của
+        // CharacterController trên dốc/địa hình (đứng yên vẫn bị trôi vài mm/frame,
+        // ngưỡng cũ 0.0001 coi là đang đi nên tiếng bước không dừng).
+        float speed = travelled / Time.deltaTime;
+        if (travelled <= 0.002f || speed < 0.8f)
         {
+            CutStepTail();
             distanceSinceStep = 0f;
             return;
         }
 
-        float speed = travelled / Time.deltaTime;
         MoveState state = Classify(speed);
 
         distanceSinceStep += travelled;
@@ -152,14 +158,27 @@ public class FootstepAudio : MonoBehaviour
         if (manager != null)
         {
             string key = ResolveStepKey(manager, stateKey);
+            lastStepKey = key;
 
-            if (manager.TryPlayAt(key, position))
+            // stealSameClip: bước mới khoá cùng nguồn (không chồng tiếng); khi dừng,
+            // CutStepTail() tắc nguồn này để không còn đuôi loop.
+            if (manager.TryPlayAt(key, position, 1f, null, true))
             {
                 if (logSteps) Debug.Log($"[{nameof(FootstepAudio)}] Bước {stateKey} -> '{key}'.", this);
             }
         }
 
         NoiseSystem.ReportNoise(position, NoiseLoudness(state), NoiseRadius(state), gameObject);
+    }
+
+    /// Nhân vật ngừng đi -> dừng clip bước cuối ngay (clip là chuỗi loop dài,
+    /// để nó phát hết thì tiếng chân "không dừng" sau khi đã đứng lại).
+    private void CutStepTail()
+    {
+        if (string.IsNullOrEmpty(lastStepKey)) return;
+
+        AudioManager manager = AudioManager.Instance;
+        if (manager != null) manager.StopAudio(lastStepKey);
     }
 
     /// Ưu tiên key theo bề mặt (footstep_wood_walk), không có thì dùng key chung (footstep_walk).

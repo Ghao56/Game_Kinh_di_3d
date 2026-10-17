@@ -14,8 +14,27 @@ public class PlayerInventory : MonoBehaviour
     // mỗi khi số lượng bất kỳ vật phẩm nào thay đổi.
     public event Action OnInventoryChanged;
 
+    // Gộp các id trùng về 1 kho duy nhất ("Salt"/"Muối" là 1 vật, "Alcohol"/"Wine"/"Rượu" là 1 vật)
+    // để túi đồ không hiện 2 dòng cho cùng 1 thứ.
+    private static readonly Dictionary<string, string> aliases = new(StringComparer.OrdinalIgnoreCase)
+    {
+        { "salt", "Salt" },        { "muối", "Salt" },  { "muoi", "Salt" },
+        { "alcohol", "Alcohol" },  { "wine", "Alcohol" }, { "rượu", "Alcohol" }, { "ruou", "Alcohol" },
+    };
+
+    // Trả về id chuẩn của 1 id bất kỳ (ví dụ "Muối" -> "Salt")
+    public static string CanonicalId(string itemId)
+    {
+        if (string.IsNullOrEmpty(itemId))
+            return itemId;
+
+        return aliases.TryGetValue(itemId.Trim(), out var canonical) ? canonical : itemId.Trim();
+    }
+
     public void AddItem(string itemId, int amount = 1)
     {
+        itemId = CanonicalId(itemId);
+
         if (!items.ContainsKey(itemId))
             items[itemId] = 0;
 
@@ -29,6 +48,8 @@ public class PlayerInventory : MonoBehaviour
     // Trả về true nếu dùng được (còn hàng), false nếu hết
     public bool UseItem(string itemId)
     {
+        itemId = CanonicalId(itemId);
+
         if (!items.ContainsKey(itemId) || items[itemId] <= 0)
             return false;
 
@@ -41,6 +62,8 @@ public class PlayerInventory : MonoBehaviour
 
     public int GetCount(string itemId)
     {
+        itemId = CanonicalId(itemId);
+
         return items.ContainsKey(itemId) ? items[itemId] : 0;
     }
 

@@ -457,6 +457,9 @@ MonoBehaviour:
   m_Script: {fileID: 570188102}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NoiseDebugView
+  drawGizmos: 1
+  maxAge: 3
+  maxDrawn: 8
 --- !u!114 &125849084
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1254,6 +1257,7 @@ MonoBehaviour:
   jumpHeight: 1.2
   gravity: -20
   groundedGravity: -2
+  logJumpDebug: 1
   animator: {fileID: 0}
   crouchBoolParameter: IsCrouching
   logCrouchState: 1

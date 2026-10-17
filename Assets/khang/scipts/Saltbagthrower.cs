@@ -10,6 +10,7 @@ public class SaltBagThrower : MonoBehaviour, IThrowable
     public PlayerInventory inventory;
 
     public string itemId = "Salt";
+    public string ItemId => itemId;
 
     // Prefab viên đạn sẽ bay ra (cần có Rigidbody + Collider + script SaltBagProjectile)
     public GameObject projectilePrefab;

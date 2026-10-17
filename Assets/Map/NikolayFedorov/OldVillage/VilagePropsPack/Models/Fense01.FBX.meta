@@ -7,20 +7,20 @@ ModelImporter:
   fileIDToRecycleName:
     100000: //RootNode
     100002: Z_01_Detail
-    100004: Z_01_LOD02
-    100006: Z_01_LOD1
+    100004: Z_01_low02
+    100006: Z_01_low1
     400000: //RootNode
     400002: Z_01_Detail
-    400004: Z_01_LOD02
-    400006: Z_01_LOD1
+    400004: Z_01_low02
+    400006: Z_01_low1
     2300000: Z_01_Detail
-    2300002: Z_01_LOD02
-    2300004: Z_01_LOD1
+    2300002: Z_01_low02
+    2300004: Z_01_low1
     3300000: Z_01_Detail
-    3300002: Z_01_LOD02
-    3300004: Z_01_LOD1
-    4300000: Z_01_LOD1
-    4300002: Z_01_LOD02
+    3300002: Z_01_low02
+    3300004: Z_01_low1
+    4300000: Z_01_low1
+    4300002: Z_01_low02
     4300004: Z_01_Detail
   materials:
     importMaterials: 0

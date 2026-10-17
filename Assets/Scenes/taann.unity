@@ -131,7 +131,6 @@ GameObject:
   - component: {fileID: 3915490}
   - component: {fileID: 3915489}
   - component: {fileID: 3915491}
-  - component: {fileID: 3915492}
   m_Layer: 5
   m_Name: PhoneUI
   m_TagString: Untagged
@@ -223,41 +222,6 @@ MonoBehaviour:
   useUnscaledTime: 1
   hiddenPos: {x: -150, y: -600}
   visiblePos: {x: -200, y: 400}
---- !u!114 &3915492
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3915487}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ecdd2c4b52750e8498d354646d3a9d40, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: '::'
-  scriptsToDisableWhenPhoneOpen: []
-  fatherPanicLines:
-  - "Con \u01A1i... con \u0111ang \u1EDF \u0111\xE2u v\u1EADy?!"
-  - "Tr\u1EDDi \u01A1i, mau tr\u1EA3 l\u1EDDi cha \u0111i!!"
-  - "H\xECnh nh\u01B0... c\xF3 ai \u0111\xF3 \u0111ang \u1EDF ngo\xE0i c\u1EEDa nh\xE0
-    m\xECnh!"
-  - "L\xE0m \u01A1n \u0111\u1EEBng v\u1EC1 nh\xE0 v\u1ED9i, nguy hi\u1EC3m l\u1EAFm
-    con \u01A1i!"
-  - "CHA S\u1EE2 L\u1EAEM... con c\xF3 nghe th\u1EA5y cha n\xF3i g\xEC kh\xF4ng?!"
-  - "Xin con... h\xE3y c\u1EA9n th\u1EADn..."
-  autoReplyLines:
-  - "Cha \u01A1i b\xECnh t\u0129nh l\u1EA1i \u0111\xE3, con \u0111ang nghe \u0111\xE2y."
-  - "D\u1EA1 con nghe r\u1ED3i, cha \u0111\u1EEBng lo qu\xE1."
-  - "Cha kh\xF3a h\u1EBFt c\u1EEDa l\u1EA1i \u0111i, \u0111\u1EEBng m\u1EDF cho ai
-    c\u1EA3."
-  - "\u0110\u01B0\u1EE3c r\u1ED3i, con s\u1EBD c\u1EA9n th\u1EADn. Cha gi\u1EEF b\xECnh
-    t\u0129nh nh\xE9."
-  - "Con \u0111\xE2y, con \u0111ang c\u1ED1 g\u1EAFng v\u1EC1 nhanh nh\u1EA5t c\xF3
-    th\u1EC3."
-  - "Cha \u01A1i... cha v\u1EABn \u1ED5n ch\u1EE9?"
-  timeBetweenFatherMessages: 20
-  autoReplyDelayMin: 2
-  autoReplyDelayMax: 4
 --- !u!1 &50203102
 GameObject:
   m_ObjectHideFlags: 0
@@ -1156,7 +1120,7 @@ MonoBehaviour:
   m_Script: {fileID: 19102, guid: 0000000000000000e000000000000000, type: 0}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.dll::UnityEngine.UIElements.UIDocument
-  m_PanelSettings: {fileID: 11400000, guid: 46fe1553708bf904582efb789b8af537, type: 2}
+  m_PanelSettings: {fileID: 11400000, guid: 1b8052ed1a9b5c542880261d9fb4abc2, type: 2}
   m_ParentUI: {fileID: 0}
   sourceAsset: {fileID: 9197481963319205126, guid: e9321a0c2f7a67f4491ea15b9dd9af66, type: 3}
   m_SortingOrder: 0

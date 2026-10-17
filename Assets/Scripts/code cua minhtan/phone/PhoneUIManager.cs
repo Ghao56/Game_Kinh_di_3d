@@ -7,6 +7,9 @@ using System;
 
 public class PhoneUIManager : MonoBehaviour
 {
+    // Phím mở/tắt điện thoại - PhoneHintUI cũng đọc field này để hiển thị đúng phím
+    [SerializeField] public Key openKey = Key.P;
+
     [Header("Khóa Camera & Nhân Vật Khi Mở Điện Thoại")]
     [Tooltip("Kéo script xoay camera + script di chuyển nhân vật vào đây. Để trống thì camera/di chuyển sẽ KHÔNG bị khóa.")]
     [SerializeField] private List<MonoBehaviour> scriptsToDisableWhenPhoneOpen;
@@ -175,11 +178,12 @@ public class PhoneUIManager : MonoBehaviour
         DateTime now = DateTime.Now;
         if (timeLabel != null) timeLabel.text = now.ToString("HH:mm");
 
-        if (Keyboard.current != null && Keyboard.current.fKey.wasPressedThisFrame)
+        // Bấm phím mở điện thoại (đọc từ field openKey, mặc định P vì F bị ném đồ chiếm)
+        if (Keyboard.current != null && Keyboard.current[openKey].wasPressedThisFrame)
             TogglePhoneState();
     }
 
-    private void TogglePhoneState()
+    public void TogglePhoneState()
     {
         isPhoneOpen = !isPhoneOpen;
         if (!isPhoneOpen) CloseApp();

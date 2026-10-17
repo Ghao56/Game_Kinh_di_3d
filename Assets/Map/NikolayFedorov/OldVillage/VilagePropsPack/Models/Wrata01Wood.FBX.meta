@@ -6,36 +6,36 @@ ModelImporter:
   serializedVersion: 19
   fileIDToRecycleName:
     100000: Wrata01Detail
-    100002: Wrata01Door01_LOD02
-    100004: Wrata01Door01_LOD1
-    100006: Wrata01Door01LOD0
-    100008: Wrata01LOD02
-    100010: Wrata01LOD1
+    100002: Wrata01Door01_low02
+    100004: Wrata01Door01_low1
+    100006: Wrata01Door01low0
+    100008: Wrata01low02
+    100010: Wrata01low1
     100012: //RootNode
     400000: Wrata01Detail
-    400002: Wrata01Door01_LOD02
-    400004: Wrata01Door01_LOD1
-    400006: Wrata01Door01LOD0
-    400008: Wrata01LOD02
-    400010: Wrata01LOD1
+    400002: Wrata01Door01_low02
+    400004: Wrata01Door01_low1
+    400006: Wrata01Door01low0
+    400008: Wrata01low02
+    400010: Wrata01low1
     400012: //RootNode
     2300000: Wrata01Detail
-    2300002: Wrata01Door01_LOD02
-    2300004: Wrata01Door01_LOD1
-    2300006: Wrata01Door01LOD0
-    2300008: Wrata01LOD02
-    2300010: Wrata01LOD1
+    2300002: Wrata01Door01_low02
+    2300004: Wrata01Door01_low1
+    2300006: Wrata01Door01low0
+    2300008: Wrata01low02
+    2300010: Wrata01low1
     3300000: Wrata01Detail
-    3300002: Wrata01Door01_LOD02
-    3300004: Wrata01Door01_LOD1
-    3300006: Wrata01Door01LOD0
-    3300008: Wrata01LOD02
-    3300010: Wrata01LOD1
-    4300000: Wrata01Door01LOD0
-    4300002: Wrata01Door01_LOD1
-    4300004: Wrata01Door01_LOD02
-    4300006: Wrata01LOD1
-    4300008: Wrata01LOD02
+    3300002: Wrata01Door01_low02
+    3300004: Wrata01Door01_low1
+    3300006: Wrata01Door01low0
+    3300008: Wrata01low02
+    3300010: Wrata01low1
+    4300000: Wrata01Door01low0
+    4300002: Wrata01Door01_low1
+    4300004: Wrata01Door01_low02
+    4300006: Wrata01low1
+    4300008: Wrata01low02
     4300010: Wrata01Detail
   materials:
     importMaterials: 0
