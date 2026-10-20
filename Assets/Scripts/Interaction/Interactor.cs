@@ -83,7 +83,8 @@ public class Interactor : MonoBehaviour
             var availability = candidate as IInteractableAvailability;
             if (availability != null && !availability.IsAvailable) continue;
 
-            float sqrDist = (hits[i].transform.position - transform.position).sqrMagnitude;
+            // Dung bounds thay vi vi tri transform (goc ban le xa hon center khi player dung giua la cua).
+            float sqrDist = hits[i].bounds.SqrDistance(center);
             if (sqrDist < nearestSqrDist)
             {
                 nearestSqrDist = sqrDist;

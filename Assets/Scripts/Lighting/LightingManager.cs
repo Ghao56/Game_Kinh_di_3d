@@ -17,6 +17,18 @@ public class LightingManager : MonoBehaviour
     [SerializeField] private LightingPreset dusk = new LightingPreset();
     [SerializeField] private LightingPreset night = new LightingPreset();
 
+    [Header("Bắt đầu")]
+    [Tooltip("Trạng thái ánh sáng khi vào Play. Đặt Night cho game kinh dị.")]
+    [SerializeField] private LightingState startState = LightingState.Night;
+
+    [Tooltip("BẬT: lúc vào Play, preset của 'Start State' được lấy y nguyên từ scene đang thấy ở Edit mode " +
+             "(ambient, fog, sun/moon, reflection, Color Adjustments) nên Play giống hệt preview. " +
+             "TẮT: dùng giá trị preset gõ trong Inspector như cũ.")]
+    [SerializeField] private bool captureStartFromScene = true;
+
+    [Tooltip("Chỉ dùng khi scene KHÔNG có skybox nào và không tạo được Skybox/Procedural. Gán material trời dự phòng ở đây.")]
+    [SerializeField] private Material fallbackSkybox;
+
     [Header("Transition")]
     [Min(0.1f)]
     [SerializeField] private float duskDuration = 12f;
@@ -58,20 +70,26 @@ public class LightingManager : MonoBehaviour
 
         EnsurePresets();
 
-        sunLight.useColorTemperature = false;
         RenderSettings.sun = sunLight;
-        RenderSettings.ambientMode = AmbientMode.Trilight;
-        RenderSettings.fog = true;
-        RenderSettings.fogMode = FogMode.ExponentialSquared;
 
+        // Phải chạy TRƯỚC khi ghi đè bất cứ thứ gì: lúc này RenderSettings vẫn là giá trị preview ở Edit mode.
         SetupSkybox();
         SetupVolume();
 
-        current.CopyFrom(day);
-        Target = LightingState.Day;
-        IsTransitioning = false;
-        TransitionProgress = 1f;
-        Apply(current);
+        if (captureStartFromScene)
+        {
+            // Giữ nguyên ambientMode / fog / useColorTemperature của scene, chỉ lấy giá trị.
+            CaptureSceneInto(GetPreset(startState));
+        }
+        else
+        {
+            sunLight.useColorTemperature = false;
+            RenderSettings.ambientMode = AmbientMode.Trilight;
+            RenderSettings.fog = true;
+            RenderSettings.fogMode = FogMode.ExponentialSquared;
+        }
+
+        ApplyImmediate(startState, GetPreset(startState));
     }
 
     public void SetDay()
@@ -99,6 +117,7 @@ public class LightingManager : MonoBehaviour
         BeginTransition(LightingState.Night, night, nightDuration);
     }
 
+    [ContextMenu("Reset Presets To Recommended")]
     public void ResetPresetsToRecommended()
     {
         day = LightingPreset.CreateDay();
@@ -176,22 +195,85 @@ public class LightingManager : MonoBehaviour
         Apply(current);
     }
 
+    // Đọc trạng thái scene hiện tại (đúng thứ đang thấy ở Edit mode) vào preset.
+    private void CaptureSceneInto(LightingPreset p)
+    {
+        p.ambientSky = RenderSettings.ambientSkyColor;
+        p.ambientEquator = RenderSettings.ambientEquatorColor;
+        p.ambientGround = RenderSettings.ambientGroundColor;
+        p.ambientIntensity = RenderSettings.ambientIntensity;
+
+        p.sunIntensity = sunLight.enabled ? sunLight.intensity : 0f;
+        p.sunColor = sunLight.color;
+        p.sunEuler = sunLight.transform.rotation.eulerAngles;
+
+        p.fogColor = RenderSettings.fogColor;
+        p.fogDensity = RenderSettings.fogDensity;
+
+        p.reflectionIntensity = RenderSettings.reflectionIntensity;
+
+        if (skyboxDrivable && skyboxInstance != null)
+        {
+            if (skyboxInstance.HasProperty(SkyTintId)) p.skyTint = skyboxInstance.GetColor(SkyTintId);
+            if (skyboxInstance.HasProperty(GroundColorId)) p.skyGround = skyboxInstance.GetColor(GroundColorId);
+            if (skyboxInstance.HasProperty(AtmosphereThicknessId)) p.atmosphereThickness = skyboxInstance.GetFloat(AtmosphereThicknessId);
+            if (skyboxInstance.HasProperty(ExposureId)) p.skyExposure = skyboxInstance.GetFloat(ExposureId);
+        }
+
+        if (colorAdjustments != null)
+        {
+            p.postExposure = colorAdjustments.postExposure.value;
+            p.postContrast = colorAdjustments.contrast.value;
+            p.postSaturation = colorAdjustments.saturation.value;
+            p.postHueShift = colorAdjustments.hueShift.value;
+            p.postFilter = colorAdjustments.colorFilter.value;
+            p.postFilterAmount = 1f; // postFilter đã là màu cuối cùng, không blend thêm.
+        }
+    }
+
     private void SetupSkybox()
     {
-        if (RenderSettings.skybox == null)
+        Material source = RenderSettings.skybox;
+
+        // 1) Skybox của scene điều khiển được (Procedural): dùng bản sao để không sửa asset.
+        if (source != null && source.HasProperty(SkyTintId))
         {
-            Debug.LogWarning($"[{nameof(LightingManager)}] RenderSettings.skybox đang null, bỏ qua điều khiển trời.", this);
+            skyboxInstance = new Material(source);
+            RenderSettings.skybox = skyboxInstance;
+            skyboxDrivable = true;
+            DynamicGI.UpdateEnvironment();
             return;
         }
 
-        skyboxInstance = new Material(RenderSettings.skybox);
-        RenderSettings.skybox = skyboxInstance;
-
-        skyboxDrivable = skyboxInstance.HasProperty(SkyTintId);
-        if (!skyboxDrivable)
+        // 2) Skybox của scene là loại khác (6-Sided, Cubemap, Panoramic...): GIỮ NGUYÊN, đừng thay bằng Procedural.
+        //    Đây là skybox bạn thấy ở Edit mode (NightSky.mat), thay nó mới làm Play tối đen.
+        if (source != null)
         {
-            Debug.LogWarning($"[{nameof(LightingManager)}] Skybox không dùng shader 'Skybox/Procedural', bỏ qua điều khiển trời.", this);
+            skyboxDrivable = false;
+            Debug.Log($"[{nameof(LightingManager)}] Giữ nguyên skybox '{source.name}' (shader '{source.shader.name}'), trời không đổi theo preset.", this);
+            return;
         }
+
+        // 3) Scene không có skybox: tự tạo.
+        Shader procedural = Shader.Find("Skybox/Procedural");
+        if (procedural != null)
+        {
+            skyboxInstance = new Material(procedural);
+        }
+        else if (fallbackSkybox != null)
+        {
+            skyboxInstance = new Material(fallbackSkybox);
+        }
+        else
+        {
+            Debug.LogWarning($"[{nameof(LightingManager)}] Scene không có skybox và không tạo được 'Skybox/Procedural'. Thêm shader vào Always Included Shaders hoặc gán 'fallbackSkybox'.", this);
+            return;
+        }
+
+        RenderSettings.skybox = skyboxInstance;
+        skyboxDrivable = skyboxInstance.HasProperty(SkyTintId);
+
+        if (skyboxDrivable) DynamicGI.UpdateEnvironment();
     }
 
     private void SetupVolume()
