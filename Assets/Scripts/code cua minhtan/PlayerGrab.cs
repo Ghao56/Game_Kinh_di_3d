@@ -133,22 +133,6 @@ public class PlayerGrab : MonoBehaviour
         {
             if (!col.CompareTag("Item")) continue;
 
-            // Túi đồ theo ô: đồ loot có LootItem sẽ tự bay vào túi, không cầm tay
-            LootItem loot = col.GetComponentInParent<LootItem>();
-            var bag = PlayerLootBag.Instance;
-            if (loot != null && bag != null)
-            {
-                if (!bag.TryTake(loot))
-                {
-                    Debug.LogWarning($"Túi đầy ({bag.UsedSlots}/{bag.Capacity}) — không nhặt được {loot.itemName} (chiếm {loot.slotCost} ô)");
-                    break;
-                }
-
-                Debug.Log($"Nhặt {loot.itemName} ({loot.valueInMillions}tr) vào túi ({bag.UsedSlots}/{bag.Capacity})");
-                Destroy(loot.gameObject);
-                return;
-            }
-
             heldItem = col.gameObject;
             Rigidbody rb = heldItem.GetComponent<Rigidbody>();
             if (rb != null) rb.isKinematic = true;

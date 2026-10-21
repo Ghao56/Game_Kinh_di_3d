@@ -21,7 +21,7 @@ public class SlotsHotbarUI : MonoBehaviour
 
     public int slotSpacing = 10;
 
-    public int slotCount = 3; // tay: 3 slot chuyên đồ lớn / muối / rượu
+    public int slotCount = 5;
 
     private CanvasGroup group;
     private GameObject[] slotGos;

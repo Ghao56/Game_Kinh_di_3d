@@ -23,7 +23,7 @@ public class AnxietyManager : MonoBehaviour
     public static AnxietyManager Instance { get; private set; }
 
     [Header("Thanh lo âu")]
-    [SerializeField] Transform player;
+    Transform player;
     [SerializeField] float maxAnxiety = 100f;
     [SerializeField, Range(0, 100)] float current;
     [SerializeField] float decayPerSecond = 2f;      // tự giảm khi không bị tác động
@@ -42,7 +42,17 @@ public class AnxietyManager : MonoBehaviour
     public float Current => current;
     public float Normalized => current / maxAnxiety;
 
-    void Awake() => Instance = this;
+    void Awake()
+    {
+        Instance = this;
+
+        GameObject playerObject = GameObject.FindGameObjectWithTag("Player");
+
+        if (playerObject != null)
+            player = playerObject.transform;
+        else
+            Debug.LogError("Không tìm thấy GameObject có Tag Player!");
+    }
 
     public void Register(AnxietySource s) { if (!sources.Contains(s)) sources.Add(s); }
     public void Unregister(AnxietySource s) => sources.Remove(s);
@@ -80,11 +90,36 @@ public class AnxietyManager : MonoBehaviour
         foreach (var t in thresholds)
         {
             if (t.prefab == null) continue;
+
             bool above = current >= t.triggerAt;
 
             if (above && t.instance == null && !(t.onlyOnce && t.used))
             {
-                t.instance = Instantiate(t.prefab, GetSpawnPos(t), Quaternion.identity);
+                t.instance = Instantiate(
+                    t.prefab,
+                    GetSpawnPos(t),
+                    Quaternion.identity
+                );
+
+                GameObject playerObject = GameObject.FindGameObjectWithTag("Player");
+
+                if (playerObject != null)
+                {
+                    Transform playerTransform = playerObject.transform;
+
+                    EnemyAI3D enemyAI = t.instance.GetComponent<EnemyAI3D>();
+                    if (enemyAI != null)
+                        enemyAI.player = playerTransform;
+
+                    EnemyHearing enemyHearing = t.instance.GetComponent<EnemyHearing>();
+                    if (enemyHearing != null)
+                        enemyHearing.player = playerTransform;
+                }
+                else
+                {
+                    Debug.LogError("Không tìm thấy Player có Tag Player!");
+                }
+
                 t.used = true;
             }
             else if (!above && t.despawnWhenBelow && t.instance != null)
