@@ -46,7 +46,6 @@
     border-width: 2px;
     border-color: rgba(255, 255, 255, 0.25);
     -unity-text-align: middle-center;
-    cursor: pointer;
 }
 
 /* Dynamic Island */
@@ -59,7 +58,6 @@
     height: 28px;
     background-color: #000000;
     border-radius: 18px;
-    z-index: 20;
 }
 
 .cam {
@@ -81,7 +79,6 @@
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
-    z-index: 10;
 }
 
 .time-text {
@@ -140,7 +137,6 @@
     border-width: 0;
     align-items: center;
     padding: 0;
-    cursor: pointer;
     flex-shrink: 0;
     position: relative;
 }
@@ -228,8 +224,6 @@
     border-radius: 2px;
     background-color: #ffffff;
     border-width: 0;
-    z-index: 50;
-    cursor: pointer;
 }
 
 /* Trang Tin Nhắn (trượt lên) */
@@ -241,7 +235,6 @@
     height: 100%;
     background-color: #f5f6fa;
     transition: top 0.28s ease-in-out;
-    z-index: 30;
     flex-direction: column;
     overflow: hidden;
 }
@@ -278,7 +271,6 @@
     font-size: 16px;
     color: #333333;
     -unity-text-align: middle-center;
-    cursor: pointer;
 }
 
 .appbody {
@@ -318,13 +310,13 @@
 
 .msg-text-father {
     color: #111111;
-    font-size: 13px;
+    font-size: 17px;
     white-space: normal;
 }
 
 .msg-text-player {
     color: #ffffff;
-    font-size: 13px;
+    font-size: 17px;
     white-space: normal;
 }
 
@@ -344,9 +336,8 @@
     color: #ffffff;
     padding: 8px 14px;
     border-radius: 12px;
-    font-size: 11px;
+    font-size: 14px;
     display: none;
-    z-index: 60;
 }
 
 .toast.show {

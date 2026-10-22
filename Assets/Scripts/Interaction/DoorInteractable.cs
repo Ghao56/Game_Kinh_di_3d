@@ -125,6 +125,15 @@ public class DoorInteractable : MonoBehaviour, IInteractable, IInteractableAvail
 
         open = !open;
         unlockedOnce = true;
+
+        // Canh ghep quay theo canh chinh: neu thi doi mo/dong ca cum (bug cu: khong co ai doi canh ghep).
+        for (int i = 0; i < linkedDoors.Length; i++)
+        {
+            DoorInteractable door = linkedDoors[i];
+            if (door == null) continue;
+            door.open = open;
+        }
+
         onToggle?.Invoke();
         Debug.Log($"[DoorInteractable] {name} {(open ? "MO" : "DONG")} (kem {linkedDoors.Length} canh ghep)", this);
     }

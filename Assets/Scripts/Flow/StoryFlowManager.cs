@@ -364,6 +364,13 @@ public class StoryFlowManager : MonoBehaviour
 
         phone.PushSMS(string.IsNullOrEmpty(action.sender) ? "Chủ nợ" : action.sender, action.text);
         Log($"Tin nhắn từ '{action.sender}': {action.text}");
+
+        // Hướng dẫn dạng quest: đọc phímopenKey từ PhoneUIManager để không cứng chữ "P".
+        CaptionUI caption = ResolveCaption();
+        if (caption != null)
+        {
+            caption.Show($"Có người vừa nhắn tin — nhấn [{phone.openKey}] để mở điện thoại", 4f);
+        }
     }
 
     private PhoneUIManager ResolvePhone()
