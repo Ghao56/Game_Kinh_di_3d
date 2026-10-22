@@ -11,6 +11,13 @@ public class LootItem : MonoBehaviour
     [Range(1, 3)]
     public int slotCost = 1;
 
+    [Header("Nhận diện khi chất lên xe tải")]
+    [Tooltip("Khóa duy nhất của món đồ (ví dụ loot_clock). Để trống thì ô chất đồ từ chối món này.")]
+    public string itemId = string.Empty;
+
+    /// Khóa nhận diện (TruckLoadCell / PlayerGrab đọc). Rượu/muối không có món này nên không chất được.
+    public string ItemId => itemId;
+
     void Reset()
     {
         // Khi gắn mới trong editor: auto đặt tag Item

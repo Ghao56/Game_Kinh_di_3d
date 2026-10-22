@@ -39,7 +39,7 @@ public class EnemyJumpscareTrigger : MonoBehaviour
             else
             {
                 // Tự động tìm nếu Instance bị null
-                JumpscareManager manager = FindObjectOfType<JumpscareManager>();
+                JumpscareManager manager = FindAnyObjectByType<JumpscareManager>();
                 if (manager != null)
                 {
                     manager.TriggerJumpscare();

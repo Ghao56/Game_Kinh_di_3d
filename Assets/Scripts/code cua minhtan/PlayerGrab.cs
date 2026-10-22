@@ -1,45 +1,50 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
-using System.Collections.Generic;
 
 public class PlayerGrab : MonoBehaviour
 {
     [Header("Vị trí")]
     [SerializeField] private Transform holdPoint;
-    [SerializeField] private Transform inspectPoint;
 
     [Header("Cài đặt")]
     [SerializeField] private float pickupRange = 3f;
     [SerializeField] private float interactRange = 5f;
     [SerializeField] private float placeRange = 3f;
-    [SerializeField] private float rotateSpeed = 0.5f;
     [SerializeField] private LayerMask placeSurfaceMask = ~0;
     [SerializeField] private LayerMask interactMask = ~0;
 
     [Header("Giao diện Hướng dẫn Tương tác")]
     [SerializeField] private GameObject promptUI;
 
-    [Header("Khóa Camera Khi Đang Xem Đồ (bấm R)")]
-    [SerializeField] private List<Behaviour> scriptsToDisableWhileInspecting;
+    [Header("Nhiệm vụ khi nhặt đồ")]
+    [Tooltip("Nhặt được món có LootItem/itemId thì cộng 1 cho mục tiêu này. Để trống thì bỏ qua.")]
+    [SerializeField] private string pickupQuestId = "loot_truck";
+    [SerializeField] private string pickupObjectiveId = "tim_do";
+
+    [Header("Túi đồ (phím R)")]
+    [Tooltip("R: đang cầm đồ thì bỏ vào túi; tay rỗng thì R rồi 1..4 để lấy món ở slot đó ra tay.")]
+    [SerializeField] private float bagFetchWindow = 3f;
 
     private GameObject heldItem;
-    private bool isInspecting = false;
+    private Interactor interactor;
+    private float bagFetchTimer;
     private Camera mainCamera;
 
     // Biến quản lý đèn pin
     private Light itemLight;
     private Quaternion defaultLightRotation;
 
+    private static readonly Key[] DigitKeys =
+    {
+        Key.Digit1, Key.Digit2, Key.Digit3, Key.Digit4
+    };
+
     private void Awake()
     {
         mainCamera = Camera.main;
         if (promptUI != null) promptUI.SetActive(false);
-    }
-
-    private void OnDisable()
-    {
-        if (isInspecting)
-            SetInspectingScriptsEnabled(true);
+        interactor = GetComponentInParent<Interactor>();
+        if (interactor == null) interactor = FindFirstObjectByType<Interactor>();
     }
 
     private void Update()
@@ -53,45 +58,37 @@ public class PlayerGrab : MonoBehaviour
         {
             if (heldItem == null)
                 TryPickUp();
-            else if (!isInspecting)
+            else if (!IsTargetingCell())
                 DropItem();
         }
 
-        // 2. Phím R: Xoay xem đồ
-        if (Keyboard.current.rKey.wasPressedThisFrame && heldItem != null)
+        // 2. Phím R: Bỏ đồ vào túi / chuẩn bị lấy đồ ra từ túi
+        if (Keyboard.current.rKey.wasPressedThisFrame)
         {
-            ToggleInspect();
+            if (heldItem != null)
+                StashHeldToBag();
+            else
+                bagFetchTimer = bagFetchWindow;
         }
 
         // 3. Chuột Trái: Bật/tắt đèn hoặc Đặt đồ xuống
         if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame && heldItem != null)
         {
-            if (!isInspecting)
+            if (itemLight != null)
             {
-                if (itemLight != null)
-                {
-                    itemLight.enabled = !itemLight.enabled;
-                }
-                else
-                {
-                    TryPlaceItem();
-                }
+                itemLight.enabled = !itemLight.enabled;
+            }
+            else
+            {
+                TryPlaceItem();
             }
         }
 
-        // 4. Xoay đồ vật khi ở chế độ xem (Phím R)
-        if (isInspecting && heldItem != null && Mouse.current != null)
+        // 4. R + số slot (1..4): lấy món trong túi ra tay
+        if (bagFetchTimer > 0f)
         {
-            RotateItem();
-        }
-    }
-
-    private void LateUpdate()
-    {
-        // Khi đang xoay kiểm tra điện thoại, khóa góc quay của đèn pin theo hướng camera để đèn không bị quay lồng lộn theo chuột
-        if (isInspecting && itemLight != null && mainCamera != null)
-        {
-            itemLight.transform.rotation = mainCamera.transform.rotation;
+            bagFetchTimer -= Time.deltaTime;
+            TryFetchFromBag();
         }
     }
 
@@ -154,7 +151,7 @@ public class PlayerGrab : MonoBehaviour
                 defaultLightRotation = itemLight.transform.localRotation;
             }
 
-            isInspecting = false;
+            NotifyLootObjective();
             break;
         }
     }
@@ -175,7 +172,6 @@ public class PlayerGrab : MonoBehaviour
         if (rb != null) rb.AddForce(transform.forward * 2f, ForceMode.Impulse);
 
         heldItem = null;
-        SetInspectingState(false);
     }
 
     private void TryPlaceItem()
@@ -197,63 +193,127 @@ public class PlayerGrab : MonoBehaviour
 
             ResetItemPhysics();
             heldItem = null;
-            SetInspectingState(false);
         }
     }
 
-    private void ToggleInspect()
-    {
-        SetInspectingState(!isInspecting);
+    /// Món đồ đang cầm trên tay (null nếu tay không).
+    public GameObject HeldItem => heldItem;
 
-        if (isInspecting)
+    /// Bỏ món đang cầm ra khỏi tay mà KHÔNG thả xuống đất (dùng khi chất đồ lên xe).
+    /// Trả về gameObject để ô chất đồ đặt vào chỗ; trả null nếu tay đang trống.
+    public GameObject TakeHeld()
+    {
+        if (heldItem == null) return null;
+
+        GameObject item = heldItem;
+
+        if (itemLight != null)
         {
-            if (inspectPoint != null)
-            {
-                heldItem.transform.SetParent(inspectPoint);
-                heldItem.transform.localPosition = Vector3.zero;
-            }
+            itemLight.transform.localRotation = defaultLightRotation;
+            itemLight = null;
         }
-        else
+
+        // isKinematic + collider tắt giữ nguyên như lúc cầm: đồ nằm yên trong ô.
+        heldItem = null;
+        return item;
+    }
+
+    // Đang nhắm ô chất đồ: nhấn E phải là "giữ để chất", không được vứt đồ.
+    private bool IsTargetingCell()
+    {
+        if (interactor == null) interactor = FindFirstObjectByType<Interactor>();
+        return interactor != null && interactor.CurrentTarget is TruckLoadCell;
+    }
+
+    // Lần đầu nhặt được một món loot (có itemId) thì cộng mục tiêu "Tìm đồ có giá trị".
+    private void NotifyLootObjective()
+    {
+        if (string.IsNullOrEmpty(pickupQuestId) || string.IsNullOrEmpty(pickupObjectiveId)) return;
+
+        LootItem loot = heldItem != null ? heldItem.GetComponent<LootItem>() : null;
+        if (loot == null || string.IsNullOrEmpty(loot.ItemId)) return;
+
+        QuestManager manager = QuestManager.Instance;
+        if (manager == null) return;
+
+        manager.ReportProgress(pickupQuestId, pickupObjectiveId);
+    }
+
+    // R khi đang cầm: món đồ cất vào TÚI (PlayerLootBag), ẩn khỏi thế giới cho tới khi lấy ra/chất.
+    private void StashHeldToBag()
+    {
+        PlayerLootBag bag = PlayerLootBag.Instance;
+        LootItem loot = heldItem != null ? heldItem.GetComponent<LootItem>() : null;
+        if (bag == null || loot == null)
         {
-            if (holdPoint != null)
+            Debug.Log("[PlayerGrab] Món này không cất vào túi được (chỉ đồ loot có LootItem)."); return;
+        }
+
+        if (!bag.TryTake(loot))
+        {
+            Debug.Log("[PlayerGrab] Túi không đủ slot trống.");
+            return;
+        }
+
+        GameObject item = heldItem;
+
+        if (itemLight != null)
+        {
+            itemLight.transform.localRotation = defaultLightRotation;
+            itemLight = null;
+        }
+
+        item.SetActive(false);
+        item.transform.SetParent(transform, false);
+
+        heldItem = null;
+        bagFetchTimer = bagFetchWindow;
+    }
+
+    // R + số 1..4: lấy món ở slot đó của túi về tay (chỉ khi tay rỗng).
+    private void TryFetchFromBag()
+    {
+        if (heldItem != null) { bagFetchTimer = 0f; return; }
+
+        PlayerLootBag bag = PlayerLootBag.Instance;
+        if (bag == null) return;
+
+        for (int i = 0; i < DigitKeys.Length; i++)
+        {
+            if (Keyboard.current != null && Keyboard.current[DigitKeys[i]].wasPressedThisFrame)
             {
-                if (itemLight != null)
+                int slot = i;
+                if (slot >= bag.Carried.Count) return; // slot trống: chờ phím khác
+
+                LootItem loot = bag.Carried[slot];
+                bag.Remove(loot);
+
+                GameObject item = loot.gameObject;
+                item.SetActive(true);
+                item.transform.SetParent(null);
+                item.transform.position = holdPoint != null ? holdPoint.position : transform.position + transform.forward;
+
+                heldItem = item;
+                Rigidbody rb = item.GetComponent<Rigidbody>();
+                if (rb != null) rb.isKinematic = true;
+
+                Collider itemCollider = item.GetComponent<Collider>();
+                if (itemCollider != null) itemCollider.enabled = false;
+
+                itemLight = item.GetComponentInChildren<Light>();
+                if (itemLight != null) defaultLightRotation = itemLight.transform.localRotation;
+
+                if (holdPoint != null)
                 {
-                    itemLight.transform.localRotation = defaultLightRotation;
+                    item.transform.SetParent(holdPoint);
+                    item.transform.localPosition = Vector3.zero;
+                    item.transform.localRotation = Quaternion.identity;
                 }
-                heldItem.transform.SetParent(holdPoint);
-                heldItem.transform.localPosition = Vector3.zero;
-                heldItem.transform.localRotation = Quaternion.identity;
+
+                bagFetchTimer = 0f;
+                return;
             }
         }
-    }
-
-    private void SetInspectingState(bool inspecting)
-    {
-        isInspecting = inspecting;
-        SetInspectingScriptsEnabled(!inspecting);
-    }
-
-    private void SetInspectingScriptsEnabled(bool enabled)
-    {
-        if (scriptsToDisableWhileInspecting == null) return;
-
-        foreach (var script in scriptsToDisableWhileInspecting)
-        {
-            if (script != null && !(script is Camera))
-                script.enabled = enabled;
-        }
-    }
-
-    private void RotateItem()
-    {
-        if (mainCamera == null || heldItem == null) return;
-
-        float mouseX = Mouse.current.delta.x.ReadValue() * rotateSpeed;
-        float mouseY = Mouse.current.delta.y.ReadValue() * rotateSpeed;
-
-        heldItem.transform.Rotate(mainCamera.transform.up, -mouseX, Space.World);
-        heldItem.transform.Rotate(mainCamera.transform.right, mouseY, Space.World);
     }
 
     private void ResetItemPhysics()

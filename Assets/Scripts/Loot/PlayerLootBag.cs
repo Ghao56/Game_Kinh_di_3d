@@ -51,6 +51,16 @@ public class PlayerLootBag : MonoBehaviour
         return true;
     }
 
+    // Xoá món khỏi túi (khi lấy ra cầm tay hoặc khi đã chất lên xe). Trả false nếu không có.
+    public bool Remove(LootItem item)
+    {
+        if (item == null || !carried.Remove(item)) return false;
+
+        usedSlots = Mathf.Max(0, usedSlots - item.slotCost);
+        OnChanged?.Invoke();
+        return true;
+    }
+
     // Bị ma bắt / bỏ chạy dang dở: mất toàn bộ đồ đang mang (tiền đã bank giữ nguyên)
     public void LoseAll()
     {

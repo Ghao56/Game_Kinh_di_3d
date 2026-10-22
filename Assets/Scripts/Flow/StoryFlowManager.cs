@@ -29,12 +29,15 @@ public class StoryFlowManager : MonoBehaviour
     private FlowStep current;
     private bool stepDone;
     private bool dialogueEndedThisStep;
+    private bool smsReadThisStep;
     private float stepEnterTime;
     private bool started;
+    private bool phoneHooked;
 
     private CaptionUI cachedCaption;
     private bool warnedCaption;
     private bool warnedAudio;
+    private PhoneUIManager cachedPhone;
 
     public FlowDefinition Definition => definition;
 
@@ -167,6 +170,7 @@ public class StoryFlowManager : MonoBehaviour
         CurrentStepId = step.id;
         stepDone = false;
         dialogueEndedThisStep = false;
+        smsReadThisStep = false;
         stepEnterTime = Time.time;
 
         Log($"Enter {step.id}");
@@ -221,6 +225,10 @@ public class StoryFlowManager : MonoBehaviour
 
             case FlowConditionType.DialogueEnded:
                 return dialogueEndedThisStep;
+
+            case FlowConditionType.SmsRead:
+                HookPhone();
+                return smsReadThisStep;
 
             case FlowConditionType.QuestStarted:
                 {
@@ -333,8 +341,49 @@ public class StoryFlowManager : MonoBehaviour
                     caption.Show(action.text);
                     break;
                 }
+
+            case FlowActionType.PhoneSms:
+                SendFlowSms(action);
+                break;
         }
     }
+
+    private void SendFlowSms(FlowAction action)
+    {
+        PhoneUIManager phone = ResolvePhone();
+        if (phone == null)
+        {
+            if (!warnedMissingPhone)
+            {
+                warnedMissingPhone = true;
+                Debug.LogWarning("[Flow] Thiếu PhoneUIManager — bỏ qua tin nhắn, bước SmsRead tự xong.", this);
+            }
+            smsReadThisStep = true;
+            return;
+        }
+
+        phone.PushSMS(string.IsNullOrEmpty(action.sender) ? "Chủ nợ" : action.sender, action.text);
+        Log($"Tin nhắn từ '{action.sender}': {action.text}");
+    }
+
+    private PhoneUIManager ResolvePhone()
+    {
+        if (cachedPhone == null) cachedPhone = FindFirstObjectByType<PhoneUIManager>();
+        return cachedPhone;
+    }
+
+    private void HookPhone()
+    {
+        if (phoneHooked && cachedPhone != null) return;
+
+        PhoneUIManager phone = ResolvePhone();
+        if (phone == null) return;
+
+        phone.MessagesOpened += () => smsReadThisStep = true;
+        phoneHooked = true;
+    }
+
+    private bool warnedMissingPhone;
 
     private void ShowDialogue(FlowAction action)
     {

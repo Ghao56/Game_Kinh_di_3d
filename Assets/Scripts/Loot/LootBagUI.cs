@@ -12,6 +12,10 @@ public class LootBagPanelUI : MonoBehaviour
     public float beRongPanel = 320f;
     public float leText = 16f;
 
+    [Header("HIỆN TÚI THEO NHIỆM VỤ")]
+    [Tooltip("Túi chỉ hiện khi quest này đang chạy hoặc đã xong (mở cửa đôi xe).")]
+    public string showQuestId = "truck_open";
+
     [Header("MÀU")]
     public Color mauNen = new Color(0.07f, 0.09f, 0.14f, 0.95f);
     public Color mauVien = new Color(0.45f, 0.65f, 0.95f, 0.4f);
@@ -114,7 +118,7 @@ public class LootBagPanelUI : MonoBehaviour
         }
 
         var sb = new System.Text.StringBuilder();
-        sb.AppendLine($"<b>TÚI ĐỒ {bag.UsedSlots}/{bag.Capacity}</b>");
+        sb.AppendLine($"<b>TÚI ĐỒ {bag.UsedSlots}/{bag.Capacity} ô</b>");
 
         var seen = new Dictionary<string, (int so, int o)>();
         foreach (var item in bag.Carried)
@@ -132,8 +136,8 @@ public class LootBagPanelUI : MonoBehaviour
         if (seen.Count == 0)
             sb.AppendLine("(trống)");
 
-        sb.AppendLine($"Tiền trong túi: <color=#7fd67f>{bag.CarriedMillions}tr</color>");
-        sb.AppendLine($"Đã về an toàn: {bag.BankedMillions}tr");
+        sb.AppendLine("<color=#8a97b0><size=16>[R] bỏ đồ vào túi • R+[1-4] lấy ra tay</size></color>");
+        sb.AppendLine($"Tiền nếu mang về: <color=#7fd67f>{bag.CarriedMillions}tr</color>");
 
         label.text = sb.ToString();
     }
@@ -142,9 +146,23 @@ public class LootBagPanelUI : MonoBehaviour
     {
         if (group == null) return;
 
+        // Túi chỉ hiện từ khi quest "mở cửa đôi xe" bắt đầu đến hết flow.
+        bool questChoPhep = true;
+        QuestManager quests = QuestManager.Instance;
+        if (quests != null && !string.IsNullOrEmpty(showQuestId))
+        {
+            questChoPhep = quests.GetState(showQuestId) == QuestState.Active
+                        || quests.GetState(showQuestId) == QuestState.Completed;
+        }
+        else if (quests == null)
+        {
+            questChoPhep = false; // chưa có QuestManager thì chưa gắn ý nhiệm vụ nào
+        }
+
         // Phone mở -> mờ panel giống SlotsHotbarUI
         bool phoneOpen = (gtaPhone != null && gtaPhone.IsOpen) || (phoneManager != null && phoneManager.IsPhoneOpen);
-        group.alpha = Mathf.MoveTowards(group.alpha, phoneOpen ? 0f : 1f, Time.unscaledDeltaTime * 6f);
+        float muc = (phoneOpen || !questChoPhep) ? 0f : 1f;
+        group.alpha = Mathf.MoveTowards(group.alpha, muc, Time.unscaledDeltaTime * 6f);
         group.blocksRaycasts = false;
         group.interactable = false;
     }

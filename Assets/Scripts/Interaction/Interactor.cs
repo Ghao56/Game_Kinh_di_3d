@@ -24,6 +24,9 @@ public class Interactor : MonoBehaviour
     private InteractableGlow currentGlow;
     private float holdTimer;
 
+    /// Mục tiêu đang đứng gần (null nếu không có). PlayerGrab đọc để chặn hành vi trùng phím E.
+    public IInteractable CurrentTarget => currentTarget;
+
     private void Awake()
     {
         if (actions == null)

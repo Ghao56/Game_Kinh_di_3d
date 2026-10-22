@@ -47,6 +47,7 @@ public class PhoneUIManager : MonoBehaviour
     private struct ChatMessage
     {
         public bool isFromPlayer;
+        public string sender;
         public string text;
         public string timeLabel;
     }
@@ -75,6 +76,10 @@ public class PhoneUIManager : MonoBehaviour
     private Coroutine conversationCoroutine;
 
     public bool IsPhoneOpen => isPhoneOpen;
+
+    /// Bung khi người chơi MỞ app Tin nhắn ra xem (flow đọc tin nhắn nợ dựa vào đây).
+    /// Nếu tin nhắn tới lúc app đang mở thì cũng coi như đã xem.
+    public event Action MessagesOpened;
 
     private Action onToggleClicked;
     private Action onHomeClicked;
@@ -222,9 +227,10 @@ public class PhoneUIManager : MonoBehaviour
             isMessagesAppOpen = true;
             unreadCount = 0;
             UpdateBadges();
-            if (appTitle != null) appTitle.text = "Cha";
+            if (appTitle != null) appTitle.text = lastSender;
             RenderMessageList();
             appPage?.AddToClassList("open");
+            MessagesOpened?.Invoke();
         }
         else
         {
@@ -237,6 +243,16 @@ public class PhoneUIManager : MonoBehaviour
     {
         isMessagesAppOpen = false;
         appPage?.RemoveFromClassList("open");
+    }
+
+    // --- Tin nhắn từ flow ---
+    // Kênh cho luồng nhiệm vụ (StoryFlowManager): chủ nợ nhắn tin nhắc nợ.
+    private string lastSender = "Cha";
+
+    /// Gửi một tin nhắn đến từ một người gửi bất kỳ. Tin nhắn của flow nhiệm vụ dùng hàm này.
+    public void PushSMS(string sender, string text)
+    {
+        AddMessage(isFromPlayer: false, text: text, sender: sender);
     }
 
     // --- Hội thoại tự động: Cha nhắn hoảng hốt, hệ thống tự trả lời ---
@@ -257,11 +273,12 @@ public class PhoneUIManager : MonoBehaviour
         conversationCoroutine = null;
     }
 
-    private void AddMessage(bool isFromPlayer, string text)
+    private void AddMessage(bool isFromPlayer, string text, string sender = "Cha")
     {
         messageHistory.Add(new ChatMessage
         {
             isFromPlayer = isFromPlayer,
+            sender = sender,
             text = text,
             timeLabel = DateTime.Now.ToString("HH:mm")
         });
@@ -270,11 +287,18 @@ public class PhoneUIManager : MonoBehaviour
         {
             unreadCount++;
             UpdateBadges();
-            ShowToast("📩 Cha: " + text);
+            ShowToast("📩 " + sender + ": " + text);
         }
 
+        lastSender = sender;
+
         if (isMessagesAppOpen)
+        {
+            if (appTitle != null) appTitle.text = lastSender;
             RenderMessageList();
+            // Tin nhắn tới lúc màn tin nhắn đang mở: người chơi thấy ngay, coi như đã đọc.
+            MessagesOpened?.Invoke();
+        }
     }
 
     private void UpdateBadges()
