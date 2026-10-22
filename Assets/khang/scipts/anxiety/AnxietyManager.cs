@@ -7,8 +7,9 @@ using UnityEngine.Events;
 public class AnxietyThreshold
 {
     public string name;
-    [Range(0, 100)] public float triggerAt = 50f;   // mức lo âu để xuất hiện
-    public GameObject prefab;                        // chỉ cần kéo prefab vào đây
+    [Range(0, 100)] public float triggerAt = 50f;   // mức lo âu để xuất hiện (phải lớn hơn 0)
+    [Tooltip("Kéo PREFAB từ cửa sổ Project, không kéo object trong Hierarchy")]
+    public GameObject prefab;
     public Transform spawnPoint;                     // để trống = spawn ngẫu nhiên quanh player
     public float spawnDistance = 8f;                 // dùng khi không có spawnPoint
     public bool despawnWhenBelow = true;             // lo âu tụt xuống thì biến mất
@@ -22,8 +23,9 @@ public class AnxietyManager : MonoBehaviour
 {
     public static AnxietyManager Instance { get; private set; }
 
-    [Header("Thanh lo âu")]
     Transform player;
+
+    [Header("Thanh lo âu")]
     [SerializeField] float maxAnxiety = 100f;
     [SerializeField, Range(0, 100)] float current;
     [SerializeField] float decayPerSecond = 2f;      // tự giảm khi không bị tác động
@@ -35,10 +37,15 @@ public class AnxietyManager : MonoBehaviour
     [Header("Nguồn lo âu (âm thanh, vật phẩm...) - tự đăng ký")]
     [SerializeField] List<AnxietySource> sources = new();
 
+    [Header("Gỡ lỗi")]
+    [SerializeField] bool debugLog = false;          // in trạng thái và log spawn/despawn ra Console
+
     public UnityEvent<float> onChanged;              // truyền giá trị 0..1 (cho UI, hiệu ứng)
 
     float lastIncreaseTime;
+    float nextCheck, nextStateLog;
 
+    public Transform Player => player;
     public float Current => current;
     public float Normalized => current / maxAnxiety;
 
@@ -52,6 +59,26 @@ public class AnxietyManager : MonoBehaviour
             player = playerObject.transform;
         else
             Debug.LogError("Không tìm thấy GameObject có Tag Player!");
+    }
+
+    void Start()
+    {
+        foreach (var t in thresholds)
+        {
+            if (t.prefab == null)
+            {
+                Debug.LogWarning($"AnxietyManager: mốc '{t.name}' chưa có Prefab.", this);
+                continue;
+            }
+            // Object nằm trong scene (không phải prefab trong Project) => bản gốc sẽ đứng sẵn trong scene
+            if (t.prefab.scene.IsValid())
+                Debug.LogWarning($"AnxietyManager: mốc '{t.name}' đang dùng object trong Hierarchy. " +
+                                 "Hãy kéo PREFAB từ cửa sổ Project vào ô Prefab.", this);
+            if (t.triggerAt <= 0f)
+                Debug.LogWarning($"AnxietyManager: mốc '{t.name}' có Trigger At = 0, hãy đặt lớn hơn 0.", this);
+            if (!t.despawnWhenBelow)
+                Debug.LogWarning($"AnxietyManager: mốc '{t.name}' đang TẮT Despawn When Below nên quái sẽ không biến mất.", this);
+        }
     }
 
     public void Register(AnxietySource s) { if (!sources.Contains(s)) sources.Add(s); }
@@ -68,7 +95,7 @@ public class AnxietyManager : MonoBehaviour
 
     void Update()
     {
-        // Chưa kéo Player vào thì không chạy, tránh lỗi NullReference mỗi frame
+        // Chưa tìm thấy Player thì không chạy, tránh lỗi NullReference mỗi frame
         if (player == null) return;
 
         // tổng từ các nguồn
@@ -83,6 +110,22 @@ public class AnxietyManager : MonoBehaviour
         // tự giảm
         if (Time.time - lastIncreaseTime > decayDelay && current > 0f)
             Add(-decayPerSecond * Time.deltaTime);
+
+        // Kiểm tra mốc định kỳ, phòng khi current đổi mà không qua Add()
+        // (sửa tay trong Inspector, hoặc current đứng ở 0 nên không còn gọi Add)
+        if (Time.time >= nextCheck)
+        {
+            nextCheck = Time.time + 0.2f;
+            CheckThresholds();
+        }
+
+        if (debugLog && Time.time >= nextStateLog)
+        {
+            nextStateLog = Time.time + 1f;
+            foreach (var t in thresholds)
+                Debug.Log($"[Anxiety] current={current:F1} | '{t.name}': trigger={t.triggerAt}, " +
+                          $"quái đang tồn tại={(t.instance != null)}, despawnWhenBelow={t.despawnWhenBelow}", this);
+        }
     }
 
     void CheckThresholds()
@@ -91,9 +134,12 @@ public class AnxietyManager : MonoBehaviour
         {
             if (t.prefab == null) continue;
 
-            bool above = current >= t.triggerAt;
+            // Xuất hiện: đạt mốc và lo âu phải lớn hơn 0
+            bool shouldSpawn = current > 0f && current >= t.triggerAt;
+            // Biến mất: về 0 hoặc tụt xuống dưới mốc
+            bool shouldDespawn = current <= 0f || current < t.triggerAt;
 
-            if (above && t.instance == null && !(t.onlyOnce && t.used))
+            if (shouldSpawn && t.instance == null && !(t.onlyOnce && t.used))
             {
                 t.instance = Instantiate(
                     t.prefab,
@@ -101,31 +147,22 @@ public class AnxietyManager : MonoBehaviour
                     Quaternion.identity
                 );
 
-                GameObject playerObject = GameObject.FindGameObjectWithTag("Player");
+                EnemyAI3D enemyAI = t.instance.GetComponent<EnemyAI3D>();
+                if (enemyAI != null)
+                    enemyAI.player = player;
 
-                if (playerObject != null)
-                {
-                    Transform playerTransform = playerObject.transform;
-
-                    EnemyAI3D enemyAI = t.instance.GetComponent<EnemyAI3D>();
-                    if (enemyAI != null)
-                        enemyAI.player = playerTransform;
-
-                    EnemyHearing enemyHearing = t.instance.GetComponent<EnemyHearing>();
-                    if (enemyHearing != null)
-                        enemyHearing.player = playerTransform;
-                }
-                else
-                {
-                    Debug.LogError("Không tìm thấy Player có Tag Player!");
-                }
+                EnemyHearing enemyHearing = t.instance.GetComponent<EnemyHearing>();
+                if (enemyHearing != null)
+                    enemyHearing.player = player;
 
                 t.used = true;
+                if (debugLog) Debug.Log($"[Anxiety] SPAWN '{t.name}' (current={current:F1})", this);
             }
-            else if (!above && t.despawnWhenBelow && t.instance != null)
+            else if (shouldDespawn && t.despawnWhenBelow && t.instance != null)
             {
                 Destroy(t.instance);
                 t.instance = null;
+                if (debugLog) Debug.Log($"[Anxiety] DESPAWN '{t.name}' (current={current:F1})", this);
             }
         }
     }
@@ -139,4 +176,10 @@ public class AnxietyManager : MonoBehaviour
         Vector3 offset = new Vector3(Mathf.Cos(a), 0f, Mathf.Sin(a)) * t.spawnDistance;
         return player.position + offset;
     }
+
+    [ContextMenu("Test: +30")]
+    void TestAdd() => Add(30f);
+
+    [ContextMenu("Test: về 0")]
+    void TestZero() => Add(-maxAnxiety);
 }

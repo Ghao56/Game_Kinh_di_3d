@@ -5,7 +5,8 @@ public class AnxietySource : MonoBehaviour
     public enum Mode { PerSecondInRadius, OneShotOnEnter }
 
     [SerializeField] Mode mode = Mode.PerSecondInRadius;
-    [SerializeField] float amount = 5f;              // mỗi giây, hoặc 1 lần tùy mode
+    [Header("lo au moi giay")]
+    [SerializeField] public float amount = 1f;              // mỗi giây, hoặc 1 lần tùy mode
     [SerializeField] float radius = 10f;
     [SerializeField] AnimationCurve falloff = AnimationCurve.Linear(0, 1, 1, 0); // x = khoảng cách/radius
     [SerializeField] bool repeatOneShot = false;       // ra khỏi vùng rồi vào lại thì cộng tiếp
