@@ -6,10 +6,10 @@ using System.Collections.Generic;
 // Quản lý việc CHỌN vật phẩm đang cầm (phím số hàng trên chữ cái 1-5) và NÉM
 // vật phẩm đang chọn bằng 1 phím chung.
 //
-// THỨ TỰ HIỂN THỊ không còn theo thứ tự trong mảng "Throwables" bên dưới nữa -
-// mà theo THỨ TỰ NHẶT ĐƯỢC LẦN ĐẦU TIÊN: vật phẩm nào có count > 0 trước thì
-// chiếm vị trí số 1, vật phẩm tiếp theo chiếm số 2, v.v. Vị trí đã được gán
-// thì giữ nguyên mãi mãi (kể cả sau này dùng hết về 0, không bị xáo lại).
+// THỨ TỰ HIỂN THỊ theo THỨ TỰ NHẶT ĐƯỢC LẦN ĐẦU TIÊN: vật phẩm nào có count > 0
+// trước thì chiếm vị trí số 1, vật phẩm tiếp theo chiếm số 2, v.v.
+// Vật phẩm DÙNG HẾT về 0 bị GỠ khỏi hàng -> các vật còn lại DỒN LÊN (muối ở số 2
+// lên số 1 và được cầm luôn). Nhặt lại sau này thì vật xuất hiện ở CUỐI hàng.
 public class ThrowableSelector : MonoBehaviour
 {
     // Toàn bộ vật phẩm CÓ THỂ ném (mỗi phần tử phải implement IThrowable,
@@ -69,6 +69,25 @@ public class ThrowableSelector : MonoBehaviour
 
     void Update()
     {
+        // DỒN SLOT: vật phẩm dùng hết về 0 -> gỡ khỏi hàng hiển thị, vật còn lại
+        // trượt lên đầy vào lỗ trống. Nhặt lại sau -> được thêm vào CUỐI hàng.
+        int truoc = unlockedOrder.Count;
+        unlockedOrder.RemoveAll(i => throwables[i] is not IThrowable it || it.GetCount() <= 0);
+        int sau = unlockedOrder.Count;
+
+        // Vật đang cầm vừa hết / bị dồn -> gài lại vào vật trượt lên (cầm luôn)
+        if (sau > 0)
+            currentSlot = Mathf.Clamp(currentSlot, 0, sau - 1);
+        else
+            currentSlot = 0;
+
+        if (sau != truoc)
+        {
+            if (sau > 0)
+                Debug.Log($"Dồn hàng - đang cầm: {CurrentItemName}");
+            OnSelectionChanged?.Invoke();
+        }
+
         DetectNewlyUnlockedItems();
 
         if (unlockedOrder.Count == 0 || Keyboard.current == null)

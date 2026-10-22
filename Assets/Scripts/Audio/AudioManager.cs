@@ -173,13 +173,65 @@ public class AudioManager : MonoBehaviour
         return PlayInternal(key, position, volumeScale, captionOverride);
     }
 
-    private bool PlayInternal(string key, Vector3? position, float volumeScale, string captionOverride)
+    /// Dừng ngay mọi one-shot đang phát của key này (dùng để cắt đuôi tiếng bước chân khi nhân vật đứng lại).
+    public bool StopAudio(string key)
+    {
+        if (string.IsNullOrEmpty(key)) return false;
+        if (!TryResolve(key, out _, out AudioClip clip)) return false;
+
+        return StopPlayingClip(clip);
+    }
+
+    private bool StopPlayingClip(AudioClip clip)
+    {
+        bool stopped = false;
+
+        foreach (var pool in new[] { pool2D, pool3D })
+        {
+            if (pool == null) continue;
+
+            foreach (AudioSource source in pool)
+            {
+                if (source != null && source.isPlaying && source.clip == clip)
+                {
+                    source.Stop();
+                    stopped = true;
+                }
+            }
+        }
+
+        return stopped;
+    }
+
+    /// Phát một lần. stealSameClip: nếu còn source đang phát cùng clip thì restart
+    /// chính nó (một tiếng một nguồn), thay vì chồng thêm tiếng mới.
+    public bool TryPlayAt(string key, Vector3 position, float volumeScale, string captionOverride, bool stealSameClip)
+    {
+        return PlayInternal(key, position, volumeScale, captionOverride, stealSameClip);
+    }
+
+    private bool PlayInternal(string key, Vector3? position, float volumeScale, string captionOverride, bool stealSameClip = false)
     {
         if (!TryResolve(key, out SfxLibrary.Entry entry, out AudioClip clip)) return false;
         if (!PassesCooldown(key, entry.cooldown)) return false;
 
         bool spatial = position.HasValue;
-        AudioSource source = Acquire(spatial ? pool3D : pool2D);
+        AudioSource source = null;
+
+        if (stealSameClip && spatial)
+        {
+            foreach (AudioSource s in pool3D)
+            {
+                if (s != null && s.isPlaying && s.clip == clip)
+                {
+                    source = s;
+                    break;
+                }
+            }
+        }
+
+        if (source == null)
+            source = Acquire(spatial ? pool3D : pool2D);
         if (source == null) return false;
 
         source.clip = clip;

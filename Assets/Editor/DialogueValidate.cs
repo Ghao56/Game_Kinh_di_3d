@@ -2,12 +2,11 @@ using TMPro;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 /// Kiểm tra hệ thống thoại mà không cần vào Play Mode. Chạy lại được nhiều lần, không sửa gì.
 public static class DialogueValidate
 {
-    private const string ScenePath = "Assets/Scenes/MHoang.unity";
-
     private static int pass;
     private static int fail;
 
@@ -17,7 +16,12 @@ public static class DialogueValidate
         pass = 0;
         fail = 0;
 
-        EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+        Scene scene = SceneManager.GetActiveScene();
+        if (!scene.isLoaded || string.IsNullOrEmpty(scene.path))
+        {
+            Debug.LogError("[DialogueValidate] Hãy mở scene đã lưu (vd TestCutscreen.unity) trước khi chạy.");
+            return;
+        }
 
         var manager = Object.FindFirstObjectByType<DialogueManager>();
         Check(manager != null, "DialogueManager tồn tại trong scene");
@@ -131,7 +135,6 @@ public static class DialogueValidate
             {
                 Check(data.lines != null && data.lines.Length > 0, $"DialogueData có {data.lines?.Length ?? 0} dòng");
                 bool hasVietnamese = false;
-                bool hasRichText = false;
                 if (data != null && data.lines != null)
                 {
                     foreach (var line in data.lines)
@@ -146,12 +149,10 @@ public static class DialogueValidate
                                               (cp >= 0x00C0 && cp <= 0x01FF);
                             if (vietnamese) { hasVietnamese = true; break; }
                         }
-                        if (line.text.Contains("<color") || line.text.Contains("<b>") || line.text.Contains("<size"))
-                            hasRichText = true;
+                        if (hasVietnamese) break;
                     }
                 }
-                Check(hasRichText, "dữ liệu thử có rich text");
-                Check(hasVietnamese, "dữ liệu thử có chữ tiếng Việt có dấu");
+                Check(hasVietnamese, "dữ liệu có chữ tiếng Việt có dấu");
             }
         }
 

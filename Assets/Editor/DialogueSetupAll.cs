@@ -10,7 +10,7 @@ public static class DialogueSetupAll
         Debug.Log("[DialogueSetupAll] 1/4 Font...");
         DialogueFontSetup.Run();
 
-        Debug.Log("[DialogueSetupAll] 2/4 UI trong MHoang...");
+        Debug.Log("[DialogueSetupAll] 2/4 UI trong scene hiện tại...");
         DialogueUISetup.Run();
 
         Debug.Log("[DialogueSetupAll] 3/4 Dữ liệu và trigger thử...");

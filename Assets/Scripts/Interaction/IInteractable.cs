@@ -7,3 +7,8 @@ public interface IInteractable
     float HoldDuration { get; }       // dùng khi HoldToInteract = true
     void OnInteract(Interactor interactor);
 }
+
+public interface IInteractableAvailability
+{
+    bool IsAvailable { get; }
+}

@@ -10,13 +10,26 @@ public class DarknessAnxiety : MonoBehaviour
     [SerializeField] float maxMultiplier = 2f;
     [SerializeField] float checkInterval = 0.2f;
 
-    [Header("Ánh sáng mặt trời (Directional Light)")]
-    [SerializeField] bool countSunlight = true;      // ngoài trời không bị che = sáng
+    [Header("Ánh sáng mặt trời / mặt trăng (Directional Light)")]
+    [SerializeField] bool countSunlight = true;      // ngoài trời không bị che = có sáng
+    [Tooltip("Chỉ lấy một phần cường độ của Directional Light. Cảnh ban đêm nên để thấp (0.05 - 0.2)")]
+    [SerializeField] float sunlightMultiplier = 0.1f;
     [SerializeField] float sunRayDistance = 100f;
+
+    [Header("Gỡ lỗi")]
+    [SerializeField] bool debugLog = false;          // in mức sáng đo được ra Console
 
     Light[] lights;
     float nextCheck, nextRefresh, darkTimer;
     bool inDark;
+
+    void Start()
+    {
+        if (player == null)
+            Debug.LogWarning("DarknessAnxiety: chưa kéo Player vào nên script sẽ không chạy.", this);
+        if (AnxietyManager.Instance == null)
+            Debug.LogWarning("DarknessAnxiety: không tìm thấy AnxietyManager trong scene.", this);
+    }
 
     void Update()
     {
@@ -30,8 +43,12 @@ public class DarknessAnxiety : MonoBehaviour
 
         if (Time.time >= nextCheck)
         {
-            inDark = GetLightLevel() < darkThreshold;
+            float level = GetLightLevel();
+            inDark = level < darkThreshold;
             nextCheck = Time.time + checkInterval;
+
+            if (debugLog)
+                Debug.Log($"[Darkness] level={level:F3}, threshold={darkThreshold}, inDark={inDark}", this);
         }
 
         if (inDark)
@@ -55,10 +72,10 @@ public class DarknessAnxiety : MonoBehaviour
 
             if (l.type == LightType.Directional)
             {
-                // Sáng nếu không có vật nào che giữa người chơi và mặt trời
+                // Sáng nếu không có vật nào che giữa người chơi và mặt trời/mặt trăng
                 if (countSunlight &&
                     !Physics.Raycast(p, -l.transform.forward, sunRayDistance, ~0, QueryTriggerInteraction.Ignore))
-                    total += l.intensity;
+                    total += l.intensity * sunlightMultiplier;
                 continue;
             }
 

@@ -152,28 +152,29 @@ public class LightingPreset
 
     public static LightingPreset CreateNight()
     {
+        // 8h toi: still nhan duoc môi truong nhung am anh xanh lanh thap.
         return new LightingPreset
         {
-            ambientSky = new Color(0.06f, 0.07f, 0.11f, 1f),
-            ambientEquator = new Color(0.05f, 0.05f, 0.08f, 1f),
-            ambientGround = new Color(0.02f, 0.02f, 0.03f, 1f),
-            ambientIntensity = 0.5f,
-            sunIntensity = 0.06f,
-            sunColor = new Color(0.55f, 0.65f, 1f, 1f),
-            sunEuler = new Vector3(-12f, -30f, 0f),
-            skyTint = new Color(0.05f, 0.06f, 0.12f, 1f),
-            skyGround = new Color(0.02f, 0.02f, 0.03f, 1f),
-            atmosphereThickness = 2.5f,
-            skyExposure = 0.35f,
-            fogColor = new Color(0.05f, 0.06f, 0.09f, 1f),
-            fogDensity = 0.045f,
-            reflectionIntensity = 0.3f,
-            postExposure = -0.5f,
-            postContrast = 15f,
-            postSaturation = -25f,
+            ambientSky = new Color(0.16f, 0.18f, 0.26f, 1f),
+            ambientEquator = new Color(0.11f, 0.11f, 0.16f, 1f),
+            ambientGround = new Color(0.05f, 0.05f, 0.07f, 1f),
+            ambientIntensity = 0.8f,
+            sunIntensity = 0.4f,
+            sunColor = new Color(0.65f, 0.75f, 1f, 1f),
+            sunEuler = new Vector3(35f, 140f, 0f),
+            skyTint = new Color(0.12f, 0.14f, 0.22f, 1f),
+            skyGround = new Color(0.03f, 0.03f, 0.04f, 1f),
+            atmosphereThickness = 1.6f,
+            skyExposure = 0.8f,
+            fogColor = new Color(0.07f, 0.08f, 0.12f, 1f),
+            fogDensity = 0.025f,
+            reflectionIntensity = 0.35f,
+            postExposure = -0.1f,
+            postContrast = 10f,
+            postSaturation = -15f,
             postHueShift = 0f,
-            postFilter = new Color(0.6f, 0.7f, 1f, 1f),
-            postFilterAmount = 0.3f
+            postFilter = new Color(0.75f, 0.85f, 1f, 1f),
+            postFilterAmount = 0.2f
         };
     }
 }

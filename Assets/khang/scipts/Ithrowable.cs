@@ -6,6 +6,9 @@ public interface IThrowable
     // Tên hiển thị khi đang chọn vật phẩm này
     string DisplayName { get; }
 
+    // Id kho của vật phẩm (khớp với itemId dùng trong PlayerInventory) - UI dùng để tra tên hiển thị
+    string ItemId { get; }
+
     // Thực hiện ném/dùng. Trả về true nếu thành công, false nếu hết hàng/thiếu tham chiếu.
     bool TryThrow();
 

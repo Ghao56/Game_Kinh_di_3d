@@ -21,6 +21,7 @@ public class Interactor : MonoBehaviour
     private InputAction interactAction;
     private Collider[] hits;
     private IInteractable currentTarget;
+    private InteractableGlow currentGlow;
     private float holdTimer;
 
     private void Awake()
@@ -51,7 +52,13 @@ public class Interactor : MonoBehaviour
     }
 
     private void OnEnable() => interactAction?.Enable();
-    private void OnDisable() => interactAction?.Disable();
+
+    private void OnDisable()
+    {
+        interactAction?.Disable();
+        currentTarget = null;
+        SetGlow(null);
+    }
 
     private void Update()
     {
@@ -73,7 +80,11 @@ public class Interactor : MonoBehaviour
             var candidate = hits[i].GetComponentInParent<IInteractable>();
             if (candidate == null) continue;
 
-            float sqrDist = (hits[i].transform.position - transform.position).sqrMagnitude;
+            var availability = candidate as IInteractableAvailability;
+            if (availability != null && !availability.IsAvailable) continue;
+
+            // Dung bounds thay vi vi tri transform (goc ban le xa hon center khi player dung giua la cua).
+            float sqrDist = hits[i].bounds.SqrDistance(center);
             if (sqrDist < nearestSqrDist)
             {
                 nearestSqrDist = sqrDist;
@@ -85,6 +96,7 @@ public class Interactor : MonoBehaviour
         {
             holdTimer = 0f;
             currentTarget = nearest;
+            SetGlow(nearest);
         }
 
         if (currentTarget != null)
@@ -96,6 +108,18 @@ public class Interactor : MonoBehaviour
         {
             promptUI.Hide();
         }
+    }
+
+    private void SetGlow(IInteractable target)
+    {
+        Component component = target as Component;
+        InteractableGlow glow = component != null ? component.GetComponentInParent<InteractableGlow>() : null;
+
+        if (currentGlow == glow) return;
+
+        if (currentGlow != null) currentGlow.SetHighlighted(false);
+        currentGlow = glow;
+        if (currentGlow != null) currentGlow.SetHighlighted(true);
     }
 
     private void HandleInput()

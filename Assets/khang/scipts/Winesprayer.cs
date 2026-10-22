@@ -11,6 +11,7 @@ public class WineSprayer : MonoBehaviour, IThrowable
     public PlayerInventory inventory;
 
     public string itemId = "Wine";
+    public string ItemId => itemId;
 
     // Prefab giọt/chai rượu bay ra (cần có Rigidbody + Collider + script WineProjectile)
     public GameObject projectilePrefab;

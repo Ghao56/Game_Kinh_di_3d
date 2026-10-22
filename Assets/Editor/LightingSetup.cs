@@ -7,7 +7,7 @@ using UnityEngine.SceneManagement;
 
 public static class LightingSetup
 {
-    private const string ScenePath = "Assets/Scenes/SampleScene.unity";
+    private const string ScenePath = "Assets/Scenes/MHoang.unity";
     private const string ManagerName = "Lighting Manager";
     private const string ProfilePath = "Assets/Settings/SampleSceneProfile.asset";
 
