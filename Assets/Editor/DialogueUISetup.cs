@@ -104,7 +104,7 @@ public static class DialogueUISetup
 
         var controller = UnityEngine.Object.FindFirstObjectByType<ThirdPersonController>();
         if (controller != null) SetRef(so, "controller", controller);
-        var cameraRig = UnityEngine.Object.FindFirstObjectByType<ThirdPersonCamera>();
+        var cameraRig = UnityEngine.Object.FindFirstObjectByType<CursorLock>();
         if (cameraRig != null) SetRef(so, "cameraRig", cameraRig);
         var interactor = UnityEngine.Object.FindFirstObjectByType<Interactor>();
         if (interactor != null) SetRef(so, "interactor", interactor);
