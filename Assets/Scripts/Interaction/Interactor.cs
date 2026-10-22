@@ -10,6 +10,9 @@ public class Interactor : MonoBehaviour
     [Tooltip("Bán kính spherecast để ray không quá mảnh, dễ trượt vào cạnh cửa.")]
     [SerializeField, Range(0.01f, 0.3f)] private float viewRadius = 0.1f;
 
+    [Tooltip("Bán kính quét quanh player cho các tương tác theo VÙNG (đứng trong vùng chất đồ là hiện prompt, không cần nhìn vào).")]
+    [SerializeField, Range(0.4f, 3f)] private float proximityRadius = 1f;
+
     [Header("Input")]
     [SerializeField] private InputActionAsset actions;
 
@@ -72,6 +75,8 @@ public class Interactor : MonoBehaviour
     {
         // Chỉ nhìn vào đâu tương tác đó: spherecast mảnh dọc theo crosshair (tâm camera).
         IInteractable nearest = RaycastTarget(GetCrosshairRay());
+        // Fallback vùng: player đứng trong vùng chất đồ (TruckLoadCell) thì prompt vẫn hiện dù không nhìn vào.
+        if (nearest == null) nearest = ProximityTarget();
 
         if (!ReferenceEquals(nearest, currentTarget))
         {
@@ -114,6 +119,19 @@ public class Interactor : MonoBehaviour
         if (candidate is IInteractableAvailability availability && !availability.IsAvailable) return null;
 
         return candidate;
+    }
+
+    /// Quét các trigger đang chồng lên player: chỉ nhận IProximityInteractable còn sẵn sàng.
+    private IInteractable ProximityTarget()
+    {
+        Vector3 center = transform.position + Vector3.up * 0.5f;
+        foreach (Collider collider in Physics.OverlapSphere(center, proximityRadius, interactableMask, QueryTriggerInteraction.Collide))
+        {
+            IInteractable candidate = collider.GetComponentInParent<IInteractable>();
+            if (candidate is IProximityInteractable zone && zone.ReadyForProximityPrompt)
+                return candidate;
+        }
+        return null;
     }
 
     private void SetGlow(IInteractable target)
