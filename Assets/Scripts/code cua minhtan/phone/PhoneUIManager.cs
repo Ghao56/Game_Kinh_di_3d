@@ -14,36 +14,6 @@ public class PhoneUIManager : MonoBehaviour
     [Tooltip("Kéo script xoay camera + script di chuyển nhân vật vào đây. Để trống thì camera/di chuyển sẽ KHÔNG bị khóa.")]
     [SerializeField] private List<MonoBehaviour> scriptsToDisableWhenPhoneOpen;
 
-    [Header("Hội thoại hoảng hốt của Cha")]
-    [Tooltip("Mỗi dòng của Cha sẽ được tự động trả lời bằng dòng cùng chỉ số trong danh sách bên dưới")]
-    [TextArea(2, 3)]
-    [SerializeField]
-    private string[] fatherPanicLines =
-    {
-        "Con ơi... con đang ở đâu vậy?!",
-        "Trời ơi, mau trả lời cha đi!!",
-        "Hình như... có ai đó đang ở ngoài cửa nhà mình!",
-        "Làm ơn đừng về nhà vội, nguy hiểm lắm con ơi!",
-        "CHA SỢ LẮM... con có nghe thấy cha nói gì không?!",
-        "Xin con... hãy cẩn thận..."
-    };
-
-    [TextArea(2, 3)]
-    [SerializeField]
-    private string[] autoReplyLines =
-    {
-        "Cha ơi bình tĩnh lại đã, con đang nghe đây.",
-        "Dạ con nghe rồi, cha đừng lo quá.",
-        "Cha khóa hết cửa lại đi, đừng mở cho ai cả.",
-        "Được rồi, con sẽ cẩn thận. Cha giữ bình tĩnh nhé.",
-        "Con đây, con đang cố gắng về nhanh nhất có thể.",
-        "Cha ơi... cha vẫn ổn chứ?"
-    };
-
-    [SerializeField] private float timeBetweenFatherMessages = 20f;
-    [SerializeField] private float autoReplyDelayMin = 2f;
-    [SerializeField] private float autoReplyDelayMax = 4f;
-
     private struct ChatMessage
     {
         public bool isFromPlayer;
@@ -73,7 +43,6 @@ public class PhoneUIManager : MonoBehaviour
     private bool isPhoneOpen = false;
     private bool isMessagesAppOpen = false;
     private Coroutine toastCoroutine;
-    private Coroutine conversationCoroutine;
 
     public bool IsPhoneOpen => isPhoneOpen;
 
@@ -144,9 +113,6 @@ public class PhoneUIManager : MonoBehaviour
 
         UpdatePhoneVisibility();
         UpdateBadges();
-
-        if (conversationCoroutine == null)
-            conversationCoroutine = StartCoroutine(FatherConversationRoutine());
     }
 
     private void OnDisable()
@@ -160,12 +126,6 @@ public class PhoneUIManager : MonoBehaviour
             if (button != null) button.clicked -= handler;
         }
         appSubscriptions.Clear();
-
-        if (conversationCoroutine != null)
-        {
-            StopCoroutine(conversationCoroutine);
-            conversationCoroutine = null;
-        }
     }
 
     private void RegisterApp(string buttonName, string appName)
@@ -247,7 +207,7 @@ public class PhoneUIManager : MonoBehaviour
 
     // --- Tin nhắn từ flow ---
     // Kênh cho luồng nhiệm vụ (StoryFlowManager): chủ nợ nhắn tin nhắc nợ.
-    private string lastSender = "Cha";
+    private string lastSender = "Chủ nợ";
 
     /// Gửi một tin nhắn đến từ một người gửi bất kỳ. Tin nhắn của flow nhiệm vụ dùng hàm này.
     public void PushSMS(string sender, string text)
@@ -255,25 +215,7 @@ public class PhoneUIManager : MonoBehaviour
         AddMessage(isFromPlayer: false, text: text, sender: sender);
     }
 
-    // --- Hội thoại tự động: Cha nhắn hoảng hốt, hệ thống tự trả lời ---
-    private IEnumerator FatherConversationRoutine()
-    {
-        int count = Mathf.Min(fatherPanicLines.Length, autoReplyLines.Length);
-
-        for (int i = 0; i < count; i++)
-        {
-            yield return new WaitForSeconds(timeBetweenFatherMessages);
-            AddMessage(isFromPlayer: false, text: fatherPanicLines[i]);
-
-            float delay = UnityEngine.Random.Range(autoReplyDelayMin, autoReplyDelayMax);
-            yield return new WaitForSeconds(delay);
-            AddMessage(isFromPlayer: true, text: autoReplyLines[i]);
-        }
-
-        conversationCoroutine = null;
-    }
-
-    private void AddMessage(bool isFromPlayer, string text, string sender = "Cha")
+    private void AddMessage(bool isFromPlayer, string text, string sender = "Chủ nợ")
     {
         messageHistory.Add(new ChatMessage
         {
