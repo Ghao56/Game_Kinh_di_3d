@@ -175,7 +175,7 @@ public class TruckLoadCell : MonoBehaviour, IInteractable, IInteractableAvailabi
 
         QuestManager manager = QuestManager.Instance;
         if (manager != null && !string.IsNullOrEmpty(loadQuestId) && !string.IsNullOrEmpty(loadObjectiveId))
-            manager.ReportProgress(loadQuestId, loadObjectiveId);
+            manager.ReportProgress(loadQuestId, loadObjectiveId, Mathf.Max(1, loot != null ? loot.valueInMillions : 1));
 
         target.onFilled?.Invoke();
         Debug.Log($"[TruckLoadCell] {item.name} đã nằm trong {target.name}.", target);

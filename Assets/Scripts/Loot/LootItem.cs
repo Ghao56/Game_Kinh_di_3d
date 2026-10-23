@@ -18,6 +18,13 @@ public class LootItem : MonoBehaviour
     /// Khóa nhận diện (TruckLoadCell / PlayerGrab đọc). Rượu/muối không có món này nên không chất được.
     public string ItemId => itemId;
 
+    private void Awake()
+    {
+        // Mọi món loot tự có glow khi ngắm + nhãn giá tiền trên đầu.
+        if (GetComponent<LootValueLabel>() == null)
+            gameObject.AddComponent<LootValueLabel>();
+    }
+
     void Reset()
     {
         // Khi gắn mới trong editor: auto đặt tag Item

@@ -40,6 +40,18 @@ public class InteractableGlow : MonoBehaviour
             linkedGlows[i] = door != null && door.LinkedDoors[i] != null ? door.LinkedDoors[i].GetComponent<InteractableGlow>() : null;
     }
 
+    // Đổi màu outline (dùng MaterialPropertyBlock: không đụng material gốc).
+    public void SetGlowColor(Color color)
+    {
+        glowColor = color;
+        if (renderers == null) return;
+
+        var mpb = new MaterialPropertyBlock();
+        mpb.SetColor(GlowColorId, glowColor);
+        for (int i = 0; i < renderers.Length; i++)
+            renderers[i].SetPropertyBlock(mpb);
+    }
+
     public void SetHighlighted(bool on)
     {
         aimOn = on;

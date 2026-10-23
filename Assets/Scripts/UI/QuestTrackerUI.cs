@@ -191,7 +191,7 @@ public class QuestTrackerUI : MonoBehaviour
             bool done = displayed.IsObjectiveComplete(objective.Id);
             row.Check.text = done ? "[x]" : "[ ]";
             row.Check.color = done ? completedColor : normalColor;
-            row.Label.text = $"{objective.Text} ({displayed.GetProgress(objective.Id)}/{objective.Required})";
+            row.Label.text = $"{objective.Text} ({displayed.GetProgress(objective.Id)}/{objective.Required}{objective.ProgressSuffix})";
             row.Label.color = done ? completedColor : normalColor;
             row.Strike.color = strikeColor;
             row.Strike.gameObject.SetActive(done);
