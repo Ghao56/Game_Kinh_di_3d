@@ -17525,7 +17525,7 @@ GameObject:
   - component: {fileID: 1012917470}
   - component: {fileID: 1012917469}
   m_Layer: 0
-  m_Name: GameObject
+  m_Name: point
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -17572,7 +17572,7 @@ Transform:
   m_GameObject: {fileID: 1012917467}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -5.07946, y: 0.81955, z: 26.46563}
+  m_LocalPosition: {x: 16.31, y: 0.81955, z: 10.75}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -26020,7 +26020,7 @@ MonoBehaviour:
   - name: quy cai
     triggerAt: 30.6
     prefab: {fileID: 3722674642212766770, guid: 04107ac75246b8d4cb90e3e4a8b4509d, type: 3}
-    spawnPoint: {fileID: 0}
+    spawnPoint: {fileID: 1012917470}
     spawnDistance: 0
     despawnWhenBelow: 1
     onlyOnce: 0

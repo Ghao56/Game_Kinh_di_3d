@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 3416727753190888980}
   - component: {fileID: 7542735071142789579}
   - component: {fileID: 8968472420492122698}
+  - component: {fileID: -8583067753496618102}
   m_Layer: 0
   m_Name: Enemy
   m_TagString: Enemy
@@ -174,6 +175,18 @@ MonoBehaviour:
   player: {fileID: 0}
   hearingRadius: 8
   minPlayerSpeedToMakeNoise: 0.2
+--- !u!114 &-8583067753496618102
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3722674642212766770}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a0b4d86b0d7f39c4f996257304096727, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyJumpscareTrigger
 --- !u!1 &4616847609192284448
 GameObject:
   m_ObjectHideFlags: 0
@@ -280,7 +293,7 @@ SphereCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
