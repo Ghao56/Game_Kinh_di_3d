@@ -16,11 +16,6 @@ public class PlayerGrab : MonoBehaviour
     [Header("Giao diện Hướng dẫn Tương tác")]
     [SerializeField] private GameObject promptUI;
 
-    [Header("Nhiệm vụ khi nhặt đồ")]
-    [Tooltip("Nhặt được món có LootItem/itemId thì cộng 1 cho mục tiêu này. Để trống thì bỏ qua.")]
-    [SerializeField] private string pickupQuestId = "loot_truck";
-    [SerializeField] private string pickupObjectiveId = "tim_do";
-
     [Header("Túi đồ (phím R)")]
     [Tooltip("R: đang cầm đồ thì bỏ vào túi; tay rỗng thì R rồi 1..4 để lấy món ở slot đó ra tay.")]
     [SerializeField] private float bagFetchWindow = 3f;
@@ -151,7 +146,6 @@ public class PlayerGrab : MonoBehaviour
                 defaultLightRotation = itemLight.transform.localRotation;
             }
 
-            NotifyLootObjective();
             break;
         }
     }
@@ -222,21 +216,7 @@ public class PlayerGrab : MonoBehaviour
     private bool IsTargetingCell()
     {
         if (interactor == null) interactor = FindFirstObjectByType<Interactor>();
-        return interactor != null && interactor.CurrentTarget is TruckLoadCell;
-    }
-
-    // Lần đầu nhặt được một món loot (có itemId) thì cộng mục tiêu "Tìm đồ có giá trị".
-    private void NotifyLootObjective()
-    {
-        if (string.IsNullOrEmpty(pickupQuestId) || string.IsNullOrEmpty(pickupObjectiveId)) return;
-
-        LootItem loot = heldItem != null ? heldItem.GetComponent<LootItem>() : null;
-        if (loot == null || string.IsNullOrEmpty(loot.ItemId)) return;
-
-        QuestManager manager = QuestManager.Instance;
-        if (manager == null) return;
-
-        manager.ReportProgress(pickupQuestId, pickupObjectiveId);
+        return interactor != null && interactor.CurrentTarget is TruckLoadZone;
     }
 
     // R khi đang cầm: món đồ cất vào TÚI (PlayerLootBag), ẩn khỏi thế giới cho tới khi lấy ra/chất.

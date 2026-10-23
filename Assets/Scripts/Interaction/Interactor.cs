@@ -73,10 +73,10 @@ public class Interactor : MonoBehaviour
 
     private void DetectTarget()
     {
-        // Chỉ nhìn vào đâu tương tác đó: spherecast mảnh dọc theo crosshair (tâm camera).
-        IInteractable nearest = RaycastTarget(GetCrosshairRay());
-        // Fallback vùng: player đứng trong vùng chất đồ (TruckLoadCell) thì prompt vẫn hiện dù không nhìn vào.
-        if (nearest == null) nearest = ProximityTarget();
+        // Vùng ưu tiên hơn ray khi đã sẵn sàng: cửa hậu nằm ngay trong vùng, nếu ray thắng thì
+        // prompt chất đồ biến mất và E sẽ vứt đồ. Chưa sẵn sàng thì vẫn nhìn đâu tương tác đó.
+        IInteractable nearest = ProximityTarget();
+        if (nearest == null) nearest = RaycastTarget(GetCrosshairRay());
 
         if (!ReferenceEquals(nearest, currentTarget))
         {

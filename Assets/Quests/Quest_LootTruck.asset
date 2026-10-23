@@ -13,11 +13,8 @@ MonoBehaviour:
   m_Name: Quest_LootTruck
   m_EditorClassIdentifier: Assembly-CSharp::QuestDefinition
   questId: loot_truck
-  displayTitle: "NHI\u1EC6M V\u1EE4 M\u1EDAI: T\xCCM \u0110\u1ED2 C\xD3 GI\xC1 TR\u1ECA"
+  displayTitle: "NHI\u1EC6M V\u1EE4 M\u1EDAI: CH\u1EA4T \u0110\u1ED2 L\xCAN XE"
   objectives:
-  - id: tim_do
-    text: "T\xECm \u0111\u1ED3 c\xF3 gi\xE1 tr\u1ECB trong c\u0103n nh\xE0"
-    required: 1
   - id: chat_do
     text: "Ch\u1EA5t \u0111\u1ED3 l\xEAn xe"
     progressSuffix: "M VND"
