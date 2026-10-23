@@ -1158,31 +1158,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ecdd2c4b52750e8498d354646d3a9d40, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PhoneUIManager
+  openKey: 30
   scriptsToDisableWhenPhoneOpen:
   - {fileID: 564524650}
   - {fileID: 900000004}
-  fatherPanicLines:
-  - "Con \u01A1i... con \u0111ang \u1EDF \u0111\xE2u v\u1EADy?!"
-  - "Tr\u1EDDi \u01A1i, mau tr\u1EA3 l\u1EDDi cha \u0111i!!"
-  - "H\xECnh nh\u01B0... c\xF3 ai \u0111\xF3 \u0111ang \u1EDF ngo\xE0i c\u1EEDa nh\xE0
-    m\xECnh!"
-  - "L\xE0m \u01A1n \u0111\u1EEBng v\u1EC1 nh\xE0 v\u1ED9i, nguy hi\u1EC3m l\u1EAFm
-    con \u01A1i!"
-  - "CHA S\u1EE2 L\u1EAEM... con c\xF3 nghe th\u1EA5y cha n\xF3i g\xEC kh\xF4ng?!"
-  - "Xin con... h\xE3y c\u1EA9n th\u1EADn..."
-  autoReplyLines:
-  - "Cha \u01A1i b\xECnh t\u0129nh l\u1EA1i \u0111\xE3, con \u0111ang nghe \u0111\xE2y."
-  - "D\u1EA1 con nghe r\u1ED3i, cha \u0111\u1EEBng lo qu\xE1."
-  - "Cha kh\xF3a h\u1EBFt c\u1EEDa l\u1EA1i \u0111i, \u0111\u1EEBng m\u1EDF cho ai
-    c\u1EA3."
-  - "\u0110\u01B0\u1EE3c r\u1ED3i, con s\u1EBD c\u1EA9n th\u1EADn. Cha gi\u1EEF b\xECnh
-    t\u0129nh nh\xE9."
-  - "Con \u0111\xE2y, con \u0111ang c\u1ED1 g\u1EAFng v\u1EC1 nhanh nh\u1EA5t c\xF3
-    th\u1EC3."
-  - "Cha \u01A1i... cha v\u1EABn \u1ED5n ch\u1EE9?"
-  timeBetweenFatherMessages: 20
-  autoReplyDelayMin: 2
-  autoReplyDelayMax: 4
 --- !u!1 &350606778
 GameObject:
   m_ObjectHideFlags: 0
@@ -2182,18 +2161,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5750c18052ecc664d854937f5a71c390, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Interactor
-  aimRadius: 0.1
-  interactRange: 8
-  maxPlayerDistance: 4
-  hitMask:
+  interactableMask:
     serializedVersion: 2
-    m_Bits: 51
-  rayCamera: {fileID: 0}
-  interactionOrigin: {fileID: 0}
+    m_Bits: 4294967295
+  viewDistance: 4
+  viewRadius: 0.1
+  proximityRadius: 1
   actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   promptUI: {fileID: 2042761995}
-  ignoreRoot: {fileID: 0}
-  debugLog: 0
   logInteractions: 0
 --- !u!54 &564524653
 Rigidbody:
@@ -2235,11 +2210,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: '::'
   holdPoint: {fileID: 1513767265}
-  inspectPoint: {fileID: 350606779}
   pickupRange: 3
   interactRange: 8
   placeRange: 3
-  rotateSpeed: 0.5
   placeSurfaceMask:
     serializedVersion: 2
     m_Bits: 4294967295
@@ -2247,9 +2220,9 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 4294967295
   promptUI: {fileID: 1977754137}
-  scriptsToDisableWhileInspecting:
-  - {fileID: 564524650}
-  - {fileID: 900000004}
+  pickupQuestId: loot_truck
+  pickupObjectiveId: tim_do
+  bagFetchWindow: 3
 --- !u!1 &565281339
 GameObject:
   m_ObjectHideFlags: 0
@@ -2593,6 +2566,9 @@ MonoBehaviour:
     postHueShift: 0
     postFilter: {r: 0.6, g: 0.7, b: 1, a: 1}
     postFilterAmount: 0.3
+  startState: 2
+  captureStartFromScene: 1
+  fallbackSkybox: {fileID: 0}
   duskDuration: 12
   nightDuration: 18
   transitionCurve:
@@ -3103,32 +3079,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 623637ef360857b49a3a5ec5e12b16b5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ThirdPersonCamera
-  target: {fileID: 564524648}
-  pivotOffset: {x: 0, y: 0.5, z: 0}
-  distance: 2.5
-  shoulderOffset: 0.55
-  shoulderSwapSmoothTime: 0.1
-  mouseSensitivity: 2
-  stickSensitivity: 120
-  stickDeadzone: 0.15
-  minPitch: -30
-  maxPitch: 60
-  startPitch: 15
-  lookSmoothTime: 0.04
-  followSmoothTime: 0.08
-  verticalSmoothTime: 0.15
-  collisionRadius: 0.25
-  collisionMask:
-    serializedVersion: 2
-    m_Bits: 51
-  minDistance: 0.35
-  recoverSpeed: 6
-  pitchUpDistanceLoss: 0.6
-  outputCamera: {fileID: 330585545}
-  fieldOfView: 55
-  nearClipPlane: 0.1
-  actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
-  drawGizmos: 1
 --- !u!1 &900000005
 GameObject:
   m_ObjectHideFlags: 0
@@ -4913,11 +4863,6 @@ MonoBehaviour:
   mainCamera: {fileID: 330585545}
   isFlashlightOn: 1
   rotationSpeed: 15
-  hitLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  minHitDistance: 1.2
-  maxRayDistance: 100
   toggleWithLeftClick: 1
 --- !u!1 &1686687815
 GameObject:
@@ -5872,10 +5817,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::InteractPromptUI
   promptText: {fileID: 138794167}
   fadeSpeed: 5
-  uiCamera: {fileID: 0}
-  screenOffset: {x: 0, y: 40}
-  worldOffset: 0.15
-  edgePadding: 40
 --- !u!1 &2087795615
 GameObject:
   m_ObjectHideFlags: 0

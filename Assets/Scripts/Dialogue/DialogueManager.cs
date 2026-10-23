@@ -136,12 +136,13 @@ public class DialogueManager : MonoBehaviour
         Enqueue(arr, onComplete);
     }
 
-    public void ShowLine(string text, string speaker = null, Action onComplete = null)
+    public void ShowLine(string text, string speaker = null, Action onComplete = null, bool autoAdvance = false)
     {
         var line = new DialogueLine
         {
             text = text ?? string.Empty,
-            speaker = speaker ?? string.Empty
+            speaker = speaker ?? string.Empty,
+            autoAdvance = autoAdvance
         };
         Enqueue(new[] { line }, onComplete);
     }

@@ -58,8 +58,16 @@ public class DoorInteractable : MonoBehaviour, IInteractable, IInteractableAvail
     private bool reportedFirstOpen;
     private bool firedFullyOpen;
     private bool firedFullyClosed;
+    private InteractableGlow glow;
+    private InteractableGlow[] linkedDoorsGlows;
+    private bool hintOn;
+    // Canh phu: hoi canh chinh (IsAvailable, PromptText, E) de trong hai canh cung loai khong bi "canh phu cam dao cuoc".
+    private DoorInteractable masterDoor;
 
-    public string PromptText => open ? promptWhenOpen : promptWhenClosed;
+    // InteractableGlow doc de glow canh chinh keo glow canh ghep sang theo.
+    public DoorInteractable[] LinkedDoors => linkedDoors;
+
+    public string PromptText => (isSlave && masterDoor != null) ? masterDoor.PromptText : (open ? promptWhenOpen : promptWhenClosed);
     public bool HoldToInteract => false;
     public float HoldDuration => 0f;
 
@@ -81,7 +89,7 @@ public class DoorInteractable : MonoBehaviour, IInteractable, IInteractableAvail
     {
         get
         {
-            if (isSlave) return false;
+            if (isSlave) return masterDoor != null && masterDoor.IsAvailable;
             if (Moving) return false;
             return GateOpen();
         }
@@ -116,11 +124,34 @@ public class DoorInteractable : MonoBehaviour, IInteractable, IInteractableAvail
         closedRot = hinge.rotation;
         // Quay quanh y ben the gioi *truoc khi* xoac rot hien tai -> swing dung truc doc khong phu thuoc truc cua model.
         openRot = Quaternion.AngleAxis(openAngle, Vector3.up) * closedRot;
+
+        // Du phong glow cho nghe vu khoa: glow canh chinh sang thi glow canh ghep cung sang.
+        glow = GetComponent<InteractableGlow>();
+        linkedDoorsGlows = new InteractableGlow[linkedDoors.Length];
+        for (int i = 0; i < linkedDoors.Length; i++)
+            linkedDoorsGlows[i] = linkedDoors[i] != null ? linkedDoors[i].GetComponent<InteractableGlow>() : null;
+
+        // Canh phu tim canh chinh de hoi, nhan dam truyet mo cap hai cua.
+        if (isSlave)
+        {
+            for (int i = 0; i < linkedDoors.Length; i++)
+            {
+                DoorInteractable door = linkedDoors[i];
+                if (door == null || door.isSlave) continue;
+                masterDoor = door;
+                break;
+            }
+        }
     }
 
     public void OnInteract(Interactor interactor)
     {
-        if (isSlave) return;
+        // Canh phu dam truyet den canh chinh: mot lan E mo/dong ca hai canh, khong lieu ro canh rieng le.
+        if (isSlave)
+        {
+            if (masterDoor != null) masterDoor.OnInteract(interactor);
+            return;
+        }
         if (!IsAvailable) return;
 
         open = !open;
@@ -147,6 +178,9 @@ public class DoorInteractable : MonoBehaviour, IInteractable, IInteractableAvail
 
         if (isSlave) return;
 
+        // Glow goi y: cua co khoa quest (gateQuestId) sang xanh khi quest/muc tieu mo, tat sau lan mo dau.
+        UpdateQuestHint();
+
         // Su kien mo/dong HOC chi tu canh chinh; canh phu quay rieng cung toc do nhung khong ban su kien.
         bool reachedOpen = open && FullyReached(isOpened: true);
         bool reachedClosed = !open && FullyReached(isOpened: false);
@@ -165,6 +199,32 @@ public class DoorInteractable : MonoBehaviour, IInteractable, IInteractableAvail
             onFullyClosed?.Invoke();
             FullyClosed?.Invoke();
         }
+    }
+
+    private void UpdateQuestHint()
+    {
+        bool on = !unlockedOnce && HintGateOpen();
+        if (on == hintOn) return;
+
+        hintOn = on;
+        if (glow != null) glow.SetQuestHint(on);
+        for (int i = 0; i < linkedDoorsGlows.Length; i++)
+        {
+            if (linkedDoorsGlows[i] != null) linkedDoorsGlows[i].SetQuestHint(on);
+        }
+    }
+
+    private bool HintGateOpen()
+    {
+        if (string.IsNullOrEmpty(gateQuestId)) return false; // cua khong khoa thi khong can glow goi y
+
+        QuestManager manager = QuestManager.Instance;
+        if (manager == null) return false;
+
+        if (string.IsNullOrEmpty(gateObjectiveId))
+            return manager.GetState(gateQuestId) == QuestState.Active;
+
+        return manager.IsObjectiveOpen(gateQuestId, gateObjectiveId);
     }
 
     private void ReportFirstOpened()

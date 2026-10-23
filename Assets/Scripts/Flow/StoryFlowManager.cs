@@ -402,10 +402,17 @@ public class StoryFlowManager : MonoBehaviour
             return;
         }
 
+        // Fallback: asset thoại không gán mà action có text thì đọc text như một dòng thoại đơn.
         if (action.dialogue == null)
         {
-            Debug.LogError($"[Flow] ShowDialogue thiếu DialogueData — bỏ qua.", this);
-            dialogueEndedThisStep = true;
+            if (string.IsNullOrEmpty(action.text))
+            {
+                Debug.LogError($"[Flow] ShowDialogue thiếu DialogueData — bỏ qua.", this);
+                dialogueEndedThisStep = true;
+                return;
+            }
+
+            manager.ShowLine(action.text, action.sender, () => dialogueEndedThisStep = true, autoAdvance: true);
             return;
         }
 
