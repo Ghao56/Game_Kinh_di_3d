@@ -39,7 +39,6 @@ public class AnxietyManager : MonoBehaviour
     [SerializeField] List<AnxietySource> sources = new();
 
     [Header("Quái sau khi spawn")]
-    [SerializeField] bool addColliderOnSpawn = true;    // tự thêm Collider nếu quái chưa có Collider thật
     [SerializeField] bool addWallGuardOnSpawn = true;   // gắn EnemyWallGuard để chặn quái đi xuyên tường
 
     [Header("Gỡ lỗi")]
@@ -223,39 +222,13 @@ public class AnxietyManager : MonoBehaviour
         return player.position + offset;
     }
 
-    // Chuẩn bị quái vừa clone: thêm Collider và EnemyWallGuard nếu cần
+    // Chuẩn bị quái vừa clone: thêm EnemyWallGuard nếu cần
     void PrepareEnemy(GameObject enemy)
     {
-        if (addColliderOnSpawn) EnsureCollider(enemy);
-
         if (addWallGuardOnSpawn &&
             enemy.GetComponent<NavMeshAgent>() != null &&
             enemy.GetComponent<EnemyWallGuard>() == null)
             enemy.AddComponent<EnemyWallGuard>();
-    }
-
-    // Nếu quái chưa có Collider thật (không phải Trigger) thì thêm CapsuleCollider vừa với model
-    void EnsureCollider(GameObject enemy)
-    {
-        foreach (var c in enemy.GetComponentsInChildren<Collider>())
-            if (!c.isTrigger) return;
-
-        Renderer[] renderers = enemy.GetComponentsInChildren<Renderer>();
-        if (renderers.Length == 0) return;
-
-        Bounds b = renderers[0].bounds;
-        for (int i = 1; i < renderers.Length; i++) b.Encapsulate(renderers[i].bounds);
-
-        Vector3 scale = enemy.transform.lossyScale;
-        float sx = Mathf.Max(Mathf.Abs(scale.x), 0.0001f);
-        float sy = Mathf.Max(Mathf.Abs(scale.y), 0.0001f);
-
-        var cap = enemy.AddComponent<CapsuleCollider>();
-        cap.center = enemy.transform.InverseTransformPoint(b.center);
-        cap.radius = Mathf.Min(b.extents.x, b.extents.z) / sx;
-        cap.height = Mathf.Max(b.size.y / sy, cap.radius * 2f);
-
-        if (debugLog) Debug.Log($"[Anxiety] Đã thêm CapsuleCollider cho '{enemy.name}'", this);
     }
 
     [ContextMenu("Test: +30")]
