@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.Events;
 
 // Vùng chất đồ DUY NHẤT trên xe: đứng trong vùng là hiện prompt, không cần nhìn vào.
-// GIỮ E đủ holdDuration: chất món đang cầm + toàn bộ túi (PlayerLootBag) vào các chỗ trống của vùng.
+// GIỮ E đủ holdDuration: chất món đang cầm trên tay vào các chỗ trống của vùng.
 // Không cần ô TruckLoadCell nào: vùng tự chia slotCount chỗ đặt và tự báo nhiệm vụ.
 [RequireComponent(typeof(Collider))]
 public class TruckLoadZone : MonoBehaviour, IInteractable, IInteractableAvailability, IProximityInteractable
@@ -47,7 +47,6 @@ public class TruckLoadZone : MonoBehaviour, IInteractable, IInteractableAvailabi
 
     [Header("Prompt")]
     [SerializeField] private string promptWhenReady = "Giữ E để chất đồ lên xe";
-    [SerializeField] private string promptBagOnly = "Giữ E để cất đồ trong túi lên xe";
     [SerializeField] private string promptDoorClosed = "Hãy mở cửa hậu trước";
     [SerializeField] private string promptInvalid = "Món đồ này không đáng giá.";
 
@@ -81,11 +80,7 @@ public class TruckLoadZone : MonoBehaviour, IInteractable, IInteractableAvailabi
         get
         {
             if (!DoorFullyOpen) return promptDoorClosed;
-
-            HeldState held = EvaluateHeld();
-            if (held == HeldState.Valid) return promptWhenReady;
-            if (held == HeldState.Invalid) return promptInvalid;
-            if (HasBagGoods()) return promptBagOnly;
+            if (EvaluateHeld() == HeldState.Invalid) return promptInvalid;
             return promptWhenReady;
         }
     }
@@ -93,44 +88,18 @@ public class TruckLoadZone : MonoBehaviour, IInteractable, IInteractableAvailabi
     public bool HoldToInteract => true;
     public float HoldDuration => holdDuration;
 
-    // Đứng trong vùng + có thứ để chất (hoặc cầm đồ sai để báo lý do).
-    public bool IsAvailable => PlayerInside() && CanDeposit;
+    // Cầm món hợp lệ (hoặc món sai để hiện lý do) mới giành prompt.
+    public bool IsAvailable => PlayerInside() && EvaluateHeld() != HeldState.None;
     // Chỉ "giành" prompt khi thật sự chất được: cửa chưa mở thì nhường cho cửa hậu.
     public bool ReadyForProximityPrompt => IsAvailable && DoorFullyOpen;
-
-    private bool CanDeposit
-    {
-        get
-        {
-            // Cửa chưa mở hết: chỉ để hiện prompt cảnh báo "Hãy mở cửa hậu trước" / "không đáng giá".
-            if (!DoorFullyOpen) return HasAnythingToDeposit();
-            if (EvaluateHeld() != HeldState.None) return true; // hợp lệ: chất; không hợp lệ: hiện "không đáng giá"
-            return HasBagGoods();
-        }
-    }
 
     public void OnInteract(Interactor interactor)
     {
         if (!DoorFullyOpen) return;
 
-        // 1) Món trên tay.
+        // Chỉ món trên tay.
         if (EvaluateHeld() == HeldState.Valid && HasEmptySlot)
             PlaceLoot(playerGrab.TakeHeld());
-
-        // 2) Toàn bộ túi: mỗi món vào một chỗ trống.
-        PlayerLootBag bag = PlayerLootBag.Instance;
-        if (bag == null) return;
-
-        List<LootItem> snapshot = new List<LootItem>(bag.Carried);
-        foreach (LootItem loot in snapshot)
-        {
-            if (!HasEmptySlot) break; // hết chỗ: phần còn lại ở nguyên trong túi
-            if (loot == null) continue;
-
-            GameObject item = loot.gameObject;
-            PlaceLoot(item);
-            bag.Remove(loot);
-        }
     }
 
     // ------------------------------------------------------------ đặt đồ
@@ -197,24 +166,6 @@ public class TruckLoadZone : MonoBehaviour, IInteractable, IInteractableAvailabi
             return false;
 
         return true;
-    }
-
-    private bool HasAnythingToDeposit()
-    {
-        bool handBusy = playerGrab != null && playerGrab.HeldItem != null;
-        return handBusy || HasBagGoods();
-    }
-
-    private bool HasBagGoods()
-    {
-        PlayerLootBag bag = PlayerLootBag.Instance;
-        if (bag == null || bag.Carried.Count == 0) return false;
-
-        foreach (LootItem loot in bag.Carried)
-        {
-            if (loot != null && IsAccepted(loot.gameObject)) return true;
-        }
-        return false;
     }
 
     // ------------------------------------------------------------ vùng / hiển thị

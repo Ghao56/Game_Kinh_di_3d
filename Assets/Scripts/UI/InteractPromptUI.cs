@@ -1,10 +1,10 @@
+using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 [RequireComponent(typeof(CanvasGroup))]
 public class InteractPromptUI : MonoBehaviour
 {
-    [SerializeField] private Text promptText; // Legacy UI, không dùng TMPro
+    [SerializeField] private TMP_Text promptText; // nhận cả TextMeshProUGUI/Mesh Pro, vị trí do người dùng kéo thoải mái
     [SerializeField] private float fadeSpeed = 5f;
 
     private CanvasGroup canvasGroup;

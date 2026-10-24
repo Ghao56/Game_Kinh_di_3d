@@ -31,6 +31,12 @@ public class Interactor : MonoBehaviour
     /// Mục tiêu mà ray hướng nhìn đang trúng (null nếu không có). PlayerGrab đọc để chặn hành vi trùng phím E.
     public IInteractable CurrentTarget => currentTarget;
 
+    /// Tiến độ giữ E hiện tại (0..1) cho UI vòng tròn; 0 khi không giữ hoặc mục tiêu không cần giữ.
+    public float HoldProgress01 =>
+        currentTarget != null && currentTarget.HoldToInteract && holdTimer > 0f
+            ? Mathf.Clamp01(holdTimer / currentTarget.HoldDuration)
+            : 0f;
+
     private void Awake()
     {
         if (actions == null)
