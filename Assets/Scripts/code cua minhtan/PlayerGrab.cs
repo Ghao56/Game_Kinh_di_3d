@@ -19,6 +19,7 @@ public class PlayerGrab : MonoBehaviour
     private GameObject heldItem;
     private Interactor interactor;
     private Camera mainCamera;
+    private ThrowableSelector hotbar;
 
     // Biến quản lý đèn pin
     private Light itemLight;
@@ -30,6 +31,35 @@ public class PlayerGrab : MonoBehaviour
         if (promptUI != null) promptUI.SetActive(false);
         interactor = GetComponentInParent<Interactor>();
         if (interactor == null) interactor = FindFirstObjectByType<Interactor>();
+
+        hotbar = FindFirstObjectByType<ThrowableSelector>();
+    }
+
+    // Đăng ký món loot THẬT vào hotbar ngay khi nhặt được. Nếu không đủ dãy ô
+    // liên tiếp, trả false và PlayerGrab sẽ không nhặt (vật vẫn còn nguyên).
+    private bool TryRegisterHeldLoot(GameObject item)
+    {
+        if (item == null) return true;
+
+        LootItem loot = item.GetComponentInParent<LootItem>();
+        if (loot == null) return true;
+
+        if (hotbar == null) hotbar = FindFirstObjectByType<ThrowableSelector>();
+        if (hotbar == null) return true; // scene không có hotbar: giữ hành vi cũ
+
+        return hotbar.TryRegisterLoot(loot);
+    }
+
+    // Thả/chất/huỷ món đang cầm -> giải phóng mọi ô hotbar của món đó.
+    private void ReleaseHeldLoot()
+    {
+        if (heldItem == null) return;
+
+        LootItem loot = heldItem.GetComponentInParent<LootItem>();
+        if (loot == null) return;
+
+        if (hotbar == null) hotbar = FindFirstObjectByType<ThrowableSelector>();
+        if (hotbar != null) hotbar.RemoveLoot(loot);
     }
 
     private void Update()
@@ -115,6 +145,14 @@ public class PlayerGrab : MonoBehaviour
             if (!col.CompareTag("Item")) continue;
             if (aimedItem != null && col.gameObject != aimedItem) continue;
 
+            // Hotbar phải nhận được món này trước khi ta nhấc nó lên.
+            // Không đủ ô liên tiếp -> bỏ qua, không làm mất vật phẩm.
+            if (!TryRegisterHeldLoot(col.gameObject))
+            {
+                Debug.LogWarning($"[PlayerGrab] Hotbar không đủ ô cho {col.gameObject.name}.");
+                return;
+            }
+
             heldItem = col.gameObject;
             Rigidbody rb = heldItem.GetComponent<Rigidbody>();
             if (rb != null) rb.isKinematic = true;
@@ -144,6 +182,8 @@ public class PlayerGrab : MonoBehaviour
     {
         if (heldItem == null) return;
 
+        ReleaseHeldLoot();
+
         if (itemLight != null)
         {
             itemLight.transform.localRotation = defaultLightRotation;
@@ -165,6 +205,8 @@ public class PlayerGrab : MonoBehaviour
         Ray ray = mainCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
         if (Physics.Raycast(ray, out RaycastHit hit, placeRange, placeSurfaceMask, QueryTriggerInteraction.Ignore))
         {
+            ReleaseHeldLoot();
+
             if (itemLight != null)
             {
                 itemLight.transform.localRotation = defaultLightRotation;
@@ -190,6 +232,8 @@ public class PlayerGrab : MonoBehaviour
         if (heldItem == null) return null;
 
         GameObject item = heldItem;
+
+        ReleaseHeldLoot();
 
         if (itemLight != null)
         {

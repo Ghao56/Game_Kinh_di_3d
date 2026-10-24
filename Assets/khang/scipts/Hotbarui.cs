@@ -2,10 +2,9 @@ using UnityEngine;
 using UnityEngine.UI;
 
 // Gắn script này vào 1 object cha rỗng trong Canvas.
-// Kéo vào "Slot Texts" đúng 5 (hoặc ít hơn) object Text con.
-// Vị trí hiển thị KHÔNG cố định theo thứ tự khai báo trong ThrowableSelector nữa -
-// mà theo thứ tự NHẶT ĐƯỢC LẦN ĐẦU TIÊN (xem ThrowableSelector.cs).
-// Ô nào chưa từng nhặt, hoặc hiện đang hết hàng (count == 0), sẽ tự ẩn (để trống).
+// Kéo vào "Slot Texts" đúng 4 (hoặc ít hơn) object Text con.
+// Hiển thị nội dung hotbar 4 ô: mỗi mục một dòng ở ô bắt đầu của nó.
+// Ô trống hoặc phần phụ của vật nhiều ô sẽ để trống chữ.
 public class HotbarUI : MonoBehaviour
 {
     public ThrowableSelector selector;
@@ -22,26 +21,24 @@ public class HotbarUI : MonoBehaviour
             if (slotTexts[i] == null)
                 continue;
 
-            IThrowable item = selector.GetItemAt(i);
-
-            if (item == null)
+            if (i >= selector.SlotCount)
             {
                 slotTexts[i].text = "";
                 continue;
             }
 
-            int count = item.GetCount();
+            HotbarEntry entry = selector.GetEntryAt(i);
 
-            // Hết hàng -> ẩn luôn ô này (vị trí vẫn được giữ, chỉ là không hiện chữ)
-            if (count <= 0)
+            // Chỉ in ở ô bắt đầu để vật nhiều ô không bị lặp dòng.
+            if (entry == null || i != entry.StartSlot)
             {
                 slotTexts[i].text = "";
                 continue;
             }
 
-            bool selected = (i == selector.CurrentIndex);
-
-            slotTexts[i].text = (selected ? "➤ " : "   ") + $"{i + 1}. {item.DisplayName}: {count}";
+            bool selected = ReferenceEquals(entry, selector.SelectedEntry);
+            string count = entry.Count > 1 ? $": {entry.Count}" : "";
+            slotTexts[i].text = (selected ? "➤ " : "   ") + $"{i + 1}. {entry.Name}{count}";
         }
     }
 }

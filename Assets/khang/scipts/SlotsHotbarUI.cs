@@ -7,7 +7,11 @@ using UnityEngine.UI;
 // nền tối mờ, số phím góc trên, icon chấm màu, badge số lượng góc dưới,
 // slot đang chọn sáng lên. Code tạo sprite nên không phụ thuộc asset ngoài.
 // Khi phone mở -> cả thanh mờ dần về 0.
-// Slot chỉ hiện khi vật phẩm ĐÃ NHẬT; giữ nguyên logic selector có sẵn.
+//
+// Hotbar có ĐÚNG 4 ô. Dữ liệu lấy trực tiếp từ ThrowableSelector:
+// - Ô trống: hiện Hand.png.
+// - Ô có vật: hiện màu/nhãn của đúng HotbarEntry đang chiếm ô đó.
+// Vật chiếm nhiều ô (loot slotCost > 1) hiện cùng một entry ở mọi ô nó chiếm.
 public class SlotsHotbarUI : MonoBehaviour
 {
     public ThrowableSelector selector;
@@ -17,7 +21,14 @@ public class SlotsHotbarUI : MonoBehaviour
 
     public int slotSpacing = 10;
 
-    public int slotCount = 4;
+    public int slotCount = RequiredSlotCount;
+
+    [Header("ICONS")]
+    [Tooltip("Icon cho ô trống. Để trống sẽ tự nạp Resources/UI/Hand hoặc sprite có sẵn trong scene.")]
+    public Sprite emptySlotIcon;
+
+    // Hotbar luôn có đúng 4 vị trí vật lý.
+    public const int RequiredSlotCount = 4;
 
     private CanvasGroup group;
     private GameObject[] slotGos;
@@ -48,7 +59,9 @@ public class SlotsHotbarUI : MonoBehaviour
         if (selector == null)
             selector = Object.FindFirstObjectByType<ThrowableSelector>();
 
-        emptySlotSprite = Resources.Load<Sprite>("UI/Hand");
+        emptySlotSprite = emptySlotIcon != null
+            ? emptySlotIcon
+            : Resources.Load<Sprite>("UI/Hand");
 
         TatHotbarCu();
 
@@ -64,6 +77,20 @@ public class SlotsHotbarUI : MonoBehaviour
         }
 
         DungHotbar(canvas);
+
+        // Scene bake sẵn dùng sprite Hand.png của project; nếu chưa cấu hình
+        // emptySlotIcon và Resources cũng không có thì lấy sprite đang có.
+        if (emptySlotSprite == null && iconDots != null)
+        {
+            foreach (var icon in iconDots)
+            {
+                if (icon != null && icon.sprite != null)
+                {
+                    emptySlotSprite = icon.sprite;
+                    break;
+                }
+            }
+        }
     }
 
     // Nhận khối SlotsHotbar bake sẵn trong scene: phủ lại mảng reference theo con "Slot N"
@@ -76,7 +103,7 @@ public class SlotsHotbarUI : MonoBehaviour
             if (con.name.StartsWith("Slot "))
                 slots.Add(con.gameObject);
 
-        slotCount = slots.Count;
+        slotCount = RequiredSlotCount;
         slotGos = new GameObject[slotCount];
         slotBgs = new Image[slotCount];
         iconDots = new Image[slotCount];
@@ -87,17 +114,31 @@ public class SlotsHotbarUI : MonoBehaviour
 
         foreach (var go in slots)
         {
-            int i = int.Parse(go.name.Substring(5)) - 1;
-            if (i >= slotCount)
+            if (!int.TryParse(go.name.Substring(5), out int so) || so < 1 || so > slotCount)
+            {
+                // Không cho scene cũ có slot thứ 5 lọt vào hotbar 4 ô.
+                go.SetActive(false);
                 continue;
+            }
 
+            int i = so - 1;
             slotGos[i] = go;
             slotBgs[i] = go.GetComponent<Image>();
             slotOutlines[i] = go.GetComponent<Outline>();
-            iconDots[i] = go.transform.Find("Icon").GetComponent<Image>();
-            keyTexts[i] = go.transform.Find("KeyText").GetComponent<Text>();
-            countTexts[i] = go.transform.Find("CountText").GetComponent<Text>();
-            nameTexts[i] = go.transform.Find("Name").GetComponent<Text>();
+
+            Transform icon = go.transform.Find("Icon");
+            Transform key = go.transform.Find("KeyText");
+            Transform count = go.transform.Find("CountText");
+            Transform label = go.transform.Find("Name");
+
+            iconDots[i] = icon != null ? icon.GetComponent<Image>() : null;
+            keyTexts[i] = key != null ? key.GetComponent<Text>() : null;
+            countTexts[i] = count != null ? count.GetComponent<Text>() : null;
+            nameTexts[i] = label != null ? label.GetComponent<Text>() : null;
+
+            // Bảo đảm đúng số phím 1..4 dù scene cũ có ghi gì.
+            if (keyTexts[i] != null)
+                keyTexts[i].text = (i + 1).ToString();
         }
     }
 
@@ -133,6 +174,8 @@ public class SlotsHotbarUI : MonoBehaviour
             NhanLai(co.GetComponent<RectTransform>());
             return;
         }
+
+        slotCount = RequiredSlotCount;
 
         var root = new GameObject("SlotsHotbar", typeof(RectTransform), typeof(CanvasGroup), typeof(HorizontalLayoutGroup));
         root.transform.SetParent(cha, false);
@@ -188,7 +231,7 @@ public class SlotsHotbarUI : MonoBehaviour
             slotBgs[i] = bg;
             slotOutlines[i] = ol;
 
-            // Số phím 1..5 - góc trên trái
+            // Số phím 1..4 - góc trên trái
             keyTexts[i] = TaoText(go.transform, font, new Vector2(-2f, -6f), new Vector2(0.5f, 0.5f), TextAnchor.UpperLeft);
             keyTexts[i].fontSize = 18;
             keyTexts[i].text = (i + 1).ToString();
@@ -280,6 +323,9 @@ public class SlotsHotbarUI : MonoBehaviour
         {
             case "Salt": return new Color(0.92f, 0.95f, 1f); // trắng muối
             case "Alcohol": return new Color(0.95f, 0.35f, 0.30f); // đỏ rượu
+            case "loot_clock": return new Color(0.95f, 0.78f, 0.35f); // vàng đồng hồ
+            case "loot_vase": return new Color(0.35f, 0.80f, 0.72f); // xanh men gốm
+            case "loot_jewelry_box": return new Color(0.72f, 0.50f, 0.95f); // tím hộp trang sức
             default: return new Color(0.7f, 0.7f, 0.75f);
         }
     }
@@ -298,52 +344,79 @@ public class SlotsHotbarUI : MonoBehaviour
         if (slotBgs == null || selector == null)
             return;
 
+        HotbarEntry selectedEntry = selector.SelectedEntry;
+
         for (int i = 0; i < slotCount; i++)
         {
-            IThrowable item = selector.GetItemAt(i);
-
             if (slotGos[i] != null)
                 slotGos[i].SetActive(true);
 
-            if (item == null || item.GetCount() <= 0)
+            HotbarEntry entry = selector.GetEntryAt(i);
+
+            if (entry == null)
             {
+                // Ô trống: luôn hiện Hand.png, không số lượng, không tên.
                 if (iconDots[i] != null)
                 {
                     if (emptySlotSprite != null)
                         iconDots[i].sprite = emptySlotSprite;
                     iconDots[i].color = new Color(1f, 1f, 1f, 0.6f);
                     iconDots[i].rectTransform.sizeDelta = new Vector2(40f, 40f);
+                    iconDots[i].rectTransform.localScale = Vector3.one;
                 }
                 if (countTexts[i] != null)
                     countTexts[i].text = "";
                 if (nameTexts[i] != null)
                     nameTexts[i].text = "";
+                if (slotBgs[i] != null)
+                    slotBgs[i].color = new Color(0.06f, 0.07f, 0.10f, 0.95f);
+                if (slotOutlines[i] != null)
+                    slotOutlines[i].effectColor = new Color(0.35f, 0.5f, 0.7f, 0.35f);
                 continue;
             }
 
-            bool selected = i == selector.CurrentIndex;
+            bool selected = ReferenceEquals(selectedEntry, entry);
 
-            iconDots[i].color = MauIcon(item.ItemId);
+            if (iconDots[i] != null)
+            {
+                iconDots[i].sprite = RoundedSpriteUtil.Circle();
+                iconDots[i].color = MauIcon(entry.ItemId);
+                iconDots[i].rectTransform.sizeDelta = new Vector2(30f, 30f);
+                iconDots[i].rectTransform.localScale = selected ? Vector3.one * 1.25f : Vector3.one;
+            }
 
-            iconDots[i].rectTransform.sizeDelta = new Vector2(30f, 30f);
-
-            iconDots[i].rectTransform.localScale = selected ? Vector3.one * 1.25f : Vector3.one;
-
-            // Nền đậm alpha 0.95 + viền sáng hơn hẳn khi đang chọn
-            slotBgs[i].color = selected
-                ? new Color(0.13f, 0.23f, 0.35f, 1f) // slot đang chọn: xanh đậm sáng
-                : new Color(0.06f, 0.07f, 0.10f, 0.95f);
+            // Nền đậm alpha 0.95 + viền sáng hơn hẳn khi đang chọn.
+            // Vật nhiều ô: mọi ô của nó cùng sáng lên.
+            if (slotBgs[i] != null)
+            {
+                slotBgs[i].color = selected
+                    ? new Color(0.13f, 0.23f, 0.35f, 1f) // slot đang chọn: xanh đậm sáng
+                    : new Color(0.06f, 0.07f, 0.10f, 0.95f);
+            }
 
             if (slotOutlines[i] != null)
+            {
                 slotOutlines[i].effectColor = selected
                     ? new Color(0.55f, 0.8f, 1f, 0.95f)
                     : new Color(0.35f, 0.5f, 0.7f, 0.35f);
+            }
 
-            countTexts[i].text = item.GetCount() > 1 ? $"<color=#8ed2ff>×{item.GetCount()}</color>" : "";
+            // Badge số lượng chỉ đặt ở ô bắt đầu để vật nhiều ô không hiện lặp.
+            if (countTexts[i] != null)
+            {
+                countTexts[i].text = i == entry.StartSlot && entry.Count > 1
+                    ? $"<color=#8ed2ff>×{entry.Count}</color>"
+                    : "";
+            }
 
-            // Chỉ nhãn của slot đang chọn hiện tên
+            // Nhãn tên chỉ hiện ở ô người chơi vừa bấm (hoặc ô bắt đầu nếu
+            // đang chọn bằng code) và chỉ cho mục đang chọn.
             if (nameTexts[i] != null)
-                nameTexts[i].text = selected ? item.DisplayName : "";
+            {
+                bool nameSlot = selected &&
+                    (i == selector.CurrentIndex || selector.CurrentIndex < entry.StartSlot || selector.CurrentIndex > entry.EndSlot);
+                nameTexts[i].text = nameSlot ? entry.Name : "";
+            }
         }
     }
 }
