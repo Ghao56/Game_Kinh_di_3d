@@ -67,7 +67,19 @@ public class DoorInteractable : MonoBehaviour, IInteractable, IInteractableAvail
     // InteractableGlow doc de glow canh chinh keo glow canh ghep sang theo.
     public DoorInteractable[] LinkedDoors => linkedDoors;
 
-    public string PromptText => (isSlave && masterDoor != null) ? masterDoor.PromptText : (open ? promptWhenOpen : promptWhenClosed);
+    public string PromptText
+    {
+        get
+        {
+            DoorInteractable source = this;
+            if (isSlave && masterDoor != null)
+                source = masterDoor;
+            string p = source.open ? source.promptWhenOpen : source.promptWhenClosed;
+            if (string.IsNullOrEmpty(p))
+                p = source.open ? "Đóng cửa" : "Mở cửa";
+            return p;
+        }
+    }
     public bool HoldToInteract => false;
     public float HoldDuration => 0f;
 

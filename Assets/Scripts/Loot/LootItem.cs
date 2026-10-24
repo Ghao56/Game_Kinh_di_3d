@@ -23,6 +23,11 @@ public class LootItem : MonoBehaviour
         // Mọi món loot tự có glow khi ngắm + nhãn giá tiền trên đầu.
         if (GetComponent<LootValueLabel>() == null)
             gameObject.AddComponent<LootValueLabel>();
+
+        // Trọng lực để món loot rơi xuống đất thay vì lơ lửng.
+        Rigidbody rb = GetComponent<Rigidbody>();
+        if (rb == null) rb = gameObject.AddComponent<Rigidbody>();
+        rb.useGravity = true;
     }
 
     void Reset()

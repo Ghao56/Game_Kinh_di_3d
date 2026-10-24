@@ -19,7 +19,23 @@ public class InteractPromptUI : MonoBehaviour
 
     public void Show(string text)
     {
-        if (promptText != null) promptText.text = text;
+        if (!gameObject.activeSelf)
+        {
+            gameObject.SetActive(true);
+        }
+
+        if (promptText != null)
+        {
+            if (!promptText.gameObject.activeSelf)
+                promptText.gameObject.SetActive(true);
+
+            promptText.text = text;
+        }
+        else
+        {
+            Debug.LogError("[PROMPT_UI] promptText CHƯA ĐƯỢC GÁN trong Inspector!", this);
+        }
+
         targetAlpha = 1f;
     }
 
@@ -30,6 +46,10 @@ public class InteractPromptUI : MonoBehaviour
 
     private void Update()
     {
+        // Đảm bảo text luôn bật khi đang target
+        if (targetAlpha > 0.01f && promptText != null && !promptText.gameObject.activeSelf)
+            promptText.gameObject.SetActive(true);
+
         canvasGroup.alpha = Mathf.MoveTowards(canvasGroup.alpha, targetAlpha, fadeSpeed * Time.deltaTime);
     }
 }

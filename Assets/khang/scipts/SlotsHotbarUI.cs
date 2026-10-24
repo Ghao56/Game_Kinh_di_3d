@@ -12,16 +12,12 @@ public class SlotsHotbarUI : MonoBehaviour
 {
     public ThrowableSelector selector;
 
-    public GTA_PhoneController gtaPhone;
-
-    public PhoneUIManager phoneManager;
-
     [Header("LOOK")]
     public int slotSize = 66;
 
     public int slotSpacing = 10;
 
-    public int slotCount = 5;
+    public int slotCount = 4;
 
     private CanvasGroup group;
     private GameObject[] slotGos;
@@ -45,16 +41,14 @@ public class SlotsHotbarUI : MonoBehaviour
         return n;
     }
 
+    private Sprite emptySlotSprite;
+
     void Start()
     {
         if (selector == null)
             selector = Object.FindFirstObjectByType<ThrowableSelector>();
 
-        if (gtaPhone == null)
-            gtaPhone = Object.FindFirstObjectByType<GTA_PhoneController>();
-
-        if (phoneManager == null)
-            phoneManager = Object.FindFirstObjectByType<PhoneUIManager>();
+        emptySlotSprite = Resources.Load<Sprite>("UI/Hand");
 
         TatHotbarCu();
 
@@ -296,7 +290,7 @@ public class SlotsHotbarUI : MonoBehaviour
             return;
 
         // Phone mở -> làm mờ hotbar đi, tránh đè UI phone
-        bool phoneOpen = (gtaPhone != null && gtaPhone.IsOpen) || (phoneManager != null && phoneManager.IsPhoneOpen);
+        bool phoneOpen = false;
         group.alpha = Mathf.MoveTowards(group.alpha, phoneOpen ? 0f : 1f, Time.unscaledDeltaTime * 6f);
         group.blocksRaycasts = false;
         group.interactable = false;
@@ -309,14 +303,29 @@ public class SlotsHotbarUI : MonoBehaviour
             IThrowable item = selector.GetItemAt(i);
 
             if (slotGos[i] != null)
-                slotGos[i].SetActive(item != null && item.GetCount() > 0);
+                slotGos[i].SetActive(true);
 
             if (item == null || item.GetCount() <= 0)
+            {
+                if (iconDots[i] != null)
+                {
+                    if (emptySlotSprite != null)
+                        iconDots[i].sprite = emptySlotSprite;
+                    iconDots[i].color = new Color(1f, 1f, 1f, 0.6f);
+                    iconDots[i].rectTransform.sizeDelta = new Vector2(40f, 40f);
+                }
+                if (countTexts[i] != null)
+                    countTexts[i].text = "";
+                if (nameTexts[i] != null)
+                    nameTexts[i].text = "";
                 continue;
+            }
 
             bool selected = i == selector.CurrentIndex;
 
             iconDots[i].color = MauIcon(item.ItemId);
+
+            iconDots[i].rectTransform.sizeDelta = new Vector2(30f, 30f);
 
             iconDots[i].rectTransform.localScale = selected ? Vector3.one * 1.25f : Vector3.one;
 

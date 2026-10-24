@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -93,8 +94,11 @@ public class Interactor : MonoBehaviour
 
         if (currentTarget != null)
         {
+            string p = currentTarget.PromptText ?? string.Empty;
             string prefix = currentTarget.HoldToInteract ? "[Giữ E] " : "[E] ";
-            promptUI.Show(prefix + currentTarget.PromptText);
+            promptUI.gameObject.SetActive(true);
+            if (promptUI.transform.Find("InteractPromptText") is Transform t) t.gameObject.SetActive(true);
+            promptUI.Show(prefix + p);
         }
         else
         {
@@ -116,15 +120,40 @@ public class Interactor : MonoBehaviour
     /// nhìn vào đâu thì nhắm vật đó: spherecast mảnh theo crosshair.
     private IInteractable RaycastTarget(Ray ray)
     {
-        if (!Physics.SphereCast(ray, viewRadius, out RaycastHit hit, viewDistance, interactableMask, QueryTriggerInteraction.Collide))
-            return null;
+        RaycastHit[] hits = Physics.SphereCastAll(ray, viewRadius, viewDistance, interactableMask, QueryTriggerInteraction.Collide);
+        if (hits.Length == 0) return null;
 
-        IInteractable candidate = hit.collider.GetComponentInParent<IInteractable>();
-        if (candidate == null) return null;
+        Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
 
-        if (candidate is IInteractableAvailability availability && !availability.IsAvailable) return null;
+        foreach (RaycastHit hit in hits)
+        {
+            Collider col = hit.collider;
 
-        return candidate;
+            // Bỏ qua chính người chơi
+            if (col.transform.root == transform.root) continue;
+
+            IInteractable candidate = col.GetComponentInParent<IInteractable>();
+
+            if (candidate == null)
+            {
+                // Trigger vô danh -> xuyên qua, collider rắn -> chặn tầm nhìn
+                if (col.isTrigger) continue;
+                return null;
+            }
+
+            // Vùng proximity đã được xử lý riêng, không để ray "cướp" prompt
+            if (candidate is IProximityInteractable) continue;
+
+            if (candidate is IInteractableAvailability availability && !availability.IsAvailable)
+            {
+                if (col.isTrigger) continue;
+                return null;
+            }
+
+            return candidate;
+        }
+
+        return null;
     }
 
     /// Quét các trigger đang chồng lên player: chỉ nhận IProximityInteractable còn sẵn sàng.

@@ -65,6 +65,9 @@ public class PlayerGrab : MonoBehaviour
     {
         if (mainCamera == null || promptUI == null) return;
 
+        // Nếu dùng chung với InteractPromptUI của Interactor thì để Interactor lo
+        if (promptUI.GetComponent<InteractPromptUI>() != null) return;
+
         Ray ray = mainCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
         if (Physics.Raycast(ray, out RaycastHit hit, interactRange, interactMask, QueryTriggerInteraction.Ignore))
         {
@@ -94,10 +97,23 @@ public class PlayerGrab : MonoBehaviour
             }
         }
 
+        // Ưu tiên món đang ngắm (khớp glow): raycast tâm màn hình trước.
+        GameObject aimedItem = null;
+        if (mainCamera != null)
+        {
+            Ray aimRay = mainCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
+            if (Physics.Raycast(aimRay, out RaycastHit aimHit, interactRange, interactMask, QueryTriggerInteraction.Ignore)
+                && aimHit.collider != null && aimHit.collider.CompareTag("Item"))
+            {
+                aimedItem = aimHit.collider.gameObject;
+            }
+        }
+
         Collider[] colliders = Physics.OverlapSphere(transform.position, pickupRange);
         foreach (Collider col in colliders)
         {
             if (!col.CompareTag("Item")) continue;
+            if (aimedItem != null && col.gameObject != aimedItem) continue;
 
             heldItem = col.gameObject;
             Rigidbody rb = heldItem.GetComponent<Rigidbody>();
