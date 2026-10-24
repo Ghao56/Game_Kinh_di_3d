@@ -49,6 +49,8 @@ public class TruckLoadZone : MonoBehaviour, IInteractable, IInteractableAvailabi
     [SerializeField] private string promptWhenReady = "Giữ E để chất đồ lên xe";
     [SerializeField] private string promptDoorClosed = "Hãy mở cửa hậu trước";
     [SerializeField] private string promptInvalid = "Món đồ này không đáng giá.";
+    [Tooltip("Khi ngắm muối/rượu (đồ tiêu dùng) trong vùng xe: báo rõ món này không bán được.")]
+    [SerializeField] private string promptNotSellable = "Muối và rượu không bán được.";
 
     [Header("Vùng sáng")]
     [Tooltip("Màu phát sáng của vùng khi cửa hậu mở và còn chỗ.")]
@@ -79,8 +81,18 @@ public class TruckLoadZone : MonoBehaviour, IInteractable, IInteractableAvailabi
     {
         get
         {
+            HeldState held = EvaluateHeld();
+
+            // Cầm đồ hợp lệ (cửa mở, còn chỗ) vẫn được ưu tiên như cũ.
+            if (DoorFullyOpen && held == HeldState.Valid && HasEmptySlot)
+                return promptWhenReady;
+
+            // Ngắm muối/rượu gần xe: báo rõ món này không bán được.
+            if (AimAtConsumable())
+                return promptNotSellable;
+
             if (!DoorFullyOpen) return promptDoorClosed;
-            if (EvaluateHeld() == HeldState.Invalid) return promptInvalid;
+            if (held == HeldState.Invalid) return promptInvalid;
             return promptWhenReady;
         }
     }
@@ -89,9 +101,19 @@ public class TruckLoadZone : MonoBehaviour, IInteractable, IInteractableAvailabi
     public float HoldDuration => holdDuration;
 
     // Cầm món hợp lệ (hoặc món sai để hiện lý do) mới giành prompt.
-    public bool IsAvailable => PlayerInside() && EvaluateHeld() != HeldState.None;
+    // Thêm: đang ngắm muối/rượu trong vùng cũng giành prompt để báo "không bán được".
+    public bool IsAvailable => PlayerInside() && (EvaluateHeld() != HeldState.None || AimAtConsumable());
+
     // Chỉ "giành" prompt khi thật sự chất được: cửa chưa mở thì nhường cho cửa hậu.
-    public bool ReadyForProximityPrompt => IsAvailable && DoorFullyOpen;
+    // Ngoại lệ: ngắm muối/rượu trong vùng -> giành prompt để báo rõ không bán được.
+    public bool ReadyForProximityPrompt => (IsAvailable && DoorFullyOpen) || (PlayerInside() && AimAtConsumable());
+
+    // Người chơi đang ngắm một món tiêu dùng (muối/rượu có SaltBagPickup)?
+    private bool AimAtConsumable()
+    {
+        if (playerGrab == null) playerGrab = FindFirstObjectByType<PlayerGrab>();
+        return playerGrab != null && playerGrab.AimedConsumable != null;
+    }
 
     public void OnInteract(Interactor interactor)
     {

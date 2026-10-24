@@ -21,6 +21,13 @@ public class PlayerGrab : MonoBehaviour
     private Camera mainCamera;
     private ThrowableSelector hotbar;
 
+    // Món tiêu dùng (muối/rượu) đang được ngắm qua ray tâm màn hình.
+    // TruckLoadZone đọc để báo rõ "không bán được" khi đứng gần xe.
+    private GameObject aimedConsumable;
+
+    // Kho dùng chung của player (cộng số lượng muối/rượu).
+    private PlayerInventory inventoryRef;
+
     // Biến quản lý đèn pin
     private Light itemLight;
     private Quaternion defaultLightRotation;
@@ -230,6 +237,11 @@ public class PlayerGrab : MonoBehaviour
     {
         CheckInteractableLook();
 
+        // Ray tâm màn hình tìm muối/rượu (SaltBagPickup) - dùng cho cả phím E
+        // lẫn prompt "không bán được" của vùng xe. Đặt trước để TruckLoadZone
+        // đọc được giá trị mới nhất của frame.
+        aimedConsumable = FindAimedConsumable();
+
         if (Keyboard.current == null) return;
 
         // 1. Phím E: Tương tác tủ hoặc Nhặt/Vứt đồ
@@ -248,7 +260,8 @@ public class PlayerGrab : MonoBehaviour
             }
             // FIX BUG 2: đang giữ loot vẫn nhặt thêm được nếu đang ngắm đúng
             // một món loot khác (hotbar sẽ quyết định còn đủ dãy ô hay không).
-            else if (IsHoldingLoot() && IsAimingAtLoot())
+            // Muối/rượu nhặt kiểu tiêu dùng (cộng stack) cũng được ngắm để bấm E.
+            else if (IsHoldingLoot() && (IsAimingAtLoot() || IsAimingAtConsumable()))
             {
                 TryPickUp(toggleCabinetFirst: false);
             }
@@ -313,6 +326,38 @@ public class PlayerGrab : MonoBehaviour
         return false;
     }
 
+    // Đang ngắm một món tiêu dùng (muối/rượu có SaltBagPickup).
+    private bool IsAimingAtConsumable() => aimedConsumable != null;
+
+    // Ray tâm màn hình CHỈ bắt collider của muối/rượu. Collider của chúng là
+    // trigger nên ray thường (QueryTriggerInteraction.Ignore) không thể trúng,
+    // phải dùng ray riêng với Collide rồi lọc đúng SaltBagPickup - không cướp
+    // ray của cửa/vùng xe/tủ (những cái không có SaltBagPickup đều bị bỏ qua).
+    private GameObject FindAimedConsumable()
+    {
+        if (mainCamera == null) return null;
+
+        Ray ray = mainCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
+        if (Physics.Raycast(ray, out RaycastHit hit, interactRange, interactMask, QueryTriggerInteraction.Collide))
+        {
+            if (hit.collider != null)
+            {
+                SaltBagPickup bag = hit.collider.GetComponentInParent<SaltBagPickup>();
+                if (bag != null) return bag.gameObject;
+            }
+        }
+
+        return null;
+    }
+
+    private void EnsurePlayerInventory()
+    {
+        if (inventoryRef == null) inventoryRef = FindFirstObjectByType<PlayerInventory>();
+    }
+
+    // Món tiêu dùng (muối/rượu) đang ngắm - TruckLoadZone đọc để báo "không bán được".
+    public GameObject AimedConsumable => aimedConsumable;
+
     // Trúng tủ tương tác qua ray tâm màn hình -> mở/đóng ngay. Trả về true nếu đã xử lý.
     private bool TryToggleAimedCabinet()
     {
@@ -337,7 +382,8 @@ public class PlayerGrab : MonoBehaviour
         if (toggleCabinetFirst && TryToggleAimedCabinet())
             return;
 
-        // Ưu tiên món đang ngắm (khớp glow): raycast tâm màn hình trước.
+        // Ưu tiên món đang ngắm: loot (tag "Item", ray thường) hoặc muối/rượu
+        // (SaltBagPickup, ray bắt trigger). Ngắm loot thì ưu tiên loot.
         GameObject aimedItem = null;
         if (mainCamera != null)
         {
@@ -349,11 +395,34 @@ public class PlayerGrab : MonoBehaviour
             }
         }
 
+        GameObject aimedBag = aimedItem != null ? null : FindAimedConsumable();
+        GameObject aimTarget = aimedItem != null ? aimedItem : aimedBag;
+
+        EnsurePlayerInventory();
+
         Collider[] colliders = Physics.OverlapSphere(transform.position, pickupRange);
         foreach (Collider col in colliders)
         {
-            if (!col.CompareTag("Item")) continue;
-            if (aimedItem != null && col.gameObject != aimedItem) continue;
+            SaltBagPickup bag = col.GetComponentInParent<SaltBagPickup>();
+            bool isConsumable = bag != null;
+            bool isLoot = !isConsumable && col.CompareTag("Item");
+            if (!isConsumable && !isLoot) continue;
+
+            // Chỉ nhận đúng món đang ngắm (nếu có ngắm mục nào đó).
+            if (aimTarget != null)
+            {
+                GameObject colObj = isConsumable ? bag.gameObject : col.gameObject;
+                if (colObj != aimTarget) continue;
+            }
+
+            if (isConsumable)
+            {
+                // Muối/rượu: nhặt kiểu tiêu dùng - cộng stack ×N ngay (không
+                // cầm lên tay). Hết chỗ -> SaltBagPickup đã báo thoại; dừng ở
+                // đây, không âm thầm nhặt món khác cho đến khi hết chỗ.
+                if (!bag.TryPickUpConsumable(inventoryRef)) return;
+                break;
+            }
 
             // Hotbar phải nhận được món này trước khi ta nhấc nó lên.
             // Không đủ ô liên tiếp -> bỏ qua, không làm mất vật phẩm.

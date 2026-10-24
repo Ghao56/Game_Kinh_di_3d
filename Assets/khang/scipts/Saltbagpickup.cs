@@ -1,21 +1,21 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-// Gắn script này vào bất kỳ vật phẩm nào đặt trong scene để nhặt được
-// (túi muối, chai rượu, vật phẩm tương lai...). Object cần có Collider
-// với "Is Trigger" = true.
+// Gắn script này vào vật phẩm tiêu dùng (túi muối, chai rượu...). Object cần
+// Collider (dataset trigger hay thường đều được - ray nhắm dùng cả hai).
 //
-// Vẫn giữ "chạm là nhặt", nhưng có 2 lớp bảo vệ để không mất đồ im lặng:
-// 1) Hotbar KHÔNG còn ô trống cho loại đồ CHƯA CÓ Ô => KHÔNG cộng kho, KHÔNG
-//    Destroy (đồ nằm nguyên trên sàn) + báo thoại "Tay mình hết chỗ rồi!"
-//    (cooldown 1.5s, dùng DialogueManager sẵn có). Dùng OnTriggerStay thay
-//    OnTriggerEnter: người chơi giải phóng một ô rồi ĐỨNG YÊN trong vùng vẫn
-//    tự nhặt lại được, không cần bước ra rồi vào lại.
-// 2) Nhặt thành công => hiện 1 dòng thoại ngắn tự tắt kiểu toast:
-//    "Nhặt <tên> (×số lượng)" - tên đồng bộ với hotbar qua GetDisplayName,
-//    cooldown theo từng loại đồ để đứng giữa đống chai không bị chồng chữ.
+// Cách nhặt: NGẮM qua tâm màn hình + bấm E, giống cách nhặt đồ loot
+// (PlayerGrab gọi vào TryPickUpConsumable). Đồ cộng số lượng vào kho
+// (stack ×N trên 1 ô hotbar, bấm F để ném/phun như cũ) rồi vật thể tự hủy.
+//
+// Bảo vệ không mất đồ im lặng:
+// - Hotbar KHÔNG còn ô trống cho loại đồ CHƯA CÓ Ô => KHÔNG cộng kho, KHÔNG
+//   Destroy (đồ nằm nguyên trên sàn) + báo "Tay mình hết chỗ rồi!"
+//   (cooldown 1.5s).
+// - Nhặt thành công => toast ngắn tự tắt "Nhặt <tên> (×N)", cooldown theo
+//   từng loại đồ để không chồng chữ.
 // DialogueManager.ShowLine KHÔNG khóa nhân vật (AcquireControl chỉ ẩn prompt
-// + khóa cursor) nên thông báo không làm game khựng.
+// + khóa cursor) nên các thông báo không làm game khựng.
 public class SaltBagPickup : MonoBehaviour
 {
     // Tên vật phẩm - đặt khác nhau cho từng loại, ví dụ "Salt", "Wine"...
@@ -26,8 +26,7 @@ public class SaltBagPickup : MonoBehaviour
     // Cooldown chung cho thông báo "hết chỗ" lẫn toast nhặt.
     private const float NotifyCooldownSeconds = 1.5f;
 
-    // Cooldown toast NHẶT theo từng loại đồ (chung giữa các instance để đứng
-    // giữa nhiều chai trong cùng frame không bị chồng chữ).
+    // Cooldown toast NHẶT theo từng loại đồ (chung giữa các instance).
     private static readonly Dictionary<string, float> nextToastTime =
         new Dictionary<string, float>(System.StringComparer.OrdinalIgnoreCase);
 
@@ -36,8 +35,7 @@ public class SaltBagPickup : MonoBehaviour
 
     private ThrowableSelector hotbar;
 
-    // Chặn trường hợp trigger trúng nhiều collider của player trong cùng frame
-    // (AddItem 2 lần cho 1 món).
+    // Chặn cộng kho 2 lần nếu cùng frame có nhiều lời gọi (ray + overlap).
     private bool consumed;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
@@ -52,14 +50,13 @@ public class SaltBagPickup : MonoBehaviour
         if (hotbar == null) hotbar = FindFirstObjectByType<ThrowableSelector>();
     }
 
-    // Dùng OnTriggerStay thay OnTriggerEnter: nếu lần trước bị chặn vì hotbar
-    // hết chỗ, người chơi giải phóng một ô rồi đứng yên trong vùng vẫn tự nhặt.
-    private void OnTriggerStay(Collider other)
+    // PlayerGrab gọi khi người chơi NGẮM món này và bấm E.
+    // Trả về TRUE nếu đã nhặt (kho được cộng, đồ tự hủy).
+    // Trả về FALSE nếu hết chỗ (đã báo thoại, đồ còn nguyên trên sàn)
+    // hoặc thiếu tham chiếu kho.
+    public bool TryPickUpConsumable(PlayerInventory inventory)
     {
-        if (consumed) return;
-
-        PlayerInventory inventory = other.GetComponent<PlayerInventory>();
-        if (inventory == null) return;
+        if (consumed || inventory == null) return false;
 
         if (hotbar == null) hotbar = FindFirstObjectByType<ThrowableSelector>();
 
@@ -67,17 +64,16 @@ public class SaltBagPickup : MonoBehaviour
         // chưa có stack -> cần 1 ô trống). Scene không có hotbar: giữ hành vi cũ.
         if (hotbar != null && !hotbar.CanAcceptItem(itemId))
         {
-            // KHÔNG AddItem, KHÔNG Destroy: đồ nằm nguyên trên sàn.
             if (Time.unscaledTime >= nextFullHandsTime &&
                 TryShowLine("Tay mình hết chỗ rồi!", "Player"))
             {
                 nextFullHandsTime = Time.unscaledTime + NotifyCooldownSeconds;
             }
-            return;
+            return false;
         }
 
         inventory.AddItem(itemId, amount);
-        consumed = true; // chặn callback trigger lặp lại trong cùng frame
+        consumed = true;
 
         // Toast ngắn tự tắt "Nhặt Muối (×3)". Chỉ bỏ THÔNG BÁO khi trùng
         // cooldown / thoại đang mở, không bỏ lần nhặt.
@@ -94,6 +90,7 @@ public class SaltBagPickup : MonoBehaviour
         }
 
         Destroy(gameObject);
+        return true;
     }
 
     // Hiện 1 dòng thoại ngắn tự tắt qua DialogueManager. Trả về TRUE nếu vừa
