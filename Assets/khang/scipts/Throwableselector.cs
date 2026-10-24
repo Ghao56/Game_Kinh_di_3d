@@ -124,6 +124,22 @@ public class ThrowableSelector : MonoBehaviour
         return null;
     }
 
+    // Kho có đủ dãy ô TRỐNG LIÊN TIẾP cho món loot này không?
+    // Tính trên phân bổ ô thật của hotbar (FindFreeRun), không dựa vào việc
+    // tay đang cầm món gì. PlayerGrab dùng để chỉ báo "hết chỗ" đúng lúc.
+    public bool HasSpaceForLoot(LootItem loot)
+    {
+        if (loot == null)
+            return true;
+
+        // Đã đăng ký rồi thì không cần thêm ô nào.
+        if (GetEntryOf(loot) != null)
+            return true;
+
+        int size = Mathf.Clamp(loot.slotCost, 1, HotbarSlotCount);
+        return FindFreeRun(size) >= 0;
+    }
+
     void Update()
     {
         SyncHotbarEntries();

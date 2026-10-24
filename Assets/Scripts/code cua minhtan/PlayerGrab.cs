@@ -25,6 +25,16 @@ public class PlayerGrab : MonoBehaviour
     private Light itemLight;
     private Quaternion defaultLightRotation;
 
+    // ===== Thoại ngắn khi kho/hotbar hết chỗ trống liên tiếp =====
+    // Dùng lại DialogueManager sẵn có của project (không tạo hệ thoại mới).
+    private const string FullHandsDialogueLine = "Tay mình hết chỗ rồi!";
+    private const string PlayerSpeakerName = "Player";
+
+    // Chống spam: mỗi lần nhặt thất bại chỉ báo một lần, không báo lặp khi
+    // người chơi bấm/giữ E liên tục.
+    private const float FullHandsDialogueCooldown = 1.5f;
+    private float nextFullHandsDialogueTime;
+
     private void Awake()
     {
         mainCamera = Camera.main;
@@ -196,6 +206,26 @@ public class PlayerGrab : MonoBehaviour
         if (hotbar != null) hotbar.RemoveLoot(loot);
     }
 
+    // Chỉ báo thoại khi nhặt thất bại ĐÚNG vì kho/hotbar thiếu dãy ô trống
+    // liên tiếp (không báo cho các lỗi nhặt khác). Kiểm tra phân bổ ô thật
+    // của kho bằng HasSpaceForLoot, không dựa vào việc tay đang cầm gì.
+    private void ShowFullHandsDialogue(GameObject item)
+    {
+        LootItem loot = item != null ? item.GetComponentInParent<LootItem>() : null;
+        if (loot == null || hotbar == null || hotbar.HasSpaceForLoot(loot))
+            return;
+
+        if (Time.unscaledTime < nextFullHandsDialogueTime)
+            return;
+
+        DialogueManager dialogue = DialogueManager.Instance;
+        if (dialogue == null || dialogue.IsActive)
+            return;
+
+        nextFullHandsDialogueTime = Time.unscaledTime + FullHandsDialogueCooldown;
+        dialogue.ShowLine(FullHandsDialogueLine, PlayerSpeakerName, autoAdvance: true);
+    }
+
     private void Update()
     {
         CheckInteractableLook();
@@ -330,6 +360,8 @@ public class PlayerGrab : MonoBehaviour
             if (!TryRegisterHeldLoot(col.gameObject))
             {
                 Debug.LogWarning($"[PlayerGrab] Hotbar không đủ ô cho {col.gameObject.name}.");
+                // Đúng nguyên nhân hết chỗ: hiện thoại người chơi (một lần).
+                ShowFullHandsDialogue(col.gameObject);
                 return;
             }
 
