@@ -110,6 +110,20 @@ public class ThrowableSelector : MonoBehaviour
         return null;
     }
 
+    // Tìm mục mà một món loot cụ thể đang chiếm (null nếu chưa đăng ký).
+    // PlayerGrab dùng để đồng bộ lựa chọn hotbar với món vừa nhấc lên tay.
+    public HotbarEntry GetEntryOf(LootItem loot)
+    {
+        if (loot == null)
+            return null;
+
+        foreach (var e in entries)
+            if (ReferenceEquals(e.Loot, loot))
+                return e;
+
+        return null;
+    }
+
     void Update()
     {
         SyncHotbarEntries();

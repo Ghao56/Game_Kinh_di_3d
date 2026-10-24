@@ -35,6 +35,139 @@ public class PlayerGrab : MonoBehaviour
         hotbar = FindFirstObjectByType<ThrowableSelector>();
     }
 
+    // ================= FIX BUG 1: chọn hotbar <-> đồ trên tay =================
+    // Trước đây bấm 1-4 chỉ đổi ô đang chọn trên UI, đồ trên tay không đổi:
+    // giữ loot suốt. Giờ đây lựa chọn hotbar điều khiển tay:
+    //   - Slot chứa loot       -> nhấc đúng vật thể đó lên tay.
+    //   - Slot throwable/trống -> CẤT loot về hotbar (ẩn đi, vật thể còn
+    //                            nguyên, không vứt, không nhân đôi).
+    private bool selectionHooked;
+
+    private void EnsureHotbarHooked()
+    {
+        if (hotbar == null) hotbar = FindFirstObjectByType<ThrowableSelector>();
+        if (hotbar == null || selectionHooked) return;
+
+        hotbar.OnSelectionChanged += OnHotbarSelectionChanged;
+        selectionHooked = true;
+
+        SyncHeldWithSelection();
+    }
+
+    private void OnEnable() => EnsureHotbarHooked();
+
+    private void OnDisable()
+    {
+        if (hotbar != null && selectionHooked)
+            hotbar.OnSelectionChanged -= OnHotbarSelectionChanged;
+
+        selectionHooked = false;
+    }
+
+    private void OnHotbarSelectionChanged() => SyncHeldWithSelection();
+
+    private LootItem GetSelectedLoot()
+    {
+        if (hotbar == null) return null;
+
+        HotbarEntry entry = hotbar.SelectedEntry;
+        return entry != null ? entry.Loot : null;
+    }
+
+    // Giữ tay khớp với lựa chọn hotbar. An toàn gọi nhiều lần: cùng một loot
+    // trên tay thì bỏ qua; đồ KHÔNG thuộc hotbar thì không tự ý cất/vứt.
+    private void SyncHeldWithSelection()
+    {
+        LootItem target = GetSelectedLoot();
+
+        if (target == null)
+        {
+            // Không chọn loot nào: cất loot đang cầm về hotbar (nếu có).
+            StashHeldLoot();
+            return;
+        }
+
+        if (heldItem != null)
+        {
+            if (heldItem == target.gameObject)
+                return; // đã giữ đúng món này rồi
+
+            // Tay đang giữ món không do hotbar quản lý: đừng đụng vào.
+            if (heldItem.GetComponentInParent<LootItem>() == null)
+                return;
+
+            StashHeldLoot();
+        }
+
+        PresentLoot(target.gameObject);
+    }
+
+    // Cất món loot đang cầm vào "túi": ẩn vật thể, đông cứng, GIỮ NGUYÊN ô
+    // hotbar của nó. Chỉ loot ĐÃ đăng ký trong hotbar mới được cất tự động;
+    // đồ lạ (không do hotbar quản lý) không bao giờ bị ẩn mất.
+    private void StashHeldLoot()
+    {
+        GameObject item = heldItem;
+        if (item == null) return;
+
+        LootItem loot = item.GetComponentInParent<LootItem>();
+        if (loot == null || hotbar == null || hotbar.GetEntryOf(loot) == null)
+            return;
+
+        heldItem = null;
+        RestoreItemLight();
+
+        Rigidbody rb = item.GetComponent<Rigidbody>();
+        if (rb != null) rb.isKinematic = true;
+
+        Collider itemCollider = item.GetComponent<Collider>();
+        if (itemCollider != null) itemCollider.enabled = false;
+
+        if (holdPoint != null && item.transform.parent != holdPoint)
+            item.transform.SetParent(holdPoint, true);
+
+        item.SetActive(false);
+    }
+
+    // Nhấc một món loot lên tay: bật lại, đóng băng, gắn vào holdPoint.
+    private void PresentLoot(GameObject item)
+    {
+        if (item == null) return;
+
+        item.SetActive(true);
+
+        Rigidbody rb = item.GetComponent<Rigidbody>();
+        if (rb != null) rb.isKinematic = true;
+
+        Collider itemCollider = item.GetComponent<Collider>();
+        if (itemCollider != null) itemCollider.enabled = false;
+
+        if (holdPoint != null)
+        {
+            item.transform.SetParent(holdPoint);
+            item.transform.localPosition = Vector3.zero;
+            item.transform.localRotation = Quaternion.identity;
+        }
+
+        heldItem = item;
+
+        // Lấy component Light của vật phẩm để điều khiển
+        itemLight = item.GetComponentInChildren<Light>();
+        if (itemLight != null)
+        {
+            defaultLightRotation = itemLight.transform.localRotation;
+        }
+    }
+
+    // Trả đèn (nếu có) của món về trạng thái gốc và bỏ tham chiếu.
+    private void RestoreItemLight()
+    {
+        if (itemLight == null) return;
+
+        itemLight.transform.localRotation = defaultLightRotation;
+        itemLight = null;
+    }
+
     // Đăng ký món loot THẬT vào hotbar ngay khi nhặt được. Nếu không đủ dãy ô
     // liên tiếp, trả false và PlayerGrab sẽ không nhặt (vật vẫn còn nguyên).
     private bool TryRegisterHeldLoot(GameObject item)
@@ -47,15 +180,16 @@ public class PlayerGrab : MonoBehaviour
         if (hotbar == null) hotbar = FindFirstObjectByType<ThrowableSelector>();
         if (hotbar == null) return true; // scene không có hotbar: giữ hành vi cũ
 
+        EnsureHotbarHooked();
         return hotbar.TryRegisterLoot(loot);
     }
 
-    // Thả/chất/huỷ món đang cầm -> giải phóng mọi ô hotbar của món đó.
-    private void ReleaseHeldLoot()
+    // Thả/chất/huỷ món chỉ định -> giải phóng mọi ô hotbar của món đó.
+    private void ReleaseHeldLoot(GameObject item)
     {
-        if (heldItem == null) return;
+        if (item == null) return;
 
-        LootItem loot = heldItem.GetComponentInParent<LootItem>();
+        LootItem loot = item.GetComponentInParent<LootItem>();
         if (loot == null) return;
 
         if (hotbar == null) hotbar = FindFirstObjectByType<ThrowableSelector>();
@@ -71,10 +205,27 @@ public class PlayerGrab : MonoBehaviour
         // 1. Phím E: Tương tác tủ hoặc Nhặt/Vứt đồ
         if (Keyboard.current.eKey.wasPressedThisFrame)
         {
-            if (heldItem == null)
-                TryPickUp();
-            else if (!IsTargetingCell())
+            // Ô chất đồ trên xe vẫn giành ưu tiên như cũ.
+            if (IsTargetingCell())
+            {
+                // Đang giữ đồ: để Interactor xử lý giữ E chất, không vứt.
+                if (heldItem == null)
+                    TryPickUp(toggleCabinetFirst: true);
+            }
+            else if (heldItem == null)
+            {
+                TryPickUp(toggleCabinetFirst: true);
+            }
+            // FIX BUG 2: đang giữ loot vẫn nhặt thêm được nếu đang ngắm đúng
+            // một món loot khác (hotbar sẽ quyết định còn đủ dãy ô hay không).
+            else if (IsHoldingLoot() && IsAimingAtLoot())
+            {
+                TryPickUp(toggleCabinetFirst: false);
+            }
+            else
+            {
                 DropItem();
+            }
         }
 
         // 2. Chuột Trái: Bật/tắt đèn hoặc Đặt đồ xuống
@@ -111,21 +262,50 @@ public class PlayerGrab : MonoBehaviour
         promptUI.SetActive(false);
     }
 
-    private void TryPickUp()
+    // Đang giữ một món loot ĐÃ đăng ký trong hotbar (rượu/muối không tính).
+    private bool IsHoldingLoot()
     {
-        if (mainCamera != null)
+        if (heldItem == null || hotbar == null) return false;
+
+        LootItem loot = heldItem.GetComponentInParent<LootItem>();
+        return loot != null && hotbar.GetEntryOf(loot) != null;
+    }
+
+    // Đang ngắm đúng một món loot (tag "Item") trong tầm tương tác.
+    private bool IsAimingAtLoot()
+    {
+        if (mainCamera == null) return false;
+
+        Ray ray = mainCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
+        if (Physics.Raycast(ray, out RaycastHit hit, interactRange, interactMask, QueryTriggerInteraction.Ignore))
+            return hit.collider != null && hit.collider.CompareTag("Item");
+
+        return false;
+    }
+
+    // Trúng tủ tương tác qua ray tâm màn hình -> mở/đóng ngay. Trả về true nếu đã xử lý.
+    private bool TryToggleAimedCabinet()
+    {
+        if (mainCamera == null) return false;
+
+        Ray ray = mainCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
+        if (Physics.Raycast(ray, out RaycastHit hit, interactRange, interactMask, QueryTriggerInteraction.Ignore))
         {
-            Ray ray = mainCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
-            if (Physics.Raycast(ray, out RaycastHit hit, interactRange, interactMask, QueryTriggerInteraction.Ignore))
+            CabinetController cabinet = hit.collider.GetComponent<CabinetController>();
+            if (cabinet != null)
             {
-                CabinetController cabinet = hit.collider.GetComponent<CabinetController>();
-                if (cabinet != null)
-                {
-                    cabinet.ToggleCabinet();
-                    return;
-                }
+                cabinet.ToggleCabinet();
+                return true;
             }
         }
+
+        return false;
+    }
+
+    private void TryPickUp(bool toggleCabinetFirst)
+    {
+        if (toggleCabinetFirst && TryToggleAimedCabinet())
+            return;
 
         // Ưu tiên món đang ngắm (khớp glow): raycast tâm màn hình trước.
         GameObject aimedItem = null;
@@ -153,25 +333,20 @@ public class PlayerGrab : MonoBehaviour
                 return;
             }
 
-            heldItem = col.gameObject;
-            Rigidbody rb = heldItem.GetComponent<Rigidbody>();
-            if (rb != null) rb.isKinematic = true;
+            // FIX: đang giữ loot khác -> cất nó về hotbar (giữ nguyên ô của nó),
+            // rồi nhấc món mới lên tay. Món cũ không bị huỷ/vứt/nhân đôi.
+            if (heldItem != null && heldItem != col.gameObject)
+                StashHeldLoot();
 
-            Collider itemCollider = heldItem.GetComponent<Collider>();
-            if (itemCollider != null) itemCollider.enabled = false;
+            PresentLoot(col.gameObject);
 
-            if (holdPoint != null)
+            // Giữ lựa chọn hotbar khớp với món vừa nhấc lên tay.
+            LootItem pickedLoot = col.gameObject.GetComponentInParent<LootItem>();
+            if (hotbar != null && pickedLoot != null)
             {
-                heldItem.transform.SetParent(holdPoint);
-                heldItem.transform.localPosition = Vector3.zero;
-                heldItem.transform.localRotation = Quaternion.identity;
-            }
-
-            // Lấy component Light của vật phẩm để điều khiển
-            itemLight = heldItem.GetComponentInChildren<Light>();
-            if (itemLight != null)
-            {
-                defaultLightRotation = itemLight.transform.localRotation;
+                HotbarEntry entry = hotbar.GetEntryOf(pickedLoot);
+                if (entry != null)
+                    hotbar.SelectSlot(entry.StartSlot);
             }
 
             break;
@@ -182,20 +357,19 @@ public class PlayerGrab : MonoBehaviour
     {
         if (heldItem == null) return;
 
-        ReleaseHeldLoot();
-
-        if (itemLight != null)
-        {
-            itemLight.transform.localRotation = defaultLightRotation;
-            itemLight = null;
-        }
-
-        ResetItemPhysics();
-
-        Rigidbody rb = heldItem.GetComponent<Rigidbody>();
-        if (rb != null) rb.AddForce(transform.forward * 2f, ForceMode.Impulse);
-
+        // Null-out TRƯỚC khi RemoveLoot: việc bỏ món khỏi hotbar có thể bung
+        // sự kiện đổi lựa chọn (nhấc món khác lên tay) — không được cầm/vứt
+        // lẫn món đang thả xuống đất.
+        GameObject item = heldItem;
         heldItem = null;
+
+        RestoreItemLight();
+        ReleaseHeldLoot(item);
+
+        ResetItemPhysics(item);
+
+        Rigidbody rb = item.GetComponent<Rigidbody>();
+        if (rb != null) rb.AddForce(transform.forward * 2f, ForceMode.Impulse);
     }
 
     private void TryPlaceItem()
@@ -205,20 +379,18 @@ public class PlayerGrab : MonoBehaviour
         Ray ray = mainCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
         if (Physics.Raycast(ray, out RaycastHit hit, placeRange, placeSurfaceMask, QueryTriggerInteraction.Ignore))
         {
-            ReleaseHeldLoot();
-
-            if (itemLight != null)
-            {
-                itemLight.transform.localRotation = defaultLightRotation;
-                itemLight = null;
-            }
-
-            heldItem.transform.SetParent(null);
-            heldItem.transform.position = hit.point;
-            heldItem.transform.rotation = Quaternion.FromToRotation(Vector3.up, hit.normal);
-
-            ResetItemPhysics();
+            // Null-out trước khi RemoveLoot (xem chú thích trong DropItem).
+            GameObject item = heldItem;
             heldItem = null;
+
+            RestoreItemLight();
+            ReleaseHeldLoot(item);
+
+            item.transform.SetParent(null);
+            item.transform.position = hit.point;
+            item.transform.rotation = Quaternion.FromToRotation(Vector3.up, hit.normal);
+
+            ResetItemPhysics(item);
         }
     }
 
@@ -232,17 +404,14 @@ public class PlayerGrab : MonoBehaviour
         if (heldItem == null) return null;
 
         GameObject item = heldItem;
+        heldItem = null;
 
-        ReleaseHeldLoot();
-
-        if (itemLight != null)
-        {
-            itemLight.transform.localRotation = defaultLightRotation;
-            itemLight = null;
-        }
+        // Null-out trước khi RemoveLoot (xem chú thích trong DropItem):
+        // sự kiện đổi lựa chọn có thể nhấc loot khác lên tay ngay sau đó.
+        RestoreItemLight();
+        ReleaseHeldLoot(item);
 
         // isKinematic + collider tắt giữ nguyên như lúc cầm: đồ nằm yên trong ô.
-        heldItem = null;
         return item;
     }
 
@@ -253,16 +422,17 @@ public class PlayerGrab : MonoBehaviour
         return interactor != null && interactor.CurrentTarget is TruckLoadZone;
     }
 
-    private void ResetItemPhysics()
+    private void ResetItemPhysics(GameObject item)
     {
-        if (heldItem == null) return;
+        if (item == null) return;
 
-        Rigidbody rb = heldItem.GetComponent<Rigidbody>();
+        Rigidbody rb = item.GetComponent<Rigidbody>();
         if (rb != null) rb.isKinematic = false;
 
-        Collider itemCollider = heldItem.GetComponent<Collider>();
+        Collider itemCollider = item.GetComponent<Collider>();
         if (itemCollider != null) itemCollider.enabled = true;
 
-        heldItem.transform.SetParent(null);
+        item.transform.SetParent(null);
+        if (!item.activeSelf) item.SetActive(true);
     }
 }
