@@ -49,8 +49,11 @@ public class TruckLoadZone : MonoBehaviour, IInteractable, IInteractableAvailabi
     [SerializeField] private string promptWhenReady = "Giữ E để chất đồ lên xe";
     [SerializeField] private string promptDoorClosed = "Hãy mở cửa hậu trước";
     [SerializeField] private string promptInvalid = "Món đồ này không đáng giá.";
-    [Tooltip("Khi đang chọn muối/rượu (đồ hỗ trợ, không phải hàng bán) trong vùng xe: báo rõ không nhận.")]
-    [SerializeField] private string promptNotSellable = "Muối và rượu không bán được.";
+
+    // Text cố định trong code: muối/rượu là đồ hỗ trợ, không phải hàng bán.
+    // Bản giá trị cũ "Muối và rượu..." serialize trong scene từ bản cũ sẽ tự
+    // bị bỏ qua khi deserialize - không cần đụng file scene.
+    private const string promptNotSellable = "Đồ không bán được.";
 
     [Header("Vùng sáng")]
     [Tooltip("Màu phát sáng của vùng khi cửa hậu mở và còn chỗ.")]
