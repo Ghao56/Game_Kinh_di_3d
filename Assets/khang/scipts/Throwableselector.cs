@@ -61,6 +61,13 @@ public class ThrowableSelector : MonoBehaviour
     // Bắn khi danh sách mục/ô thay đổi (thêm, bớt, hết hàng).
     public event System.Action OnHotbarChanged;
 
+    // Cờ đã cảnh báo "hết ô" cho từng loại đồ (mỗi loại chỉ log 1 lần).
+    private static readonly HashSet<string> warnedNoSlotItems =
+        new(System.StringComparer.OrdinalIgnoreCase);
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetRuntimeStatics() => warnedNoSlotItems.Clear();
+
     private static readonly Key[] digitKeys = new Key[]
     {
         Key.Digit1, Key.Digit2, Key.Digit3, Key.Digit4
@@ -136,8 +143,92 @@ public class ThrowableSelector : MonoBehaviour
         if (GetEntryOf(loot) != null)
             return true;
 
-        int size = Mathf.Clamp(loot.slotCost, 1, HotbarSlotCount);
-        return FindFreeRun(size) >= 0;
+        return HasFreeRun(loot.slotCost);
+    }
+
+    // Kho có đủ dãy ô TRỐNG LIÊN TIẾP kích thước `size` không? Chỉ KIỂM TRA,
+    // KHÔNG chèn (tách từ FindFreeRun để chỗ khác hỏi mà không đổi phân bổ ô).
+    public bool HasFreeRun(int size)
+    {
+        return FindFreeRun(Mathf.Clamp(size, 1, HotbarSlotCount)) >= 0;
+    }
+
+    // SaltBagPickup (muối/rượu) hỏi TRƯỚC khi cộng kho: loại itemId này còn
+    // nhận thêm được không?
+    // - Đã có ô trên hotbar (đang stack) => luôn nhận thêm, không cần ô mới.
+    // - Đồ thuộc hotbar quản lý nhưng CHƯA có ô => phải còn 1 ô trống; hết ô
+    //   thì trả FALSE để người nhặt KHÔNG cộng kho (đồ nằm nguyên trên sàn),
+    //   tránh đồ "tàng hình" trong kho mà hotbar không hiện lên.
+    // - Đồ ngoài danh sách hotbar quản lý => true (giữ hành vi cũ).
+    public bool CanAcceptItem(string itemId)
+    {
+        string id = PlayerInventory.CanonicalId(itemId);
+
+        if (!string.IsNullOrEmpty(id))
+        {
+            foreach (var e in entries)
+            {
+                if (e.Throwable == null) continue;
+
+                if (string.Equals(PlayerInventory.CanonicalId(e.ItemId), id,
+                        System.StringComparison.OrdinalIgnoreCase) && e.IsUsable)
+                    return true; // đã chiếm ô rồi: cộng stack không cần thêm ô
+            }
+
+            // Là loại hotbar quản lý nhưng chưa có ô: cần 1 ô trống.
+            if (HasThrowableItem(id))
+                return FindFreeRun(1) >= 0;
+        }
+
+        return true;
+    }
+
+    // itemId có phải loại mà hotbar quản lý (có IThrowable khai báo) không?
+    private bool HasThrowableItem(string canonicalId)
+    {
+        if (throwables == null)
+            return false;
+
+        foreach (MonoBehaviour mb in throwables)
+        {
+            if (mb == null || mb is not IThrowable t)
+                continue;
+
+            if (string.Equals(PlayerInventory.CanonicalId(t.ItemId), canonicalId,
+                    System.StringComparison.OrdinalIgnoreCase))
+                return true;
+        }
+
+        return false;
+    }
+
+    // Tên hiển thị của loại itemId: ưu tiên cấu hình trong Thrower/Sprayer
+    // (hoạt động cả khi chưa cấp ô), rồi tới entry đang chiếm ô, cuối cùng là
+    // chính itemId. Dùng cho thông báo nhặt đồng bộ tên với hotbar.
+    public string GetDisplayName(string itemId)
+    {
+        string id = PlayerInventory.CanonicalId(itemId);
+
+        if (!string.IsNullOrEmpty(id))
+        {
+            if (throwables != null)
+                foreach (MonoBehaviour mb in throwables)
+                {
+                    if (mb == null || mb is not IThrowable t || string.IsNullOrEmpty(t.ItemId))
+                        continue;
+
+                    if (string.Equals(PlayerInventory.CanonicalId(t.ItemId), id,
+                            System.StringComparison.OrdinalIgnoreCase))
+                        return t.DisplayName;
+                }
+
+            foreach (var e in entries)
+                if (e.IsThrowable && string.Equals(PlayerInventory.CanonicalId(e.ItemId), id,
+                        System.StringComparison.OrdinalIgnoreCase))
+                    return e.Name;
+        }
+
+        return itemId;
     }
 
     void Update()
@@ -319,8 +410,21 @@ public class ThrowableSelector : MonoBehaviour
                     Throwable = t
                 };
 
+                string canonical = PlayerInventory.CanonicalId(entry.ItemId);
+
                 if (TryInsertEntry(entry))
+                {
                     changed = true;
+                    warnedNoSlotItems.Remove(canonical); // vừa có ô: gỡ cờ cảnh báo cũ
+                }
+                else if (warnedNoSlotItems.Add(canonical))
+                {
+                    // Cảnh báo DUY NHẤT mỗi loại đồ (không mỗi frame): kho có
+                    // hàng nhưng hotbar hết ô -> đồ tàng hình cho tới khi có ô.
+                    Debug.LogWarning(
+                        $"[Hotbar] Không còn ô trống cho '{entry.Name}' (×{t.GetCount()}). " +
+                        "Đồ vẫn nằm trong kho, sẽ hiện lên khi có ô trống.");
+                }
             }
         }
 
