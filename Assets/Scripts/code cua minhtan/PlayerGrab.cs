@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -13,6 +14,12 @@ public class PlayerGrab : MonoBehaviour
     [SerializeField] private LayerMask placeSurfaceMask = ~0;
     [SerializeField] private LayerMask interactMask = ~0;
 
+    [Header("Bỏ muối/rượu ra đất bằng Q")]
+    [Tooltip("Danh sách itemId vứt được ra đất (canonical: Salt, Alcohol). Thứ tự khớp luôn với danh sách prefab bên dưới.")]
+    [SerializeField] private string[] consumableDropIds = { "Salt", "Alcohol" };
+    [Tooltip("Prefab model vứt ra đất cho từng itemId trên. Món vứt ra tự được gắm SaltBagPickup (itemId, ×1) + collider để có thể nhặt lại bằng E.")]
+    [SerializeField] private GameObject[] consumableDropPrefabs = new GameObject[0];
+
     [Header("Giao diện Hướng dẫn Tương tác")]
     [SerializeField] private GameObject promptUI;
 
@@ -25,6 +32,12 @@ public class PlayerGrab : MonoBehaviour
     // Chỉ dùng để CHẶN VỨT nhầm khi bấm E (nhặt thực tế do Interactor lo);
     // TruckLoadZone đọc để không giành prompt khi người chơi NGẮM muối/rượu.
     private GameObject aimedConsumable;
+
+    // Kho player (lấy số lượng/trừ khi vứt muối/rượu).
+    private PlayerInventory inventoryCache;
+
+    // Cảnh báo thiếu prefab vứt chỉ 1 lần mỗi loại đồ.
+    private readonly HashSet<string> warnedMissingDropPrefab = new();
 
     // Biến quản lý đèn pin
     private Light itemLight;
@@ -242,7 +255,7 @@ public class PlayerGrab : MonoBehaviour
 
         if (Keyboard.current == null) return;
 
-        // 1. Phím E: Tương tác tủ hoặc Nhặt/Vứt đồ
+        // 1. Phím E: Tương tác tủ hoặc Nhặt đồ (KHÔNG còn vứt - vứt là Q)
         if (Keyboard.current.eKey.wasPressedThisFrame)
         {
             // Ô chất đồ trên xe vẫn giành ưu tiên như cũ.
@@ -262,14 +275,13 @@ public class PlayerGrab : MonoBehaviour
             {
                 TryPickUp(toggleCabinetFirst: false);
             }
-            // Muối/rượu là IInteractable: Interactor tự hiện prompt "[E] Nhặt..."
-            // và bấm E là nhặt. Đang giữ loot + ngắm muối/rượu -> đừng vứt,
-            // nhường route tương tác xử lý phím E.
-            else if (!IsAimingAtConsumable())
-            {
-                DropItem();
-            }
+            // Giữ loot + ngắm muối/rượu: Interactor tự nhặt muối/rượu. Giữ loot
+            // + không ngắm gì: KHÔNG hành động - bỏ đồ là phím Q.
         }
+
+        // 1.5. Phím Q: bỏ đồ đang cầm, hoặc vứt 1 món muối/rượu ra đất.
+        if (Keyboard.current.qKey.wasPressedThisFrame)
+            HandleQ();
 
         // 2. Chuột Trái: Bật/tắt đèn hoặc Đặt đồ xuống
         if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame && heldItem != null)
@@ -283,6 +295,9 @@ public class PlayerGrab : MonoBehaviour
                 TryPlaceItem();
             }
         }
+
+        // Hint "[Q] Bỏ đồ" trên canvas.
+        UpdateHintUI();
     }
 
     private void CheckInteractableLook()
@@ -435,6 +450,158 @@ public class PlayerGrab : MonoBehaviour
 
             break;
         }
+    }
+
+    // ------------------------- Q: bỏ đồ / vứt muối-rượu --------------------------
+
+    // Loot đang cầm -> thả xuống đất (như E lần trước, chỉ đổi phím). Đang
+    // chọn muối/rượu trên hotbar -> vứt đúng 1 món ra đất, NHẶT LẠI ĐƯỢC.
+    private void HandleQ()
+    {
+        if (heldItem != null)
+        {
+            DropItem();
+            return;
+        }
+
+        HotbarEntry entry = hotbar != null ? hotbar.SelectedEntry : null;
+        if (entry == null || entry.Throwable == null) return; // không chọn đồ tiêu dùng
+
+        PlayerInventory inventory = EnsureInventory();
+        if (inventory == null) return;
+
+        string id = entry.ItemId;
+        if (inventory.GetCount(id) <= 0) return;
+
+        // Model để sinh món vứt ra: ưu tiên prefab gán trong Inspector; không
+        // có thì lấy 1 món CÙNG itemId còn nằm trên scene làm hình dạng (món
+        // gốc không đụng tới, chỉ dùng làm khuôn). Cả hai không thấy: KHÔNG
+        // trừ kho, cảnh báo 1 lần - không cho "mất đồ im lặng".
+        GameObject model = FindDropPrefabFor(id) ?? FindSceneModelFor(id);
+        if (model == null)
+        {
+            string canonical = PlayerInventory.CanonicalId(id);
+            if (warnedMissingDropPrefab.Add(canonical))
+            {
+                Debug.LogWarning(
+                    $"[PlayerGrab] Không có model để vứt '{canonical}' ra đất " +
+                    "(PlayerGrab > Bỏ muối/rượu ra đất bằng Q > Consumable Drop " +
+                    "Prefabs trống và scene không còn món cùng loại). Q không " +
+                    "vứt, đồ không mất.", this);
+            }
+            return;
+        }
+
+        // Trừ 1 đơn vị rồi mới sinh vật thể ra đất (nhặt lại được bằng E).
+        if (!inventory.UseItem(id)) return;
+
+        SpawnConsumablePickup(id, model);
+    }
+
+    private PlayerInventory EnsureInventory()
+    {
+        if (inventoryCache == null)
+            inventoryCache = GetComponentInParent<PlayerInventory>() ?? FindFirstObjectByType<PlayerInventory>();
+        return inventoryCache;
+    }
+
+    // Prefab model theo itemId (so sánh qua CanonicalId, không lệ tên gọi).
+    private GameObject FindDropPrefabFor(string itemId)
+    {
+        if (consumableDropIds == null || consumableDropPrefabs == null)
+            return null;
+
+        string id = PlayerInventory.CanonicalId(itemId);
+        for (int i = 0; i < consumableDropIds.Length && i < consumableDropPrefabs.Length; i++)
+        {
+            if (consumableDropPrefabs[i] == null) continue;
+
+            if (string.Equals(PlayerInventory.CanonicalId(consumableDropIds[i]), id,
+                    System.StringComparison.OrdinalIgnoreCase))
+                return consumableDropPrefabs[i];
+        }
+
+        return null;
+    }
+
+    // Tiện đường (fallback): tìm 1 món SaltBagPickup CÙNG itemId đang nằm
+    // trên scene để làm khuôn khi người chơi chưa gán prefab nào. Món gốc
+    // KHÔNG bị đụng vào - chỉ dùng Instantiate để nhân bản hình dạng.
+    private GameObject FindSceneModelFor(string itemId)
+    {
+        string id = PlayerInventory.CanonicalId(itemId);
+
+        foreach (SaltBagPickup candidate in
+                 FindObjectsByType<SaltBagPickup>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+        {
+            if (candidate == null) continue;
+
+            if (string.Equals(PlayerInventory.CanonicalId(candidate.itemId), id,
+                    System.StringComparison.OrdinalIgnoreCase))
+                return candidate.gameObject;
+        }
+
+        return null;
+    }
+
+    // Sinh một món tiêu dùng rơi ra đất: prefab model + SaltBagPickup(itemId,
+    // ×1) + collider + vật lý ném nhẹ. Bỏ SaltBagProjectile nếu có (không còn
+    // là đạn stun, chỉ là đồ nhặt lại được).
+    private void SpawnConsumablePickup(string itemId, GameObject model)
+    {
+        string id = PlayerInventory.CanonicalId(itemId);
+
+        Vector3 dropPos = transform.position + transform.forward * 1f + Vector3.up * 0.5f;
+        GameObject item = Instantiate(model, dropPos, Quaternion.identity);
+
+        item.tag = "Untagged"; // không tag "Item" để không giành route nhặt loot
+
+        SaltBagProjectile projectile = item.GetComponent<SaltBagProjectile>();
+        if (projectile != null) Destroy(projectile);
+
+        SaltBagPickup pickup = item.GetComponent<SaltBagPickup>();
+        if (pickup == null) pickup = item.GetComponentInChildren<SaltBagPickup>(true);
+        if (pickup == null) pickup = item.AddComponent<SaltBagPickup>();
+        pickup.itemId = id;
+        pickup.amount = 1;
+
+        // Ray prompt "[E] Nhặt ..." cần collider; prefabs thường có sẵn, nhưng
+        // model thuần mesh không có -> tự thêm hộ 1 capsule theo bounds.
+        if (item.GetComponent<Collider>() == null && item.GetComponentInChildren<Collider>(false) == null)
+        {
+            Renderer renderer = item.GetComponentInChildren<Renderer>(false);
+            CapsuleCollider capsule = item.AddComponent<CapsuleCollider>();
+            if (renderer != null)
+            {
+                Bounds bounds = renderer.bounds;
+                capsule.center = item.transform.InverseTransformPoint(bounds.center);
+                Vector3 scale = item.transform.lossyScale;
+                capsule.radius = Mathf.Max(0.05f, Mathf.Max(bounds.size.x, bounds.size.z) * 0.4f / Mathf.Max(0.0001f, Mathf.Max(scale.x, scale.z)));
+                capsule.height = Mathf.Max(0.15f, bounds.size.y / Mathf.Max(0.0001f, scale.y));
+                capsule.direction = 1;
+            }
+        }
+
+        Rigidbody rb = item.GetComponent<Rigidbody>();
+        if (rb == null) rb = item.AddComponent<Rigidbody>();
+        rb.mass = 0.2f;
+        rb.linearVelocity = transform.forward * 2f + Vector3.up * 1.5f;
+    }
+
+    // ----------------------------- Canvas hint ----------------------------------
+
+    // Đẩy chữ cho QDropHintUI (Canvas tạo bằng menu Tools). Chỉ 1 dòng cố
+    // định "[Q] Bỏ đồ" như bạn chốt: hiện khi cầm loot hoặc đang chọn
+    // muối/rượu trên hotbar, tay trống/không có canvas -> ẩn.
+    private void UpdateHintUI()
+    {
+        QDropHintUI hint = QDropHintUI.Instance;
+        if (hint == null) return;
+
+        HotbarEntry selected = hotbar != null ? hotbar.SelectedEntry : null;
+        bool canDrop = heldItem != null || (selected != null && selected.Throwable != null);
+
+        hint.Show(canDrop ? "[Q] Bỏ đồ" : null);
     }
 
     private void DropItem()

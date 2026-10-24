@@ -26,6 +26,9 @@ public class LootValueLabel : MonoBehaviour
     [SerializeField] private Vector3 labelOffset = Vector3.zero;
 
     [Header("Hiển thị")]
+    [SerializeField] private bool showName = true;
+    [Tooltip("Số ô chiếm trong túi (slotCost) hiển thị dưới dạng Weight.")]
+    [SerializeField] private bool showWeight = true;
     [SerializeField] private float aimDistance = 6f;
 
     [Header("Glow")]
@@ -107,9 +110,30 @@ public class LootValueLabel : MonoBehaviour
         loot = GetComponent<LootItem>();
         label.fontStyle = FontStyles.Bold;
         label.alignment = TextAlignmentOptions.Center;
-        label.text = (loot != null ? loot.valueInMillions : 0) + "M VND";
+        UpdateText();
 
         AssignOverlayMaterial();
+    }
+
+    // Nội dung của banner: dòng Name (nếu bật), giá tiền Step (luôn) và Weight = slotCost (nếu bật).
+    private void UpdateText()
+    {
+        if (label == null) return;
+        if (loot == null) loot = GetComponent<LootItem>();
+
+        string name = (loot != null && !string.IsNullOrEmpty(loot.itemName))
+            ? loot.itemName
+            : "Unknown";
+        int value = loot != null ? loot.valueInMillions : 0;
+        int weight = loot != null ? loot.slotCost : 1;
+
+        var sb = new System.Text.StringBuilder();
+        if (showName) sb.Append(name).Append('\n');
+        sb.Append(value).Append("M VND");
+        if (showWeight) sb.Append('\n').Append("<size=60%>Weight: ").Append(weight).Append("</size>");
+
+        label.richText = true;
+        label.text = sb.ToString();
     }
 
     // Chữ vẽ đè lên mọi vật + viền: material overlay TMP (ZTest Always, OUTLINE_ON).
@@ -143,6 +167,7 @@ public class LootValueLabel : MonoBehaviour
         aimDistance = Mathf.Max(1f, aimDistance);
 
         EnsureLabel();
+        UpdateText();
         ApplyStyle();
         SyncOthers();
     }
@@ -166,6 +191,8 @@ public class LootValueLabel : MonoBehaviour
             other.labelOffset = labelOffset;
             other.aimDistance = aimDistance;
             other.glowColor = glowColor;
+            other.showName = showName;
+            other.showWeight = showWeight;
 
 #if UNITY_EDITOR
             if (!Application.isPlaying)
