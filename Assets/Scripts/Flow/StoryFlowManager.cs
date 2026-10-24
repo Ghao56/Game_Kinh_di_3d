@@ -18,9 +18,6 @@ public class StoryFlowManager : MonoBehaviour
 
     [SerializeField] private bool logVerbose = true;
 
-    [Tooltip("Hiện tên bước hiện tại ở góc màn hình (chỉ editor / development build).")]
-    [SerializeField] private bool showHud = true;
-
     public string CurrentStepId { get; private set; }
 
     public event Action<string> StepEntered;
@@ -459,9 +456,9 @@ public class StoryFlowManager : MonoBehaviour
 
     // ------------------------------------------------------------ debug
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
     private void HandleDebug()
     {
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
         if (Keyboard.current == null) return;
 
         if (Keyboard.current.f8Key.wasPressedThisFrame)
@@ -474,15 +471,6 @@ public class StoryFlowManager : MonoBehaviour
             Debug.Log($"[Flow] F7 → {current.nextStepId}", this);
             GoTo(current.nextStepId);
         }
-#endif
-    }
-
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-    private void OnGUI()
-    {
-        if (!showHud || string.IsNullOrEmpty(CurrentStepId)) return;
-
-        GUI.Label(new Rect(10f, 10f, 460f, 24f), $"[Flow] {CurrentStepId}");
     }
 #endif
 }

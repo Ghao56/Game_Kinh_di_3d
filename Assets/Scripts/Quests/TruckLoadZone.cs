@@ -81,29 +81,37 @@ public class TruckLoadZone : MonoBehaviour, IInteractable, IInteractableAvailabi
     {
         get
         {
-            // "Cầm" muối/rượu (ô hotbar đang chọn là đồ hỗ trợ): vấn đề khác
-            // loot — vật hỗ trợ không phải hàng bán, báo rõ để người chơi đỡ
-            // tưởng là đồ rác. (Không thể vừa cầm loot vừa chọn muối/rượu,
-            // chuyện hai nhánh dưới cùng lúc không xảy ra.)
-            if (CarryingConsumable())
-                return promptNotSellable;
+            // Cửa chưa mở = flow nhiệm vụ chưa tới màn xe: khuyến khích đi mở
+            // cửa, không được báo điều gì khác.
+            if (!DoorFullyOpen) return promptDoorClosed;
+
+            // Đang chọn muối/rượu (đồ hỗ trợ, không phải hàng bán): báo rõ
+            // để người chơi đỡ tưởng là đồ rác. (Không thể vừa cầm loot vừa
+            // chọn muối/rượu - hai trạng thái kia không xung đột.)
+            if (CarryingConsumable()) return promptNotSellable;
 
             HeldState held = EvaluateHeld();
-            if (!DoorFullyOpen) return promptDoorClosed;
             if (held == HeldState.Invalid) return promptInvalid;
             return promptWhenReady;
         }
     }
 
-    public bool HoldToInteract => true;
+    // Chỉ là hành động "GIỮ" khi thật sự chất được đồ: cửa mở + cầm loot hợp
+    // lệ + còn chỗ. Còn lại chỉ là DÒNG THÔNG BÁO (không bán được / cửa đóng)
+    // -> tiền tố của Interactor buộc phải là "[E] ", không nhầm "Giữ E" khi
+    // người chơi chưa cầm gì hay flow chưa mở.
+    public bool HoldToInteract =>
+        DoorFullyOpen && EvaluateHeld() == HeldState.Valid && HasEmptySlot;
     public float HoldDuration => holdDuration;
 
     // Cầm món hợp lệ (hoặc món sai để hiện lý do) hoặc đang chọn muối/rượu
     // mới giành prompt.
     public bool IsAvailable => PlayerInside() && (EvaluateHeld() != HeldState.None || CarryingConsumable());
 
-    // Chỉ "giành" prompt khi thật sự chất được: cửa chưa mở thì nhường cho cửa hậu, trừ phi đang chọn muối/rượu.
-    public bool ReadyForProximityPrompt => (IsAvailable && DoorFullyOpen) || (PlayerInside() && CarryingConsumable());
+    // Chỉ "giành" prompt khi thật sự chất được NHƯNG phải khi cửa đã mở (flow
+    // đã tới màn xe). Cửa đóng thì prompt riêng của cửa hậu tự lo, vùng xe
+    // không giành — muối/rượu không hiện prompt nào khi flow chưa mở.
+    public bool ReadyForProximityPrompt => IsAvailable && DoorFullyOpen;
 
     // Người chơi đang "cầm" loại đồ hỗ trợ (muối/rượu trên hotbar)? Nhường
     // prompt khi NGẮM một món muối/rượu trên sàn: ý định là nhặt, prompt nhặt
