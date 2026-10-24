@@ -3697,12 +3697,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5750c18052ecc664d854937f5a71c390, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Interactor
-  interactionRadius: 2.5
-  detectionOffset: {x: 0, y: 1, z: 0}
   interactableMask:
     serializedVersion: 2
     m_Bits: 4294967295
-  maxColliders: 8
+  viewDistance: 4
+  viewRadius: 0.1
+  proximityRadius: 1
   actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   promptUI: {fileID: 0}
   logInteractions: 0
@@ -3743,6 +3743,7 @@ MonoBehaviour:
   jumpHeight: 1.2
   gravity: -20
   groundedGravity: -2
+  logJumpDebug: 1
   animator: {fileID: 0}
   crouchBoolParameter: IsCrouching
   logCrouchState: 1

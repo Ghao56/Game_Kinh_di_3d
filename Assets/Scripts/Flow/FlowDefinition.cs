@@ -13,7 +13,9 @@ public enum FlowConditionType
     ObjectiveReached,
     DialogueEnded,
     NightFallen,
-    Never
+    Never,
+    // Thêm cuối để giữ nguyên giá trị số của các mục cũ trong asset đã serialise.
+    SmsRead
 }
 
 [Serializable]
@@ -43,7 +45,9 @@ public enum FlowActionType
     SetLighting,
     RaiseSignal,
     SetActive,
-    ShowCaption
+    ShowCaption,
+    // Thêm cuối để giữ nguyên giá trị số của các mục cũ trong asset đã serialise.
+    PhoneSms
 }
 
 [Serializable]
@@ -52,8 +56,11 @@ public class FlowAction
     public FlowActionType type = FlowActionType.RaiseSignal;
 
     [Tooltip("StartQuest: questId. ShowDialogue: (bỏ trống). PlaySfx: key âm thanh. " +
-             "RaiseSignal: tên tín hiệu. ShowCaption: nội dung caption.")]
+             "RaiseSignal: tên tín hiệu. ShowCaption: nội dung caption. PhoneSms: nội dung tin nhắn.")]
     public string text = string.Empty;
+
+    [Tooltip("PhoneSms: tên người gửi hiển thị trên điện thoại.")]
+    public string sender = string.Empty;
 
     [Tooltip("ShowDialogue: asset thoại.")]
     public DialogueData dialogue;

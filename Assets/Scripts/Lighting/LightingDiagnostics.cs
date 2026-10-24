@@ -636,7 +636,7 @@ public class LightingDiagnostics : MonoBehaviour
             if (mb is LightingDiagnostics) continue;
 
             string typeName = mb.GetType().Name;
-            if (typeName != "ThirdPersonCamera" && typeName != "ThirdPersonController") continue;
+            if (typeName != "CursorLock" && typeName != "ThirdPersonController") continue;
 
             mb.enabled = false;
             disabled.Add(mb);

@@ -18,9 +18,6 @@ public class StoryFlowManager : MonoBehaviour
 
     [SerializeField] private bool logVerbose = true;
 
-    [Tooltip("Hiện tên bước hiện tại ở góc màn hình (chỉ editor / development build).")]
-    [SerializeField] private bool showHud = true;
-
     public string CurrentStepId { get; private set; }
 
     public event Action<string> StepEntered;
@@ -29,12 +26,15 @@ public class StoryFlowManager : MonoBehaviour
     private FlowStep current;
     private bool stepDone;
     private bool dialogueEndedThisStep;
+    private bool smsReadThisStep;
     private float stepEnterTime;
     private bool started;
+    private bool phoneHooked;
 
     private CaptionUI cachedCaption;
     private bool warnedCaption;
     private bool warnedAudio;
+    private PhoneUIManager cachedPhone;
 
     public FlowDefinition Definition => definition;
 
@@ -167,6 +167,7 @@ public class StoryFlowManager : MonoBehaviour
         CurrentStepId = step.id;
         stepDone = false;
         dialogueEndedThisStep = false;
+        smsReadThisStep = false;
         stepEnterTime = Time.time;
 
         Log($"Enter {step.id}");
@@ -221,6 +222,10 @@ public class StoryFlowManager : MonoBehaviour
 
             case FlowConditionType.DialogueEnded:
                 return dialogueEndedThisStep;
+
+            case FlowConditionType.SmsRead:
+                HookPhone();
+                return smsReadThisStep;
 
             case FlowConditionType.QuestStarted:
                 {
@@ -333,8 +338,56 @@ public class StoryFlowManager : MonoBehaviour
                     caption.Show(action.text);
                     break;
                 }
+
+            case FlowActionType.PhoneSms:
+                SendFlowSms(action);
+                break;
         }
     }
+
+    private void SendFlowSms(FlowAction action)
+    {
+        PhoneUIManager phone = ResolvePhone();
+        if (phone == null)
+        {
+            if (!warnedMissingPhone)
+            {
+                warnedMissingPhone = true;
+                Debug.LogWarning("[Flow] Thiếu PhoneUIManager — bỏ qua tin nhắn, bước SmsRead tự xong.", this);
+            }
+            smsReadThisStep = true;
+            return;
+        }
+
+        phone.PushSMS(string.IsNullOrEmpty(action.sender) ? "Chủ nợ" : action.sender, action.text);
+        Log($"Tin nhắn từ '{action.sender}': {action.text}");
+
+        // Hướng dẫn dạng quest: đọc phímopenKey từ PhoneUIManager để không cứng chữ "P".
+        CaptionUI caption = ResolveCaption();
+        if (caption != null)
+        {
+            caption.Show($"Có người vừa nhắn tin — nhấn [{phone.openKey}] để mở điện thoại", 4f);
+        }
+    }
+
+    private PhoneUIManager ResolvePhone()
+    {
+        if (cachedPhone == null) cachedPhone = FindFirstObjectByType<PhoneUIManager>();
+        return cachedPhone;
+    }
+
+    private void HookPhone()
+    {
+        if (phoneHooked && cachedPhone != null) return;
+
+        PhoneUIManager phone = ResolvePhone();
+        if (phone == null) return;
+
+        phone.MessagesOpened += () => smsReadThisStep = true;
+        phoneHooked = true;
+    }
+
+    private bool warnedMissingPhone;
 
     private void ShowDialogue(FlowAction action)
     {
@@ -346,10 +399,17 @@ public class StoryFlowManager : MonoBehaviour
             return;
         }
 
+        // Fallback: asset thoại không gán mà action có text thì đọc text như một dòng thoại đơn.
         if (action.dialogue == null)
         {
-            Debug.LogError($"[Flow] ShowDialogue thiếu DialogueData — bỏ qua.", this);
-            dialogueEndedThisStep = true;
+            if (string.IsNullOrEmpty(action.text))
+            {
+                Debug.LogError($"[Flow] ShowDialogue thiếu DialogueData — bỏ qua.", this);
+                dialogueEndedThisStep = true;
+                return;
+            }
+
+            manager.ShowLine(action.text, action.sender, () => dialogueEndedThisStep = true, autoAdvance: true);
             return;
         }
 
@@ -396,9 +456,9 @@ public class StoryFlowManager : MonoBehaviour
 
     // ------------------------------------------------------------ debug
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
     private void HandleDebug()
     {
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
         if (Keyboard.current == null) return;
 
         if (Keyboard.current.f8Key.wasPressedThisFrame)
@@ -411,15 +471,6 @@ public class StoryFlowManager : MonoBehaviour
             Debug.Log($"[Flow] F7 → {current.nextStepId}", this);
             GoTo(current.nextStepId);
         }
-#endif
-    }
-
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-    private void OnGUI()
-    {
-        if (!showHud || string.IsNullOrEmpty(CurrentStepId)) return;
-
-        GUI.Label(new Rect(10f, 10f, 460f, 24f), $"[Flow] {CurrentStepId}");
     }
 #endif
 }

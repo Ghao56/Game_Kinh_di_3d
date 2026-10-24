@@ -1,13 +1,18 @@
+using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class Interactor : MonoBehaviour
 {
     [Header("Detection")]
-    [SerializeField] private float interactionRadius = 2.5f;
-    [SerializeField] private Vector3 detectionOffset = new Vector3(0f, 1f, 0f);
     [SerializeField] private LayerMask interactableMask = ~0; // mặc định: tất cả layer
-    [SerializeField] private int maxColliders = 8;
+    [Tooltip("Ray xuyên qua tâm màn hình (crosshair): camera bắn SphereCast mảnh theo hướng nhìn; trúng vật nào thì chỉ vật đó được chọn.")]
+    [SerializeField, Min(0.5f)] private float viewDistance = 4f;
+    [Tooltip("Bán kính spherecast để ray không quá mảnh, dễ trượt vào cạnh cửa.")]
+    [SerializeField, Range(0.01f, 0.3f)] private float viewRadius = 0.1f;
+
+    [Tooltip("Bán kính quét quanh player cho các tương tác theo VÙNG (đứng trong vùng chất đồ là hiện prompt, không cần nhìn vào).")]
+    [SerializeField, Range(0.4f, 3f)] private float proximityRadius = 1f;
 
     [Header("Input")]
     [SerializeField] private InputActionAsset actions;
@@ -19,10 +24,19 @@ public class Interactor : MonoBehaviour
     [SerializeField] private bool logInteractions = false;
 
     private InputAction interactAction;
-    private Collider[] hits;
+    private Camera cachedCam;
     private IInteractable currentTarget;
     private InteractableGlow currentGlow;
     private float holdTimer;
+
+    /// Mục tiêu mà ray hướng nhìn đang trúng (null nếu không có). PlayerGrab đọc để chặn hành vi trùng phím E.
+    public IInteractable CurrentTarget => currentTarget;
+
+    /// Tiến độ giữ E hiện tại (0..1) cho UI vòng tròn; 0 khi không giữ hoặc mục tiêu không cần giữ.
+    public float HoldProgress01 =>
+        currentTarget != null && currentTarget.HoldToInteract && holdTimer > 0f
+            ? Mathf.Clamp01(holdTimer / currentTarget.HoldDuration)
+            : 0f;
 
     private void Awake()
     {
@@ -47,8 +61,6 @@ public class Interactor : MonoBehaviour
             enabled = false;
             return;
         }
-
-        hits = new Collider[maxColliders];
     }
 
     private void OnEnable() => interactAction?.Enable();
@@ -68,29 +80,10 @@ public class Interactor : MonoBehaviour
 
     private void DetectTarget()
     {
-        Vector3 center = transform.position + detectionOffset;
-        int count = Physics.OverlapSphereNonAlloc(
-            center, interactionRadius, hits, interactableMask, QueryTriggerInteraction.Collide);
-
-        IInteractable nearest = null;
-        float nearestSqrDist = float.MaxValue;
-
-        for (int i = 0; i < count; i++)
-        {
-            var candidate = hits[i].GetComponentInParent<IInteractable>();
-            if (candidate == null) continue;
-
-            var availability = candidate as IInteractableAvailability;
-            if (availability != null && !availability.IsAvailable) continue;
-
-            // Dung bounds thay vi vi tri transform (goc ban le xa hon center khi player dung giua la cua).
-            float sqrDist = hits[i].bounds.SqrDistance(center);
-            if (sqrDist < nearestSqrDist)
-            {
-                nearestSqrDist = sqrDist;
-                nearest = candidate;
-            }
-        }
+        // Vùng ưu tiên hơn ray khi đã sẵn sàng: cửa hậu nằm ngay trong vùng, nếu ray thắng thì
+        // prompt chất đồ biến mất và E sẽ vứt đồ. Chưa sẵn sàng thì vẫn nhìn đâu tương tác đó.
+        IInteractable nearest = ProximityTarget();
+        if (nearest == null) nearest = RaycastTarget(GetCrosshairRay());
 
         if (!ReferenceEquals(nearest, currentTarget))
         {
@@ -101,13 +94,79 @@ public class Interactor : MonoBehaviour
 
         if (currentTarget != null)
         {
+            string p = currentTarget.PromptText ?? string.Empty;
             string prefix = currentTarget.HoldToInteract ? "[Giữ E] " : "[E] ";
-            promptUI.Show(prefix + currentTarget.PromptText);
+            promptUI.gameObject.SetActive(true);
+            if (promptUI.transform.Find("InteractPromptText") is Transform t) t.gameObject.SetActive(true);
+            promptUI.Show(prefix + p);
         }
         else
         {
             promptUI.Hide();
         }
+    }
+
+    /// Ray xuyên qua tâm màn hình (điểm crosshair), giống cách PlayerGrab bắn ray.
+    private Ray GetCrosshairRay()
+    {
+        if (cachedCam == null) cachedCam = Camera.main; // camera runtime có thể được tạo/thay (cutscene)
+        if (cachedCam != null)
+            return cachedCam.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
+
+        // Dự phòng khi không có camera nào tag MainCamera.
+        return new Ray(transform.position, transform.forward);
+    }
+
+    /// nhìn vào đâu thì nhắm vật đó: spherecast mảnh theo crosshair.
+    private IInteractable RaycastTarget(Ray ray)
+    {
+        RaycastHit[] hits = Physics.SphereCastAll(ray, viewRadius, viewDistance, interactableMask, QueryTriggerInteraction.Collide);
+        if (hits.Length == 0) return null;
+
+        Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
+
+        foreach (RaycastHit hit in hits)
+        {
+            Collider col = hit.collider;
+
+            // Bỏ qua chính người chơi
+            if (col.transform.root == transform.root) continue;
+
+            IInteractable candidate = col.GetComponentInParent<IInteractable>();
+
+            if (candidate == null)
+            {
+                // Trigger vô danh -> xuyên qua, collider rắn -> chặn tầm nhìn
+                if (col.isTrigger) continue;
+                return null;
+            }
+
+            // Vùng proximity đã được xử lý riêng, không để ray "cướp" prompt
+            if (candidate is IProximityInteractable) continue;
+
+            if (candidate is IInteractableAvailability availability && !availability.IsAvailable)
+            {
+                if (col.isTrigger) continue;
+                return null;
+            }
+
+            return candidate;
+        }
+
+        return null;
+    }
+
+    /// Quét các trigger đang chồng lên player: chỉ nhận IProximityInteractable còn sẵn sàng.
+    private IInteractable ProximityTarget()
+    {
+        Vector3 center = transform.position + Vector3.up * 0.5f;
+        foreach (Collider collider in Physics.OverlapSphere(center, proximityRadius, interactableMask, QueryTriggerInteraction.Collide))
+        {
+            IInteractable candidate = collider.GetComponentInParent<IInteractable>();
+            if (candidate is IProximityInteractable zone && zone.ReadyForProximityPrompt)
+                return candidate;
+        }
+        return null;
     }
 
     private void SetGlow(IInteractable target)
@@ -154,7 +213,15 @@ public class Interactor : MonoBehaviour
 
     private void OnDrawGizmosSelected()
     {
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(transform.position + detectionOffset, interactionRadius);
+        Gizmos.color = Color.cyan;
+        if (Camera.main != null)
+        {
+            Ray ray = Camera.main.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
+            Gizmos.DrawRay(ray.origin, ray.direction * viewDistance);
+        }
+        else
+        {
+            Gizmos.DrawRay(transform.position, transform.forward * viewDistance);
+        }
     }
 }

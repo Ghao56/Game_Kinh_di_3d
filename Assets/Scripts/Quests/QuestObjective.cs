@@ -11,10 +11,14 @@ public class QuestObjective
 
     [SerializeField] private string text = "Mục tiêu";
 
+    [Tooltip("Hậu tố hiển thị sau tiến độ, ví dụ 'M VND' → (25/50M VND). Để trống thì chỉ hiện số.")]
+    [SerializeField] private string progressSuffix = string.Empty;
+
     [Min(1)]
     [SerializeField] private int required = 1;
 
     public string Id => id;
     public string Text => text;
+    public string ProgressSuffix => progressSuffix;
     public int Required => Mathf.Max(1, required);
 }

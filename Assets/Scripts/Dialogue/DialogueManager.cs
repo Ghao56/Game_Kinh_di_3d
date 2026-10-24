@@ -40,7 +40,7 @@ public class DialogueManager : MonoBehaviour
 
     [Header("Khoá nhân vật")]
     [SerializeField] private ThirdPersonController controller;
-    [SerializeField] private ThirdPersonCamera cameraRig;
+    [SerializeField] private CursorLock cameraRig;
     [SerializeField] private Interactor interactor;
     [SerializeField] private InteractPromptUI promptUI;
 
@@ -85,7 +85,7 @@ public class DialogueManager : MonoBehaviour
         }
 
         if (controller == null) controller = FindFirstObjectByType<ThirdPersonController>();
-        if (cameraRig == null) cameraRig = FindFirstObjectByType<ThirdPersonCamera>();
+        if (cameraRig == null) cameraRig = FindFirstObjectByType<CursorLock>();
         if (interactor == null) interactor = FindFirstObjectByType<Interactor>();
         if (promptUI == null) promptUI = FindFirstObjectByType<InteractPromptUI>();
 
@@ -136,12 +136,13 @@ public class DialogueManager : MonoBehaviour
         Enqueue(arr, onComplete);
     }
 
-    public void ShowLine(string text, string speaker = null, Action onComplete = null)
+    public void ShowLine(string text, string speaker = null, Action onComplete = null, bool autoAdvance = false)
     {
         var line = new DialogueLine
         {
             text = text ?? string.Empty,
-            speaker = speaker ?? string.Empty
+            speaker = speaker ?? string.Empty,
+            autoAdvance = autoAdvance
         };
         Enqueue(new[] { line }, onComplete);
     }

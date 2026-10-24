@@ -144,7 +144,7 @@ public static class PaperNoteSetup
         SerializedObject so = new SerializedObject(noteUI);
         so.FindProperty("contentText").objectReferenceValue = contentText;
         so.FindProperty("controller").objectReferenceValue = Object.FindFirstObjectByType<ThirdPersonController>();
-        so.FindProperty("cameraRig").objectReferenceValue = Object.FindFirstObjectByType<ThirdPersonCamera>();
+        so.FindProperty("cameraRig").objectReferenceValue = Object.FindFirstObjectByType<CursorLock>();
         so.FindProperty("interactor").objectReferenceValue = Object.FindFirstObjectByType<Interactor>();
         so.FindProperty("promptUI").objectReferenceValue = Object.FindFirstObjectByType<InteractPromptUI>();
         so.FindProperty("actions").objectReferenceValue = actions;

@@ -3,9 +3,8 @@ using UnityEngine;
 using UnityEngine.UI;
 
 // Gắn script này vào 1 object Text (UI > Legacy > Text) trong Canvas.
-// Hiển thị danh sách vật phẩm ném, đánh dấu ">" ở vật phẩm đang chọn.
-// Tự cập nhật mỗi khi người chơi đổi vật phẩm bằng phím 1-9.
-// Nếu muốn đổi thứ tự phím, chỉ cần kéo lại mảng Throwables trên Player.
+// Hiển thị các mục đang có trong hotbar 4 ô, đánh dấu ">" ở mục đang chọn.
+// Tự cập nhật mỗi khi người chơi đổi vật phẩm bằng phím 1-4.
 public class ThrowableSelectorUI : MonoBehaviour
 {
     public ThrowableSelector selector;
@@ -26,6 +25,7 @@ public class ThrowableSelectorUI : MonoBehaviour
         }
 
         selector.OnSelectionChanged += Refresh;
+        selector.OnHotbarChanged += Refresh;
 
         Refresh(); // vẽ ngay lần đầu, không đợi người chơi bấm phím
     }
@@ -33,19 +33,29 @@ public class ThrowableSelectorUI : MonoBehaviour
     void OnDestroy()
     {
         if (selector != null)
+        {
             selector.OnSelectionChanged -= Refresh;
+            selector.OnHotbarChanged -= Refresh;
+        }
     }
 
     void Refresh()
     {
         StringBuilder sb = new StringBuilder();
 
-        int count = Mathf.Min(selector.ThrowableCount, 9);
+        HotbarEntry selected = selector.SelectedEntry;
 
-        for (int i = 0; i < count; i++)
+        // Duyệt đủ 4 ô nhưng mỗi mục chỉ in một dòng (ở ô bắt đầu).
+        for (int i = 0; i < selector.SlotCount; i++)
         {
-            string mark = i == selector.CurrentIndex ? "> " : "  ";
-            sb.AppendLine($"{mark}[{i + 1}] {selector.GetItemName(i)}");
+            HotbarEntry entry = selector.GetEntryAt(i);
+            if (entry == null || i != entry.StartSlot)
+                continue;
+
+            string mark = ReferenceEquals(entry, selected) ? "> " : "  ";
+            string slots = entry.SlotSize > 1 ? $" [{i + 1}-{entry.EndSlot + 1}]" : $" [{i + 1}]";
+            string count = entry.Count > 1 ? $" x{entry.Count}" : "";
+            sb.AppendLine($"{mark}{slots} {entry.Name}{count}");
         }
 
         sb.Append($"({selector.throwKey} để ném)");

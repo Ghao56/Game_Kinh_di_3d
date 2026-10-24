@@ -98,7 +98,7 @@ public class HidingSpot : MonoBehaviour
         if (changeTagWhileHiding)
             playerRoot.tag = normalTag;
 
-        if (isPlayerInsideZone && interactPrompt != null)
+        if (isPlayerInsideZone && interactPrompt != null && interactPrompt.GetComponent<InteractPromptUI>() == null)
             interactPrompt.SetActive(true);
     }
 

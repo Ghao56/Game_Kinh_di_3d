@@ -9,6 +9,9 @@ public class FlowTrigger : MonoBehaviour
     [Tooltip("Tín hiệu phát ra khi người chơi vào vùng.")]
     [SerializeField] private string signal = string.Empty;
 
+    [Tooltip("Tín hiệu phát ra khi người chơi RỜI vùng (dùng cho: chui ra khỏi gầm xe). Để trống = không phát.")]
+    [SerializeField] private string exitSignal = string.Empty;
+
     [Tooltip("Chỉ phát khi flow đang ở bước này. Để trống = luôn phát.")]
     [SerializeField] private string requiredStepId = string.Empty;
 
@@ -17,6 +20,7 @@ public class FlowTrigger : MonoBehaviour
     private StoryFlowManager flow;
     private bool subscribed;
     private bool fired;
+    private bool exitFired;
     private bool playerInside;
 
     private void Start()
@@ -53,6 +57,7 @@ public class FlowTrigger : MonoBehaviour
     {
         if (!IsPlayer(other)) return;
         playerInside = false;
+        TryFireExit();
     }
 
     /// Người chơi đã đứng sẵn trong vùng lúc bước bắt đầu thì vẫn phải kích hoạt.
@@ -69,6 +74,17 @@ public class FlowTrigger : MonoBehaviour
 
         fired = true;
         FlowBus.Raise(signal);
+    }
+
+    private void TryFireExit()
+    {
+        if (string.IsNullOrEmpty(exitSignal)) return;
+        if (exitFired && fireOnce) return;
+        if (flow == null) return;
+        if (!string.IsNullOrEmpty(requiredStepId) && !flow.IsInStep(requiredStepId)) return;
+
+        exitFired = true;
+        FlowBus.Raise(exitSignal);
     }
 
     private static bool IsPlayer(Collider other)

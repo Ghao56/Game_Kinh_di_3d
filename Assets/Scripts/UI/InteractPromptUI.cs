@@ -1,10 +1,10 @@
+using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 [RequireComponent(typeof(CanvasGroup))]
 public class InteractPromptUI : MonoBehaviour
 {
-    [SerializeField] private Text promptText; // Legacy UI, không dùng TMPro
+    [SerializeField] private TMP_Text promptText; // nhận cả TextMeshProUGUI/Mesh Pro, vị trí do người dùng kéo thoải mái
     [SerializeField] private float fadeSpeed = 5f;
 
     private CanvasGroup canvasGroup;
@@ -19,7 +19,23 @@ public class InteractPromptUI : MonoBehaviour
 
     public void Show(string text)
     {
-        if (promptText != null) promptText.text = text;
+        if (!gameObject.activeSelf)
+        {
+            gameObject.SetActive(true);
+        }
+
+        if (promptText != null)
+        {
+            if (!promptText.gameObject.activeSelf)
+                promptText.gameObject.SetActive(true);
+
+            promptText.text = text;
+        }
+        else
+        {
+            Debug.LogError("[PROMPT_UI] promptText CHƯA ĐƯỢC GÁN trong Inspector!", this);
+        }
+
         targetAlpha = 1f;
     }
 
@@ -30,6 +46,10 @@ public class InteractPromptUI : MonoBehaviour
 
     private void Update()
     {
+        // Đảm bảo text luôn bật khi đang target
+        if (targetAlpha > 0.01f && promptText != null && !promptText.gameObject.activeSelf)
+            promptText.gameObject.SetActive(true);
+
         canvasGroup.alpha = Mathf.MoveTowards(canvasGroup.alpha, targetAlpha, fadeSpeed * Time.deltaTime);
     }
 }

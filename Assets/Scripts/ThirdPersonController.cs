@@ -175,9 +175,9 @@ public class ThirdPersonController : MonoBehaviour
 
         float speedMultiplier = isCrouching ? crouchMultiplier : (sprinting ? sprintMultiplier : 1f);
 
-        if (moveDirection.magnitude > 0.1f)
+        if (camForward.sqrMagnitude > 0.001f)
         {
-            RotateTowards(moveDirection);
+            RotateTowards(camForward);
         }
 
         return moveDirection * moveSpeed * speedMultiplier;

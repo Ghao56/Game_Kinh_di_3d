@@ -12,11 +12,6 @@
             <!-- Wallpaper Background -->
             <ui:VisualElement class="wallpaper" />
 
-            <!-- Dynamic Island -->
-            <ui:VisualElement class="dynamic">
-                <ui:VisualElement class="cam" />
-            </ui:VisualElement>
-
             <!-- Status Bar -->
             <ui:VisualElement class="status">
                 <ui:Label text="09:41" name="time-label" class="time-text" />
@@ -26,6 +21,11 @@
                         <ui:VisualElement class="battery-level" />
                     </ui:VisualElement>
                 </ui:VisualElement>
+            </ui:VisualElement>
+
+            <!-- Dynamic Island (khai báo sau status bar để nằm trên) -->
+            <ui:VisualElement class="dynamic">
+                <ui:VisualElement class="cam" />
             </ui:VisualElement>
 
             <!-- Màn Hình Chính: 6 app, không ScrollView -->
@@ -83,9 +83,6 @@
                 </ui:Button>
             </ui:VisualElement>
 
-            <!-- Thanh Home Indicator ở đáy điện thoại -->
-            <ui:Button name="btn-home" class="home-indicator" />
-
             <!-- Trang Tin Nhắn -->
             <ui:VisualElement name="app-page" class="app-page">
                 <ui:VisualElement class="apphead">
@@ -97,6 +94,9 @@
                     <ui:VisualElement name="message-list" />
                 </ui:ScrollView>
             </ui:VisualElement>
+
+            <!-- Thanh Home Indicator ở đáy điện thoại (khai báo sau app-page để nằm trên) -->
+            <ui:Button name="btn-home" class="home-indicator" />
 
             <!-- Thông báo Toast dạng popup -->
             <ui:Label name="toast" class="toast" text="" />

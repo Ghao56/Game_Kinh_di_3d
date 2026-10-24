@@ -219,7 +219,7 @@ public class InventoryUI : MonoBehaviour
         }
 
         string phimNem = selector != null ? selector.throwKey.ToString() : "F";
-        sb.Append($"<color=#8a97b0><size=16>[1-5] đổi đồ • [{phimNem}] ném</size></color>");
+        sb.Append($"<color=#8a97b0><size=16>[1-4] đổi đồ • [{phimNem}] ném</size></color>");
 
         label.text = sb.ToString();
 

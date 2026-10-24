@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 using UnityEngine.Events;
 
 [Serializable]
@@ -36,6 +37,9 @@ public class AnxietyManager : MonoBehaviour
 
     [Header("Nguồn lo âu (âm thanh, vật phẩm...) - tự đăng ký")]
     [SerializeField] List<AnxietySource> sources = new();
+
+    [Header("Quái sau khi spawn")]
+    [SerializeField] bool addWallGuardOnSpawn = true;   // gắn EnemyWallGuard để chặn quái đi xuyên tường
 
     [Header("Gỡ lỗi")]
     [SerializeField] bool debugLog = false;          // in trạng thái và log spawn/despawn ra Console
@@ -78,6 +82,8 @@ public class AnxietyManager : MonoBehaviour
                 Debug.LogWarning($"AnxietyManager: mốc '{t.name}' có Trigger At = 0, hãy đặt lớn hơn 0.", this);
             if (!t.despawnWhenBelow)
                 Debug.LogWarning($"AnxietyManager: mốc '{t.name}' đang TẮT Despawn When Below nên quái sẽ không biến mất.", this);
+            if (t.spawnPoint == null && t.spawnDistance < 2f)
+                Debug.LogWarning($"AnxietyManager: mốc '{t.name}' có Spawn Distance = {t.spawnDistance}, quái sẽ hiện sát người chơi. Nên đặt 8 trở lên.", this);
         }
     }
 
@@ -147,6 +153,8 @@ public class AnxietyManager : MonoBehaviour
                     Quaternion.identity
                 );
 
+                PrepareEnemy(t.instance);
+
                 EnemyAI3D enemyAI = t.instance.GetComponent<EnemyAI3D>();
                 if (enemyAI != null)
                     enemyAI.player = player;
@@ -154,6 +162,11 @@ public class AnxietyManager : MonoBehaviour
                 EnemyHearing enemyHearing = t.instance.GetComponent<EnemyHearing>();
                 if (enemyHearing != null)
                     enemyHearing.player = player;
+
+                NavMeshAgent agent = t.instance.GetComponent<NavMeshAgent>();
+                if (agent != null && !agent.isOnNavMesh)
+                    Debug.LogWarning($"AnxietyManager: quái '{t.name}' có NavMeshAgent nhưng đang KHÔNG nằm trên NavMesh " +
+                                     "(cần bake NavMesh hoặc đặt spawn point trên NavMesh).", this);
 
                 t.used = true;
                 if (debugLog) Debug.Log($"[Anxiety] SPAWN '{t.name}' (current={current:F1})", this);
@@ -171,10 +184,51 @@ public class AnxietyManager : MonoBehaviour
     {
         if (t.spawnPoint != null) return t.spawnPoint.position;
 
-        // Chọn góc ngẫu nhiên, luôn cách player đúng spawnDistance (không bao giờ trùng vị trí player)
+        const int attempts = 12;
+        const float obstacleRadius = 0.4f;
+
+        // Lượt 1: chỉ chọn điểm nằm trên NavMesh và không bị vật đặc (tường, đồ vật) chiếm chỗ
+        for (int i = 0; i < attempts; i++)
+        {
+            Vector3 candidate = RandomPointAround(t.spawnDistance);
+            if (NavMesh.SamplePosition(candidate, out NavMeshHit hit, 3f, NavMesh.AllAreas) &&
+                !Physics.CheckSphere(hit.position + Vector3.up, obstacleRadius, ~0, QueryTriggerInteraction.Ignore))
+                return hit.position;
+        }
+
+        // Lượt 2 (scene chưa bake NavMesh): dò mặt đất bằng raycast, tránh điểm nằm trong vật đặc
+        for (int i = 0; i < attempts; i++)
+        {
+            Vector3 candidate = RandomPointAround(t.spawnDistance);
+            if (Physics.Raycast(candidate + Vector3.up * 5f, Vector3.down, out RaycastHit ground, 20f, ~0, QueryTriggerInteraction.Ignore) &&
+                !Physics.CheckSphere(ground.point + Vector3.up, obstacleRadius, ~0, QueryTriggerInteraction.Ignore))
+            {
+                Debug.LogWarning($"AnxietyManager: không tìm được điểm spawn trên NavMesh cho '{t.name}'. " +
+                                 "Hãy bake NavMesh, nếu không quái có thể đi xuyên tường.", this);
+                return ground.point;
+            }
+        }
+
+        // Cuối cùng: dùng điểm ngẫu nhiên đầu tiên
+        Debug.LogWarning($"AnxietyManager: không tìm được điểm spawn hợp lệ cho '{t.name}'.", this);
+        return RandomPointAround(t.spawnDistance);
+    }
+
+    // Điểm ngẫu nhiên trên vòng tròn quanh người chơi, luôn cách đúng distance
+    Vector3 RandomPointAround(float distance)
+    {
         float a = UnityEngine.Random.value * Mathf.PI * 2f;
-        Vector3 offset = new Vector3(Mathf.Cos(a), 0f, Mathf.Sin(a)) * t.spawnDistance;
+        Vector3 offset = new Vector3(Mathf.Cos(a), 0f, Mathf.Sin(a)) * distance;
         return player.position + offset;
+    }
+
+    // Chuẩn bị quái vừa clone: thêm EnemyWallGuard nếu cần
+    void PrepareEnemy(GameObject enemy)
+    {
+        if (addWallGuardOnSpawn &&
+            enemy.GetComponent<NavMeshAgent>() != null &&
+            enemy.GetComponent<EnemyWallGuard>() == null)
+            enemy.AddComponent<EnemyWallGuard>();
     }
 
     [ContextMenu("Test: +30")]
