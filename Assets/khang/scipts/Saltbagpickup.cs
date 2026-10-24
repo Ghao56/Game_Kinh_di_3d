@@ -1,56 +1,77 @@
-using System.Collections.Generic;
 using UnityEngine;
 
 // Gắn script này vào vật phẩm tiêu dùng (túi muối, chai rượu...). Object cần
-// Collider (dataset trigger hay thường đều được - ray nhắm dùng cả hai).
+// Collider (trigger hay thường đều được - SphereCast của Interactor bắt cả
+// trigger). NHẮM qua tâm màn hình là hiện prompt "[E] Nhặt <tên>", bấm E để
+// nhặt - giống hệt loot (PlayerGrab không đụng vào đường này).
 //
-// Cách nhặt: NGẮM qua tâm màn hình + bấm E, giống cách nhặt đồ loot
-// (PlayerGrab gọi vào TryPickUpConsumable). Đồ cộng số lượng vào kho
-// (stack ×N trên 1 ô hotbar, bấm F để ném/phun như cũ) rồi vật thể tự hủy.
+// Nhặt = cộng số lượng vào kho (stack ×N trên 1 ô hotbar, bấm F để ném/phun
+// như cũ), rồi vật thể tự hủy. KHÔNG hiện thông báo thoại khi nhặt thành công
+// - người chơi nhìn thấy trực tiếp badge ×N trên hotbar.
 //
 // Bảo vệ không mất đồ im lặng:
 // - Hotbar KHÔNG còn ô trống cho loại đồ CHƯA CÓ Ô => KHÔNG cộng kho, KHÔNG
-//   Destroy (đồ nằm nguyên trên sàn) + báo "Tay mình hết chỗ rồi!"
-//   (cooldown 1.5s).
-// - Nhặt thành công => toast ngắn tự tắt "Nhặt <tên> (×N)", cooldown theo
-//   từng loại đồ để không chồng chữ.
+//   Destroy (đồ nằm nguyên trên sàn) + báo "Tay mình hết chỗ rồi!" khi bấm E
+//   (cooldown 1.5s, một lời mỗi lần bấm, không spam).
 // DialogueManager.ShowLine KHÔNG khóa nhân vật (AcquireControl chỉ ẩn prompt
-// + khóa cursor) nên các thông báo không làm game khựng.
-public class SaltBagPickup : MonoBehaviour
+// + khóa cursor) nên thông báo không làm game khựng.
+public class SaltBagPickup : MonoBehaviour, IInteractable
 {
     // Tên vật phẩm - đặt khác nhau cho từng loại, ví dụ "Salt", "Wine"...
     public string itemId = "Salt";
 
     public int amount = 1;
 
-    // Cooldown chung cho thông báo "hết chỗ" lẫn toast nhặt.
-    private const float NotifyCooldownSeconds = 1.5f;
-
-    // Cooldown toast NHẶT theo từng loại đồ (chung giữa các instance).
-    private static readonly Dictionary<string, float> nextToastTime =
-        new Dictionary<string, float>(System.StringComparer.OrdinalIgnoreCase);
-
     // Cooldown thông báo "hết chỗ" (dùng chung mọi túi/chai trong scene).
+    private const float NotifyCooldownSeconds = 1.5f;
     private static float nextFullHandsTime;
 
     private ThrowableSelector hotbar;
 
-    // Chặn cộng kho 2 lần nếu cùng frame có nhiều lời gọi (ray + overlap).
+    // Kho tìm được qua lần tương tác gần nhất (fallback cho lần sau).
+    private PlayerInventory cachedInventory;
+
+    // Chặn cộng kho 2 lần nếu cùng frame có nhiều lời gọi (E + route khác).
     private bool consumed;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-    private static void ResetStatics()
-    {
-        nextToastTime.Clear();
-        nextFullHandsTime = 0f;
-    }
+    private static void ResetStatics() => nextFullHandsTime = 0f;
 
     private void Awake()
     {
         if (hotbar == null) hotbar = FindFirstObjectByType<ThrowableSelector>();
     }
 
-    // PlayerGrab gọi khi người chơi NGẮM món này và bấm E.
+    // ------------------------------------------------------------ IInteractable
+
+    // Interactor tự gắn tiền tố "[E] ", chỉ cần đoạn văn bản.
+    public string PromptText
+    {
+        get
+        {
+            string ten = hotbar != null ? hotbar.GetDisplayName(itemId) : itemId;
+            return $"Nhặt {ten}";
+        }
+    }
+
+    public bool HoldToInteract => false; // bấm E nhặt ngay, không giữ
+    public float HoldDuration => 0f;
+
+    public void OnInteract(Interactor interactor)
+    {
+        PlayerInventory inventory = interactor != null
+            ? interactor.GetComponentInParent<PlayerInventory>()
+            : null;
+
+        if (inventory == null && cachedInventory == null)
+            cachedInventory = FindFirstObjectByType<PlayerInventory>();
+
+        TryPickUpConsumable(inventory != null ? inventory : cachedInventory);
+    }
+
+    // ------------------------------------------------------------ nhặt target
+
+    // PlayerGrab (route tương tác) gọi khi người chơi bấm E lên món này.
     // Trả về TRUE nếu đã nhặt (kho được cộng, đồ tự hủy).
     // Trả về FALSE nếu hết chỗ (đã báo thoại, đồ còn nguyên trên sàn)
     // hoặc thiếu tham chiếu kho.
@@ -75,27 +96,13 @@ public class SaltBagPickup : MonoBehaviour
         inventory.AddItem(itemId, amount);
         consumed = true;
 
-        // Toast ngắn tự tắt "Nhặt Muối (×3)". Chỉ bỏ THÔNG BÁO khi trùng
-        // cooldown / thoại đang mở, không bỏ lần nhặt.
-        string canonical = PlayerInventory.CanonicalId(itemId);
-        bool toastInCooldown = nextToastTime.TryGetValue(canonical, out float gate)
-            && Time.unscaledTime < gate;
-
-        if (!toastInCooldown)
-        {
-            string ten = hotbar != null ? hotbar.GetDisplayName(itemId) : itemId;
-            int soLuong = inventory.GetCount(itemId);
-            if (TryShowLine($"Nhặt {ten} (×{soLuong})", "Player"))
-                nextToastTime[canonical] = Time.unscaledTime + NotifyCooldownSeconds;
-        }
-
         Destroy(gameObject);
         return true;
     }
 
     // Hiện 1 dòng thoại ngắn tự tắt qua DialogueManager. Trả về TRUE nếu vừa
     // hiển thị (caller tự đặt cooldown). Bỏ qua khi không có DialogueManager
-    // hoặc đang có thoại khác mở (không chèn dòng nhặt vào giữa thoại cốt truyện).
+    // hoặc đang có thoại khác mở (không chèn dòng vào giữa thoại cốt truyện).
     private static bool TryShowLine(string text, string speaker)
     {
         DialogueManager dlg = DialogueManager.Instance;
