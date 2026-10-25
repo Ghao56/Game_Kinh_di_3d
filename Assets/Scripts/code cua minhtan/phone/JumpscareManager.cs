@@ -8,12 +8,12 @@ public class JumpscareManager : MonoBehaviour
     public static JumpscareManager Instance;
 
     [Header("Cài đặt Jumpscare")]
-    [SerializeField] private GameObject jumpscarePanel;
+    [SerializeField] private GameObject jumpscarePanelPrefab;
     [SerializeField] private AudioClip jumpscareSound;
     [SerializeField] private float displayDuration = 1.5f;
 
+    private GameObject spawnedPanelInstance;
     private AudioSource audioSource;
-    private bool isTriggered = false;
 
     private void Awake()
     {
@@ -24,9 +24,6 @@ public class JumpscareManager : MonoBehaviour
         }
         Instance = this;
 
-        // Chỉ gọi DontDestroyOnLoad nếu đây là object GỐC (root).
-        // Nếu object này đã là con của một object persistent khác có sẵn,
-        // Unity sẽ tự giữ nó sống theo object cha, gọi lại ở đây sẽ bị cảnh báo và không có tác dụng.
         if (transform.parent == null)
             DontDestroyOnLoad(gameObject);
 
@@ -46,29 +43,47 @@ public class JumpscareManager : MonoBehaviour
 
     private void Start()
     {
-        if (jumpscarePanel != null)
-            jumpscarePanel.SetActive(false);
+        CreatePanelInstance();
+    }
+
+    private void CreatePanelInstance()
+    {
+        if (jumpscarePanelPrefab != null && spawnedPanelInstance == null)
+        {
+            Canvas canvas = FindAnyObjectByType<Canvas>();
+            Transform parentTransform = canvas != null ? canvas.transform : null;
+
+            spawnedPanelInstance = Instantiate(jumpscarePanelPrefab, parentTransform);
+
+            RectTransform rect = spawnedPanelInstance.GetComponent<RectTransform>();
+            if (rect != null)
+            {
+                rect.anchoredPosition = Vector2.zero;
+                rect.localScale = Vector3.one;
+                rect.anchorMin = Vector2.zero;
+                rect.anchorMax = Vector2.one;
+                rect.offsetMin = Vector2.zero;
+                rect.offsetMax = Vector2.zero;
+            }
+
+            spawnedPanelInstance.SetActive(false);
+        }
     }
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        // Quan trọng: reset trạng thái mỗi khi scene được load lại,
-        // để jumpscare có thể kích hoạt lại ở lần chơi tiếp theo.
-        isTriggered = false;
+        if (spawnedPanelInstance != null)
+        {
+            Destroy(spawnedPanelInstance);
+            spawnedPanelInstance = null;
+        }
 
-        if (jumpscarePanel != null)
-            jumpscarePanel.SetActive(false);
-        else
-            Debug.LogWarning($"{nameof(JumpscareManager)}: jumpscarePanel đang NULL sau khi load scene. " +
-                "Nếu panel nằm trong Canvas của scene (không phải object persistent), tham chiếu này sẽ mất sau mỗi lần reload. " +
-                "Hãy đặt JumpscarePanel làm con của cùng object persistent với JumpscareManager.", this);
+        CreatePanelInstance();
     }
 
+    // Đã xóa điều kiện kiểm tra isTriggered để có thể gọi vô hạn số lần
     public void TriggerJumpscare()
     {
-        if (isTriggered) return;
-        isTriggered = true;
-
         StartCoroutine(JumpscareRoutine());
     }
 
@@ -76,8 +91,10 @@ public class JumpscareManager : MonoBehaviour
     {
         float previousTimeScale = Time.timeScale;
 
-        if (jumpscarePanel != null)
-            jumpscarePanel.SetActive(true);
+        if (spawnedPanelInstance != null)
+            spawnedPanelInstance.SetActive(true);
+        else
+            CreatePanelInstance();
 
         if (jumpscareSound != null && audioSource != null)
         {
@@ -89,11 +106,10 @@ public class JumpscareManager : MonoBehaviour
         float timer = 0f;
         while (timer < displayDuration)
         {
-            timer += Time.unscaledDeltaTime; // đã sửa: Time.unscaledDeltaTime thay vì Mathf.UnscaledDeltaTime
+            timer += Time.unscaledDeltaTime;
             yield return null;
         }
 
-        // Khôi phục đúng tốc độ thời gian trước đó (phòng trường hợp game đang pause từ hệ thống khác)
         Time.timeScale = previousTimeScale > 0f ? previousTimeScale : 1f;
 
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
