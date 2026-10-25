@@ -15630,6 +15630,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 964595198}
+  - component: {fileID: 964595199}
   m_Layer: 0
   m_Name: DiemDatDo
   m_TagString: Untagged
@@ -15652,6 +15653,21 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &964595199
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 964595197}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9d64009fe75ee31469afe5f59711858e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::JumpscareManager
+  jumpscarePanel: {fileID: 854790783}
+  jumpscareSound: {fileID: 8300000, guid: b53aaf8c440ca534d95ea46634d2beab, type: 3}
+  displayDuration: 1.5
 --- !u!64 &968900400
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -24813,14 +24829,13 @@ MonoBehaviour:
   thresholds:
   - name: quy cai
     triggerAt: 30.6
-    prefab: {fileID: 3722674642212766770, guid: 04107ac75246b8d4cb90e3e4a8b4509d, type: 3}
+    prefab: {fileID: 1456006484887820606, guid: 04107ac75246b8d4cb90e3e4a8b4509d, type: 3}
     spawnPoint: {fileID: 1012917470}
     spawnDistance: 0
     despawnWhenBelow: 1
     onlyOnce: 0
   sources:
   - {fileID: 0}
-  addColliderOnSpawn: 1
   addWallGuardOnSpawn: 1
   debugLog: 1
   onChanged:
@@ -25997,6 +26012,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1624781512}
+  - component: {fileID: 1624781513}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -26022,6 +26038,39 @@ Transform:
   - {fileID: 436198473}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 204.2, z: 0}
+--- !u!114 &1624781513
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1624781511}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 117c6bac1e99c2b4f916223b7637253f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AmbientRandomSound
+  clips:
+  - {fileID: 8300000, guid: 5d88f828222969443b9e6b0e87e11493, type: 3}
+  - {fileID: 8300000, guid: 382b4b44792bac5449ee5ad8c98e5b0c, type: 3}
+  - {fileID: 8300000, guid: 68467ca40ceef0341bbcc85ec86ea620, type: 3}
+  - {fileID: 8300000, guid: d8e8d166f29515742848dbcf359add13, type: 3}
+  - {fileID: 8300000, guid: 37163b4b19e15544ca29d70f74ea5129, type: 3}
+  audioSource: {fileID: 0}
+  volume: 1
+  avoidRepeat: 1
+  minInterval: 5
+  maxInterval: 10
+  useAnxietyCondition: 0
+  minAnxiety: 0
+  maxAnxiety: 100
+  waitUntilFinished: 1
+  playAroundPlayer: 1
+  minDistance: 5
+  maxDistance: 15
+  anxietyOnPlay: 5
+  anxietySource: {fileID: 1555408360}
+  debugLog: 1
 --- !u!64 &1624999000
 MeshCollider:
   m_ObjectHideFlags: 0
