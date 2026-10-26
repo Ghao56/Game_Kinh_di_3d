@@ -1794,6 +1794,7 @@ MonoBehaviour:
   allQuests:
   - {fileID: 11400000, guid: 56b1161a3c2062a479c8abd47ee34708, type: 2}
   - {fileID: 11400000, guid: c9e85e807988ead41b4bc77f3ddf9865, type: 2}
+  - {fileID: 11400000, guid: ece3df4f58fe4a04a0856163b57c5866, type: 2}
   - {fileID: 11400000, guid: 5063e549f57143528a2eeb5a3bcc19f5, type: 2}
   logVerbose: 1
 --- !u!4 &95046818
@@ -1249635,6 +1249636,8 @@ MonoBehaviour:
   gateObjectiveId: mo_khoang
   reportQuestId: truck_open
   reportObjectiveId: mo_khoang
+  closeReportQuestId: dong_cua
+  closeReportObjectiveId: dong_cua_hau
   promptWhenClosed: "M\u1EDF c\u1EEDa h\u1EADu"
   promptWhenOpen: "\u0110\xF3ng c\u1EEDa h\u1EADu"
   onToggle:

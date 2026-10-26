@@ -1,10 +1,16 @@
-using System.Collections.Generic;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 using UnityEngine;
 using UnityEngine.Events;
 
 // Vùng chất đồ DUY NHẤT trên xe: đứng trong vùng là hiện prompt, không cần nhìn vào.
-// GIỮ E đủ holdDuration: chất món đang cầm trên tay vào các chỗ trống của vùng.
-// Không cần ô TruckLoadCell nào: vùng tự chia slotCount chỗ đặt và tự báo nhiệm vụ.
+// GIỮ E đủ holdDuration: thả món trên tay vào KHOANG ĐỔ (ItemSlot).
+//
+// Khoang đổ = MỘT GameObject con "ItemSlot" có BoxCollider (màu vàng khi chọn):
+// món chất vào rơi từ điểm gần tâm range, bật vật lý thật (Rigidbody + collider)
+// nên đồ chồng/đè/độn lên nhau tự nhiên như đổ hàng vào xe, không nằm tượng
+// tại từng slot cứng. Sửa chỗ đổ = kéo/rong ItemSlot trong tab Scene.
 [RequireComponent(typeof(Collider))]
 public class TruckLoadZone : MonoBehaviour, IInteractable, IInteractableAvailability, IProximityInteractable
 {
@@ -24,14 +30,18 @@ public class TruckLoadZone : MonoBehaviour, IInteractable, IInteractableAvailabi
     [Tooltip("Số món tối đa vùng nhận.")]
     [SerializeField, Min(1)] private int slotCount = 3;
 
-    [Tooltip("Khoảng cách giữa các chỗ đặt món (theo trục X của vùng).")]
-    [SerializeField] private float slotSpacing = 0.9f;
+    [Header("Khoang đổ: ItemSlot")]
+    [Tooltip("MỘT GameObject con 'ItemSlot' có BoxCollider làm khoang đổ. Kéo vị trí/scale " +
+             "collider trong tab Scene để chỉnh chỗ đồ rơi vào. Món được thả từ một điểm " +
+             "ngẫu nhiên trong range rồi để vật lý tự xếp chồng. Thiếu tự tạo khi chọn " +
+             "object (Scene view) hoặc lúc Play.")]
+    [SerializeField] private float slotMarkerSize = 0.6f;
 
-    [Tooltip("Transform trống trong thùng xe; món được xếp quanh đây. Để trống = xếp quanh vùng.")]
-    [SerializeField] private Transform placeAnchor;
+    [Tooltip("Độ cao món được thả so với tâm range (để nó rơi xuống và chồng lên nhau).")]
+    [SerializeField, Min(0f)] private float dropHeight = 0.3f;
 
-    [Tooltip("Độ cao đặt món so với điểm đặt.")]
-    [SerializeField] private float placeHeight = 0.15f;
+    [Tooltip("Bật = món có vật lý thật (tự chồng/độn vậy). Tắt = đứng im như cũ.")]
+    [SerializeField] private bool stackWithPhysics = true;
 
     [Tooltip("Danh sách itemId vùng nhận. Để trống = mọi món có LootItem/itemId đều dùng được.")]
     [SerializeField] private string[] validItemIds = new string[0];
@@ -51,8 +61,6 @@ public class TruckLoadZone : MonoBehaviour, IInteractable, IInteractableAvailabi
     [SerializeField] private string promptInvalid = "Món đồ này không đáng giá.";
 
     // Text cố định trong code: muối/rượu là đồ hỗ trợ, không phải hàng bán.
-    // Bản giá trị cũ "Muối và rượu..." serialize trong scene từ bản cũ sẽ tự
-    // bị bỏ qua khi deserialize - không cần đụng file scene.
     private const string promptNotSellable = "Đồ không bán được.";
 
     [Header("Vùng sáng")]
@@ -60,7 +68,7 @@ public class TruckLoadZone : MonoBehaviour, IInteractable, IInteractableAvailabi
     [SerializeField] private Color zoneColor = new Color(0f, 1f, 0.3f, 0.55f);
 
     // Mỗi itemId chỉ được tính đã chất một lần trong cả xe.
-    private static readonly HashSet<string> loadedIds = new HashSet<string>();
+    private static readonly System.Collections.Generic.HashSet<string> loadedIds = new System.Collections.Generic.HashSet<string>();
 
     // Latch chống chớp: chỉ tắt sau khi điều kiện sai liên tục HoldOffSeconds.
     private const float HoldOffSeconds = 0.4f;
@@ -71,6 +79,9 @@ public class TruckLoadZone : MonoBehaviour, IInteractable, IInteractableAvailabi
     private Renderer zoneRenderer;
     private Material zoneMaterial;
     private int filled;
+
+    // Chỗ đổ món (MỘT cái duy nhất).
+    private Transform dropMarker;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     private static void ResetStatics() => loadedIds.Clear();
@@ -89,8 +100,7 @@ public class TruckLoadZone : MonoBehaviour, IInteractable, IInteractableAvailabi
             if (!DoorFullyOpen) return promptDoorClosed;
 
             // Đang chọn muối/rượu (đồ hỗ trợ, không phải hàng bán): báo rõ
-            // để người chơi đỡ tưởng là đồ rác. (Không thể vừa cầm loot vừa
-            // chọn muối/rượu - hai trạng thái kia không xung đột.)
+            // để người chơi đỡ tưởng là đồ rác.
             if (CarryingConsumable()) return promptNotSellable;
 
             HeldState held = EvaluateHeld();
@@ -146,35 +156,144 @@ public class TruckLoadZone : MonoBehaviour, IInteractable, IInteractableAvailabi
         if (loot != null && !string.IsNullOrEmpty(loot.ItemId))
             loadedIds.Add(loot.ItemId);
 
-        int index = filled;
         filled++;
 
         item.SetActive(true);
-        item.transform.SetParent(PlacePoint, true);
-        item.transform.position = SlotPosition(index);
+
+        // Không parent vào PlacePoint (model xe scale cực lớn ~158x): vật lý dưới
+        // parent scale lớn sẽ lệch/bão đổi tọa độ. Giữ món ở world space.
+        item.transform.SetParent(null, true);
+
+        item.transform.position = DropPosition(item);
         item.transform.rotation = PlacePoint.rotation;
 
         Rigidbody rb = item.GetComponent<Rigidbody>();
-        if (rb != null) rb.isKinematic = true;
-        Collider itemCollider = item.GetComponent<Collider>();
-        if (itemCollider != null) itemCollider.enabled = false;
+        if (rb != null)
+        {
+            rb.isKinematic = !stackWithPhysics; // vật lý thật để đồ tự chồng lên nhau
+            rb.linearVelocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+        }
+
+        // QUAN TRỌNG: PlayerGrab cầm đồ bằng cách TẮT collider (isKinematic +
+        // collider.enabled = false). Nếu không bật lại, món có RB vật lý nhưng
+        // KHÔNG collider nào → rơi xuyên hết mọi bề mặt, mất khỏi thế giới.
+        // Bật lại cả collider trên món lẫn collider con để đồ va nhau/đè nhau.
+        Collider selfCollider = item.GetComponent<Collider>();
+        if (selfCollider != null) selfCollider.enabled = true;
+
+        Collider[] childColliders = item.GetComponentsInChildren<Collider>(true);
+        for (int i = 0; i < childColliders.Length; i++)
+        {
+            if (childColliders[i] != null) childColliders[i].enabled = true;
+        }
+
+        // stackWithPhysics = false (đứng im như cũ): collider vẫn tắt để không
+        // cản raycast, trừ khi bật vật lý stacking.
+        if (!stackWithPhysics)
+        {
+            if (selfCollider != null) selfCollider.enabled = false;
+            for (int i = 0; i < childColliders.Length; i++)
+            {
+                if (childColliders[i] != null) childColliders[i].enabled = false;
+            }
+        }
 
         QuestManager manager = QuestManager.Instance;
         if (manager != null && !string.IsNullOrEmpty(loadQuestId) && !string.IsNullOrEmpty(loadObjectiveId))
             manager.ReportProgress(loadQuestId, loadObjectiveId, Mathf.Max(1, loot != null ? loot.valueInMillions : 1));
 
         onFilled?.Invoke();
-        Debug.Log($"[TruckLoadZone] {item.name} đã nằm trong {name} ({filled}/{slotCount}).", this);
+        Debug.Log($"[TruckLoadZone] {item.name} được thả vào {name} ({filled}/{slotCount}).", this);
     }
 
-    private Transform PlacePoint => placeAnchor != null ? placeAnchor : transform;
+    private Transform PlacePoint => transform;
 
-    // Chia chỗ thành một hàng ngang theo trục X của điểm đặt.
-    private Vector3 SlotPosition(int index)
+    // MỘT ItemSlot duy nhất: món rơi từ điểm random trong range (tránh chồng
+    // tuyệt đối cùng 1 điểm), cộng dropHeight để nó rơi xuống rồi vật lý tự độn.
+    private Vector3 DropPosition(GameObject item)
     {
-        float x = (index - (slotCount - 1) * 0.5f) * slotSpacing;
-        return PlacePoint.position + PlacePoint.rotation * new Vector3(x, placeHeight, 0f);
+        Vector3 basePoint = transform.position;
+
+        if (dropMarker != null)
+        {
+            BoxCollider box = dropMarker.GetComponent<BoxCollider>();
+            Vector3 center = box != null ? box.center : Vector3.zero;
+            Vector3 half = box != null ? Vector3.Scale(box.size, dropMarker.lossyScale) * 0.5f : Vector3.zero;
+
+            // Điểm random trong range box (nội bộ marker) rồi ra world.
+            Vector3 localRandom = new Vector3(
+                Random.Range(-half.x, half.x),
+                Random.Range(-half.y, half.y),
+                Random.Range(-half.z, half.z)) * 0.6f; // 60% để không chạm thành
+            basePoint = dropMarker.TransformPoint(center + localRandom);
+        }
+
+        return basePoint + Vector3.up * dropHeight;
     }
+
+    // ------------------------------------------------------------ khoang đổ (ItemSlot)
+
+    private void Awake()
+    {
+        if (playerGrab == null) playerGrab = FindFirstObjectByType<PlayerGrab>();
+
+        EnsureDropMarker(); // dựng/kiểm tra ItemSlot trước khi chất món trong Play
+
+        zoneCollider = GetComponent<Collider>();
+        if (zoneCollider != null && !zoneCollider.isTrigger)
+            zoneCollider.isTrigger = true; // vùng chỉ để phát hiện player đứng trong, không cản di chuyển
+
+        zoneRenderer = GetComponent<Renderer>();
+        if (zoneMaterial == null)
+        {
+            zoneMaterial = new Material(Shader.Find("Sprites/Default")) { color = zoneColor };
+            if (zoneRenderer != null) zoneRenderer.sharedMaterial = zoneMaterial;
+        }
+        if (zoneRenderer != null) zoneRenderer.enabled = false;
+    }
+
+    // Tạo đúng MỘT ItemSlot còn thiếu. Collider là trigger tắt Enable lúc Play:
+    // chỉ để CHỈ VỊ TRÍ + soi size trong Scene, không tham gia vật lý.
+    private void EnsureDropMarker()
+    {
+        dropMarker = transform.Find("ItemSlot");
+
+        if (dropMarker == null || dropMarker.GetComponent<Collider>() == null)
+        {
+            GameObject go = new GameObject("ItemSlot");
+            if (Application.isPlaying)
+            {
+                go.transform.SetParent(transform, false);
+            }
+            else
+            {
+                go.transform.SetParent(transform, false);
+                Undo.RegisterCreatedObjectUndo(go, "Tạo ItemSlot"); // Ctrl+Z được
+            }
+
+            BoxCollider box = go.AddComponent<BoxCollider>();
+            box.isTrigger = true;
+            box.size = new Vector3(slotMarkerSize, slotMarkerSize, slotMarkerSize);
+
+            // Mặc định nằm ngay trên PlacePoint, người làm kéo đi chỗ khác.
+            go.transform.position = transform.position + Vector3.up * placeHeightFallback();
+            go.transform.rotation = transform.rotation;
+
+            dropMarker = go.transform;
+        }
+
+        // Lúc Play: tắt collider marker — chỉ là chỉ thị vị trí, không đàm phán
+        // raycast/vật lý với player hay quái.
+        if (Application.isPlaying)
+        {
+            Collider col = dropMarker.GetComponent<Collider>();
+            if (col != null) col.enabled = false;
+        }
+    }
+
+    // Độ cao khởi tạo marker; dùng khi backdrop không có placeAnchor nào cả.
+    private float placeHeightFallback() => 0.15f;
 
     // ------------------------------------------------------------ điều kiện
 
@@ -185,6 +304,7 @@ public class TruckLoadZone : MonoBehaviour, IInteractable, IInteractableAvailabi
         GameObject held = playerGrab != null ? playerGrab.HeldItem : null;
         if (held == null) return HeldState.None;
 
+        // Tay trống = None (không gợi ý), món sai loại = Invalid (để hiện lý do).
         return IsAccepted(held) ? HeldState.Valid : HeldState.Invalid;
     }
 
@@ -233,23 +353,6 @@ public class TruckLoadZone : MonoBehaviour, IInteractable, IInteractableAvailabi
         return playerGrab != null && other.transform.root == playerGrab.transform.root;
     }
 
-    private void Awake()
-    {
-        if (playerGrab == null) playerGrab = FindFirstObjectByType<PlayerGrab>();
-
-        zoneCollider = GetComponent<Collider>();
-        if (zoneCollider != null && !zoneCollider.isTrigger)
-            zoneCollider.isTrigger = true; // vùng chỉ để phát hiện player đứng trong, không cản di chuyển
-
-        zoneRenderer = GetComponent<Renderer>();
-        if (zoneMaterial == null)
-        {
-            zoneMaterial = new Material(Shader.Find("Sprites/Default")) { color = zoneColor };
-            if (zoneRenderer != null) zoneRenderer.sharedMaterial = zoneMaterial;
-        }
-        if (zoneRenderer != null) zoneRenderer.enabled = false;
-    }
-
     private void Update()
     {
         if (zoneRenderer == null || zoneMaterial == null) return;
@@ -277,6 +380,30 @@ public class TruckLoadZone : MonoBehaviour, IInteractable, IInteractableAvailabi
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = new Color(0f, 1f, 0.3f, 0.6f);
+        if (zoneCollider == null) zoneCollider = GetComponent<Collider>();
         if (zoneCollider != null) Gizmos.DrawCube(zoneCollider.bounds.center, zoneCollider.bounds.size);
+
+        // Trong edit-mode: tự tạo ItemSlot thiếu (có Undo) để người làm kéo
+        // collider khoang đổ trực tiếp trong Scene view.
+#if UNITY_EDITOR
+        if (!Application.isPlaying)
+        {
+            EnsureDropMarker();
+        }
+#endif
+
+        // Viền vàng quanh ItemSlot với mũi tên chỉ hướng rơi đồ.
+        if (dropMarker != null)
+        {
+            Collider col = dropMarker.GetComponent<Collider>();
+            Bounds b = col != null ? col.bounds : new Bounds(dropMarker.position, Vector3.one * 0.5f);
+            Gizmos.color = new Color(1f, 0.85f, 0.1f, 1f);
+            Gizmos.DrawWireCube(b.center, b.size);
+
+            // Chỉ vẽ "vùng đồ rơi" một chút cao hơn cho trực quan.
+            Gizmos.color = new Color(1f, 0.85f, 0.1f, 0.35f);
+            Gizmos.DrawLine(b.center, b.center + Vector3.up * dropHeight);
+            Gizmos.DrawWireCube(b.center + Vector3.up * dropHeight, b.size);
+        }
     }
 }

@@ -1,15 +1,20 @@
 using System;
+using System.Collections;
 using Unity.Cinemachine;
 using UnityEngine;
 
 // Bộ điều phối đoạn kết thắng của "Món Nợ Cuối Cùng".
 //
-// Luồng:
-//  1) Quest 'loot_truck' (50M VND) hoàn thành -> QuestCompleted bung ->
-//     UnlockEscape(): mở cửa xe lái Puerta_Fron.001 bằng cơ chế DoorInteractable
-//     hiện có, khoá tương tác mở/đóng thường, bật glow của cửa, dựng vùng
-//     "GIỮ E ĐỂ THOÁT" (TruckEscapeDoor) quanh cửa.
-//  2) Người chơi giữ E đủ lâu tại vùng -> TruckEscapeDoor gọi BeginEnding():
+// Luồng quest: loot_truck (50M VND) -> dong_cua (Đóng cửa xe lại) -> ve_thoi (VỀ THÔI).
+//
+// Role các mốc:
+//  1) Đủ 50M: KHÔNG đụng vào cửa xe lái (cửa giữ nguyên hành vi thường).
+//  2) Quest 'dong_cua' bắt đầu: kiểm tra nếu cửa xe đã đóng sẵn thì báo xong
+//     ngay (DoorInteractable.MaybeReportClosed báo khi đóng đủ học).
+//  3) Quest 've_thoi' bắt đầu -> UnlockEscape(): mở cửa xe lái Puerta_Fron.001
+//     bằng cơ chế DoorInteractable hiện có, khoá tương tác mở/đóng thường,
+//     bật glow của cửa, dựng vùng "GIỮ E ĐỂ THOÁT" (TruckEscapeDoor) quanh cửa.
+//  4) Người chơi giữ E đủ lâu tại vùng -> TruckEscapeDoor gọi BeginEnding():
 //     khoá gameplay, ẩn HUD/prompt, hoàn thành quest 've_thoi' cho StoryFlow,
 //     fade đen rồi hiện "BẠN ĐÃ TRẢ HẾT NỢ" (EndScreenUI).
 //
@@ -21,9 +26,12 @@ public sealed class EndingSequence : MonoBehaviour
     public static EndingSequence Instance { get; private set; }
 
     [Header("Quest Ids (trùng với hệ thống quest hiện có)")]
-    [Tooltip("Quest lấy đồ 50M VND — hoàn thành thì thoát xe được mở khoá.")]
+    [Tooltip("Quest lấy đồ 50M VND — xong thì nối quest đóng cửa.")]
     [SerializeField] private string lootQuestId = "loot_truck";
-    [Tooltip("Quest 'VỀ THÔI' nối tiếp loot_truck; hoàn thành khi người chơi giữ E thoát.")]
+    [Tooltip("Quest 'ĐÓNG CỬA XE' giữa: bắt đầu sau 50M, hoàn thành khi đóng cửa xe.")]
+    [SerializeField] private string closingQuestId = "dong_cua";
+    [SerializeField] private string closingObjectiveId = "dong_cua_hau";
+    [Tooltip("Quest 'VỀ THÔI' nối tiếp dong_cua; bắt đầu = mở khoá thoát, hoàn thành khi giữ E thoát.")]
     [SerializeField] private string escapeQuestId = "ve_thoi";
     [SerializeField] private string escapeObjectiveId = "thoat_xe";
 
@@ -87,7 +95,11 @@ public sealed class EndingSequence : MonoBehaviour
         // Bám theo QuestManager của scene hiện tại: unsub cũ, sub mới.
         if (ReferenceEquals(hookedManager, QuestManager.Instance)) return;
 
-        if (hookedManager != null) hookedManager.QuestCompleted -= HandleQuestCompleted;
+        if (hookedManager != null)
+        {
+            hookedManager.QuestCompleted -= HandleQuestCompleted;
+            hookedManager.QuestStarted -= HandleQuestStarted;
+        }
 
         hookedManager = null;
 
@@ -95,23 +107,47 @@ public sealed class EndingSequence : MonoBehaviour
         {
             hookedManager = QuestManager.Instance;
             hookedManager.QuestCompleted += HandleQuestCompleted;
+            hookedManager.QuestStarted += HandleQuestStarted;
 
-            // Bù cho quest đã xong trước khi hook được (load scene muộn...).
-            if (hookedManager.GetState(lootQuestId) == QuestState.Completed) UnlockEscape();
+            // Bù cho quest đã bắt đầu/xong trước khi hook được (load scene muộn...).
+            QuestState escapeState = hookedManager.GetState(escapeQuestId);
+            if (escapeState == QuestState.Active || escapeState == QuestState.Completed)
+                UnlockEscape();
+
+            if (hookedManager.GetState(closingQuestId) == QuestState.Active)
+                StartCoroutine(CheckDoorsAlreadyClosed());
         }
     }
 
     private void OnDestroy()
     {
-        if (hookedManager != null) hookedManager.QuestCompleted -= HandleQuestCompleted;
+        if (hookedManager != null)
+        {
+            hookedManager.QuestCompleted -= HandleQuestCompleted;
+            hookedManager.QuestStarted -= HandleQuestStarted;
+        }
         if (Instance == this) Instance = null;
+    }
+
+    private void HandleQuestStarted(QuestRuntime runtime)
+    {
+        if (runtime == null) return;
+
+        // Quest 'dong_cua' bắt đầu khi cửa có thể đã đóng sẵn (người chơi đóng
+        // truoc them khi quest kip chạy): đợi 1 frame rồi kiểm lại.
+        if (runtime.QuestId == closingQuestId)
+            StartCoroutine(CheckDoorsAlreadyClosed());
+
+        // Quest 'VỀ THÔI' bắt đầu = giai đoạn thoát được mở khoá.
+        if (runtime.QuestId == escapeQuestId) UnlockEscape();
     }
 
     private void HandleQuestCompleted(QuestRuntime runtime)
     {
         if (runtime == null || runtime.QuestId != lootQuestId) return;
 
-        UnlockEscape();
+        // Đủ 50M: KHÔNG mở cửa xe ở đây nữa. Cửa chỉ tương tác lại ở bước
+        // 've_thoi' sau khi người chơi đóng cửa xe (UnlockEscape qua EventStarted).
     }
 
     // ------------------------------------------------------------ mở khoá thoát
@@ -135,11 +171,11 @@ public sealed class EndingSequence : MonoBehaviour
             return;
         }
 
-        // Mở tự động bằng đúng cơ chế cửa hiện có (Update quay quanh bản lề),
-        // rồi khoá hẳn tương tác mở/đóng bằng E để không đóng cửa lại được.
+        // Mở tự động bằng đúng cơ chế cửa hiện có (Update quay quanh bản lề) —
+        // giờ được gọi TẠI quest 've_thoi' (sau khi người chơi đóng cửa xe),
+        // không còn mở ngay khi đủ 50M nữa. Khoá E mở/đóng thường sau đó.
         driverDoor.ForceOpen();
         driverDoor.SetInteractionLocked(true);
-
         // Glow của cửa (component InteractableGlow có sẵn): sáng liên tục báo
         // "nơi này tương tác được". Interactor vẫn thêm highlight khi nhắm vào.
         doorGlow = doorGo.GetComponent<InteractableGlow>();
@@ -148,8 +184,41 @@ public sealed class EndingSequence : MonoBehaviour
 
         BuildEscapeZone(doorGo);
 
-        Debug.Log($"[Ending] Đã đủ 50M — cửa '{driverDoorName}' tự mở, vùng 'GIỮ E ĐỂ THOÁT' đã bật.", this);
+        Debug.Log($"[Ending] Quest '{escapeQuestId}' bật — '{driverDoorName}' tự mở cho lên xe, vùng 'GIỮ E ĐỂ THOÁT' sẵn sàng.", this);
     }
+
+    // Quest 'dong_cua' bắt đầu nhưng cửa có thể đã đóng từ trước → nếu đúng là
+    // đóng hẳn (cả cánh ghép) thì báo tiến độ luôn, không ép đóng lại lần nữa.
+    private IEnumerator CheckDoorsAlreadyClosed()
+    {
+        if (doorsClosedChecked) yield break;
+        doorsClosedChecked = true;
+        yield return null; // đợi hệ thống/load ổn định 1 frame
+
+        QuestManager manager = QuestManager.Instance;
+        if (manager == null) yield break;
+
+        DoorInteractable[] all = FindObjectsByType<DoorInteractable>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        bool foundReporter = false;
+        for (int i = 0; i < all.Length; i++)
+        {
+            DoorInteractable door = all[i];
+            if (door == null || door.CloseReportQuestId != closingQuestId) continue;
+
+            foundReporter = true;
+            if (door.IsClosedDoor)
+            {
+                manager.ReportProgress(closingQuestId, closingObjectiveId, 1);
+                Debug.Log($"[Ending] '{door.name}' đã đóng sẵn — quest '{closingQuestId}' coi như xong.", this);
+                break;
+            }
+        }
+
+        if (!foundReporter)
+            Debug.LogWarning($"[Ending] Không tìm thấy cửa nào báo quest '{closingQuestId}' (kiểm tra Close Report trên cửa hậu).", this);
+    }
+
+    private bool doorsClosedChecked;
 
     private void BuildEscapeZone(GameObject doorGo)
     {

@@ -7,13 +7,21 @@ using UnityEditor.SceneManagement;
 
 /// Món loot: người chơi ngắm vào thì bật glow outline (màu vàng) như interactable
 /// và hiện giá trị trên đầu vật (chữ xanh dương, luôn vẽ đè lên mọi vật).
-/// Child "ValueLabel" được tạo & hiện ngay trong edit để chỉnh; khi chạy game thì ẩn,
+/// Cấu trúc: 1 GameObject "Label" (con của món loot) chứa 3 label con:
+///   - "Name"   : tên món (nếu bật showName)
+///   - "Value"  : giá tiền "xM VND" (luôn hiện)
+///   - "Weight" : số ô trong túi slotCost (nếu bật showWeight)
+/// Child "Label" được tạo & hiện ngay trong edit để chỉnh; khi chạy game thì ẩn,
 /// ngắm vào mới hiện. Sửa style ở MỘT món thì mọi LootValueLabel trong scene đổi theo.
 [ExecuteAlways]
 public class LootValueLabel : MonoBehaviour
 {
-    private const string LabelName = "ValueLabel";
+    private const string LabelRootName = "Label";
+    private const string NameLabelName = "Name";
+    private const string ValueLabelName = "Value";
+    private const string WeightLabelName = "Weight";
     private const string OverlayMaterialPath = "LootLabelOverlay";
+    private const float weightFontScale = 0.6f; // chữ Weight nhỏ hơn ~60%
 
     [Header("Giá tiền (áp cho tất cả label trong scene)")]
     [SerializeField] private Color labelColor = new Color(0.25f, 1f, 0.3f, 1f);
@@ -24,6 +32,8 @@ public class LootValueLabel : MonoBehaviour
     [SerializeField] private float labelScale = 0.1f;
     [Tooltip("Vị trí chữ so với vật (local): 0,0,0 = ngay giữa vật.")]
     [SerializeField] private Vector3 labelOffset = Vector3.zero;
+    [Tooltip("Khoảng cách dòng (đơn vị world trước khi nhân Scale) giữa Value và Name/Weight.")]
+    [SerializeField] private float lineGap = 4.5f;
 
     [Header("Hiển thị")]
     [SerializeField] private bool showName = true;
@@ -36,7 +46,10 @@ public class LootValueLabel : MonoBehaviour
 
     private LootItem loot;
     private InteractableGlow glow;
-    private TextMeshPro label;
+    private Transform labelRoot;
+    private TextMeshPro nameLabel;
+    private TextMeshPro valueLabel;
+    private TextMeshPro weightLabel;
     private Camera cam;
     private bool shown;
     private static Material overlayMaterial;
@@ -49,9 +62,9 @@ public class LootValueLabel : MonoBehaviour
         ApplyStyle();
 
         if (!Application.isPlaying) return;
-        if (label == null) return;
+        if (labelRoot == null) return;
 
-        label.gameObject.SetActive(false);
+        labelRoot.gameObject.SetActive(false);
 
         glow = GetComponent<InteractableGlow>();
         if (glow == null) glow = gameObject.AddComponent<InteractableGlow>();
@@ -68,11 +81,11 @@ public class LootValueLabel : MonoBehaviour
         if (aimed != shown)
         {
             shown = aimed;
-            label.gameObject.SetActive(aimed);
+            labelRoot.gameObject.SetActive(aimed);
             glow.SetHighlighted(aimed);
         }
 
-        if (aimed) label.transform.rotation = cam.transform.rotation;
+        if (aimed) labelRoot.rotation = cam.transform.rotation;
     }
 
     private bool IsAimed()
@@ -86,39 +99,59 @@ public class LootValueLabel : MonoBehaviour
 
     private void EnsureLabel()
     {
-        if (label != null) return;
+        if (labelRoot != null && nameLabel != null && valueLabel != null && weightLabel != null)
+            return;
 
-        Transform child = transform.Find(LabelName);
-        if (child == null)
-        {
-            var go = new GameObject(LabelName);
-            go.transform.SetParent(transform, false);
-            child = go.transform;
-#if UNITY_EDITOR
-            if (!Application.isPlaying)
-                EditorSceneManager.MarkSceneDirty(gameObject.scene);
-#endif
-        }
-
-        label = child.GetComponent<TextMeshPro>();
-        if (label == null)
-        {
-            label = child.gameObject.AddComponent<TextMeshPro>();
-        }
-        if (label.font == null) label.font = TMP_Settings.defaultFontAsset;
+        labelRoot = EnsureChild(LabelRootName, transform);
+        nameLabel = EnsureChildLabel(NameLabelName, labelRoot);
+        valueLabel = EnsureChildLabel(ValueLabelName, labelRoot);
+        weightLabel = EnsureChildLabel(WeightLabelName, labelRoot);
 
         loot = GetComponent<LootItem>();
-        label.fontStyle = FontStyles.Bold;
-        label.alignment = TextAlignmentOptions.Center;
+        foreach (TextMeshPro tmp in new[] { nameLabel, valueLabel, weightLabel })
+        {
+            if (tmp.font == null) tmp.font = TMP_Settings.defaultFontAsset;
+            tmp.fontStyle = FontStyles.Bold;
+            tmp.alignment = TextAlignmentOptions.Center;
+            tmp.richText = false;
+            // Không-wrap: chữ luôn 1 dòng, độ rộng do FitWidth() chỉnh theo nội dung.
+            tmp.textWrappingMode = TextWrappingModes.NoWrap;
+            AssignOverlayMaterial(tmp);
+        }
+
         UpdateText();
 
-        AssignOverlayMaterial();
+#if UNITY_EDITOR
+        if (!Application.isPlaying)
+            EditorSceneManager.MarkSceneDirty(gameObject.scene);
+#endif
     }
 
-    // Nội dung của banner: dòng Name (nếu bật), giá tiền Step (luôn) và Weight = slotCost (nếu bật).
+    // Tạo/tra GameObject con của root, thêm TextMeshPro nếu chưa có.
+    private Transform EnsureChild(string childName, Transform parent)
+    {
+        Transform t = parent.Find(childName);
+        if (t == null)
+        {
+            var go = new GameObject(childName);
+            go.transform.SetParent(parent, false);
+            t = go.transform;
+        }
+        return t;
+    }
+
+    private TextMeshPro EnsureChildLabel(string childName, Transform parent)
+    {
+        Transform t = EnsureChild(childName, parent);
+        var tmp = t.GetComponent<TextMeshPro>();
+        if (tmp == null) tmp = t.gameObject.AddComponent<TextMeshPro>();
+        return tmp;
+    }
+
+    // Nội dung của banner: Name (nếu bật), giá tiền Step (Value, luôn) và Weight = slotCost (nếu bật).
     private void UpdateText()
     {
-        if (label == null) return;
+        if (nameLabel == null || valueLabel == null || weightLabel == null) return;
         if (loot == null) loot = GetComponent<LootItem>();
 
         string name = (loot != null && !string.IsNullOrEmpty(loot.itemName))
@@ -127,17 +160,28 @@ public class LootValueLabel : MonoBehaviour
         int value = loot != null ? loot.valueInMillions : 0;
         int weight = loot != null ? loot.slotCost : 1;
 
-        var sb = new System.Text.StringBuilder();
-        if (showName) sb.Append(name).Append('\n');
-        sb.Append(value).Append("M VND");
-        if (showWeight) sb.Append('\n').Append("<size=60%>Weight: ").Append(weight).Append("</size>");
+        nameLabel.text = name;
+        valueLabel.text = value + "M VND";
+        weightLabel.text = "Weight: " + weight;
 
-        label.richText = true;
-        label.text = sb.ToString();
+        // Sau khi đổi chữ -> tự chỉnh độ rộng khung theo chữ để luôn 1 dòng.
+        FitWidth(nameLabel);
+        FitWidth(valueLabel);
+        FitWidth(weightLabel);
+    }
+
+    // Canh độ rộng khung của label vừa khít nội dung (chỉ 1 dòng, không wrap).
+    private void FitWidth(TextMeshPro tmp)
+    {
+        if (tmp == null) return;
+
+        tmp.ForceMeshUpdate();
+        tmp.rectTransform.sizeDelta =
+            new Vector2(Mathf.Max(1f, tmp.preferredWidth + 2f), Mathf.Max(1f, labelWidth));
     }
 
     // Chữ vẽ đè lên mọi vật + viền: material overlay TMP (ZTest Always, OUTLINE_ON).
-    private void AssignOverlayMaterial()
+    private void AssignOverlayMaterial(TextMeshPro tmp)
     {
         if (!overlayLoaded)
         {
@@ -145,18 +189,36 @@ public class LootValueLabel : MonoBehaviour
             overlayLoaded = true;
         }
 
-        if (overlayMaterial != null) label.fontSharedMaterial = overlayMaterial;
+        if (overlayMaterial != null) tmp.fontSharedMaterial = overlayMaterial;
     }
 
     private void ApplyStyle()
     {
-        if (label == null) return;
+        if (labelRoot == null || nameLabel == null || valueLabel == null || weightLabel == null) return;
 
-        label.transform.localPosition = labelOffset;
-        label.transform.localScale = Vector3.one * Mathf.Max(0.01f, labelScale);
-        label.rectTransform.sizeDelta = new Vector2(labelWidth, labelWidth);
-        label.color = labelColor;
-        label.fontSize = fontSize;
+        labelRoot.localPosition = labelOffset;
+        labelRoot.localScale = Vector3.one * Mathf.Max(0.01f, labelScale);
+
+        // Value: dòng giữa. Name: trên. Weight: dưới.
+        valueLabel.transform.localPosition = Vector3.zero;
+        nameLabel.transform.localPosition = new Vector3(0f, lineGap, 0f);
+        weightLabel.transform.localPosition = new Vector3(0f, -lineGap, 0f);
+
+        foreach (TextMeshPro tmp in new[] { nameLabel, valueLabel, weightLabel })
+        {
+            tmp.color = labelColor;
+            // Weight nhỏ hơn ~60% so với các dòng còn lại.
+            tmp.fontSize = tmp == weightLabel ? fontSize * weightFontScale : fontSize;
+        }
+
+        // Bật/tắt từng dòng theo lựa chọn (khi chạy game cả cụm lại được ẩn cho đến khi ngắm).
+        nameLabel.gameObject.SetActive(showName);
+        weightLabel.gameObject.SetActive(showWeight);
+
+        // SizeDelta bị fontSize thay đổi ảnh hưởng -> fit lại chiều rộng theo chữ.
+        FitWidth(nameLabel);
+        FitWidth(valueLabel);
+        FitWidth(weightLabel);
     }
 
     private void OnValidate()
@@ -164,6 +226,7 @@ public class LootValueLabel : MonoBehaviour
         labelScale = Mathf.Max(0.01f, labelScale);
         fontSize = Mathf.Max(1f, fontSize);
         labelWidth = Mathf.Max(1f, labelWidth);
+        lineGap = Mathf.Max(0.1f, lineGap);
         aimDistance = Mathf.Max(1f, aimDistance);
 
         EnsureLabel();
@@ -189,6 +252,7 @@ public class LootValueLabel : MonoBehaviour
             other.labelWidth = labelWidth;
             other.labelScale = labelScale;
             other.labelOffset = labelOffset;
+            other.lineGap = lineGap;
             other.aimDistance = aimDistance;
             other.glowColor = glowColor;
             other.showName = showName;

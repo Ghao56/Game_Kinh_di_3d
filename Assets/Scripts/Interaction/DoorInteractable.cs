@@ -33,6 +33,11 @@ public class DoorInteractable : MonoBehaviour, IInteractable, IInteractableAvail
     [SerializeField] private string reportQuestId = string.Empty;
     [SerializeField] private string reportObjectiveId = string.Empty;
 
+    [Header("Bao nhiem vu khi dong")]
+    [Tooltip("Bung voi moi lan canh dong hoc xong khi quest/muc tieu nay DANG CHAY (Dong cua xe). Khong gia han khi quest chua bat dau; de trong = khong bao.")]
+    [SerializeField] private string closeReportQuestId = string.Empty;
+    [SerializeField] private string closeReportObjectiveId = string.Empty;
+
     [Header("Khoa ngoai (doan ket: cua xe lai)")]
     [Tooltip("Bat = cua tu choi moi tuong tac mo/dong bang E (IsAvailable false). Cua van quay theo lenh code (ForceOpen) va onFullyOpened van bung dung hen.")]
     [SerializeField] private bool interactionLocked;
@@ -216,6 +221,7 @@ public class DoorInteractable : MonoBehaviour, IInteractable, IInteractableAvail
             firedFullyOpen = false;
             onFullyClosed?.Invoke();
             FullyClosed?.Invoke();
+            MaybeReportClosed();
         }
     }
 
@@ -254,6 +260,36 @@ public class DoorInteractable : MonoBehaviour, IInteractable, IInteractableAvail
         if (manager == null || string.IsNullOrEmpty(reportObjectiveId)) return;
 
         manager.ReportProgress(reportQuestId, reportObjectiveId);
+    }
+
+    // Bao quest khi canh chinh VA cac canh ghep dong hoc het VA quest bao DO
+    // DANG CHAY. Khong lap: quest chua bat dau thi khong bao, va QuestManager
+    // clamp so tien do bang required nen bao them cung vo hai.
+    private void MaybeReportClosed()
+    {
+        if (string.IsNullOrEmpty(closeReportQuestId) || string.IsNullOrEmpty(closeReportObjectiveId)) return;
+
+        QuestManager manager = QuestManager.Instance;
+        if (manager == null) return;
+        if (manager.GetState(closeReportQuestId) != QuestState.Active) return;
+
+        manager.ReportProgress(closeReportQuestId, closeReportObjectiveId);
+    }
+
+    // Cho EndingSequence hoi: cua nao dang bao quest "dong cua" (ide lay dung
+    // tham chieu thay vi tim bang ten).
+    public string CloseReportQuestId => closeReportQuestId;
+    public string CloseReportObjectiveId => closeReportObjectiveId;
+
+    /// Canh chinh VA toan bo canh ghep deu da dong hoc (dung de phat hien
+    /// truong hop quest 'dong_cua' bat dau khi cua da dong tu truoc).
+    public bool IsClosedDoor
+    {
+        get
+        {
+            if (open) return false;
+            return FullyReached(isOpened: false);
+        }
     }
 
     private bool FullyReached(bool isOpened)

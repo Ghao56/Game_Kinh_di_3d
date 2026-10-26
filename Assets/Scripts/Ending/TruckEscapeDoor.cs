@@ -3,8 +3,8 @@ using UnityEngine.Events;
 
 // Vùng "GIỮ E ĐỂ THOÁT" trên cửa xe lái (Puerta_Fron.001) của đoạn kết.
 // EndingSequence tự tạo GameObject con của cửa và AddComponent vùng này khi
-// quest 'loot_truck' (50M VND) hoàn thành, nên TRƯỚC đủ 50M vùng không tồn tại
-// -> không thể kích hoạt kết thúc sớm. Vùng kế thừa đúng máy Hold E của
+// quest 've_thoi' (VỀ THÔI) bắt đầu — tức là SAU khi người chơi đã chất đủ 50M
+// VÀ đóng cửa xe — nên trước đó vùng không tồn tại, không thể kích hoạt sớm. Vùng kế thừa đúng máy Hold E của
 // Interactor (HoldToInteract + HoldDuration): thả E giữa chừng, Interactor tự
 // reset tiến độ, không bao giờ kích hoạt nếu chưa giữ đủ lâu.
 //
