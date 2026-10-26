@@ -95,7 +95,12 @@ public class Interactor : MonoBehaviour
         if (currentTarget != null)
         {
             string p = currentTarget.PromptText ?? string.Empty;
-            string prefix = currentTarget.HoldToInteract ? "[Giữ E] " : "[E] ";
+            // Prompt tự nói "giữ E" (VD "GIỮ E ĐỂ THOÁT") thì không thêm tiền tố nữa
+            // cho khỏi lặp "Giữ E ... [Giữ E]". Các prompt còn lại giữ nguyên tiền tố cũ.
+            bool selfExplainHold = p.ToLowerInvariant().Contains("giữ e");
+            string prefix = currentTarget.HoldToInteract
+                ? (selfExplainHold ? string.Empty : "[Giữ E] ")
+                : "[E] ";
             promptUI.gameObject.SetActive(true);
             if (promptUI.transform.Find("InteractPromptText") is Transform t) t.gameObject.SetActive(true);
             promptUI.Show(prefix + p);

@@ -14,7 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::FlowDefinition
   notes: "Ch\u01B0\u01A1ng 1 'M\xF3n N\u1EE3 Cu\u1ED1i C\xF9ng': g\u1EA7m xe \u2192
     tin nh\u1EAFn ch\u1EE7 n\u1EE3 \u2192 m\u1EDF c\u1EEDa h\u1EADu \u2192 \xF4 xanh
-    ch\u1EA5t \u0111\u1ED3 \u2192 v\xE0o nh\xE0 l\u1EA5y \u0111\u1ED3."
+    ch\u1EA5t \u0111\u1ED3 \u2192 v\xE0o nh\xE0 l\u1EA5y \u0111\u1ED3 \u2192 \u0111\u1EE7
+    50M: c\u1EEDa xe l\xE1i t\u1EF1 m\u1EDF, GI\u1EEE E \u0111\u1EC3 tho\xE1t
+    \u2192 fade \u0111en \u2192 'B\u1EA0N \u0110\u00C3 TR\u1EA3 H\u1EBET N\u1EE2'."
   steps:
   - id: S0_ChuiRa
     note: "Ng\u01B0\u1EDDi ch\u01A1i \u1EDF d\u01B0\u1EDBi g\u1EA7m xe, ch\u01B0a
@@ -119,14 +121,24 @@ MonoBehaviour:
     onExit: []
     nextStepId: S5_TamDung
   - id: S5_TamDung
-    note: "K\u1EBFt th\xFAc ph\u1EA7n m\u1EDF \u0111\u1EA7u: t\u1EA1m d\u1EEBng ch\u1EDD
-      ch\u01B0\u01A1ng ti\u1EBFp."
+    note: "Giai doan ket thuc: khi quest 'loot_truck' (50M) xong, chuoi quest
+      tu start 've_thoi' (UI: 'VE THOI'). Cua xe lai Puerta_Fron.001 tu mo
+      (EndingSequence); giu E tai vung thoat (thoat_xe) de chay hieu ung
+      ket thuc game."
     completeWhen:
-      type: 8
+      type: 5
       signal: 
-      questId: 
-      objectiveId: 
+      questId: ve_thoi
+      objectiveId: thoat_xe
       seconds: 0
-    onEnter: []
+    onEnter:
+    - type: 1
+      text: "\u0110\u1EE7 ti\u1EC1n r\u1ED3i. L\xEAn xe, r\u1EDDi kh\u1ECFi \u0111\xE2y \u2014 \u0111\u1EEBng nh\u00ECn l\u1EA1i."
+      sender: 
+      dialogue: {fileID: 0}
+      target: {fileID: 0}
+      boolValue: 1
+      lightingState: 1
+      immediate: 0
     onExit: []
     nextStepId: 

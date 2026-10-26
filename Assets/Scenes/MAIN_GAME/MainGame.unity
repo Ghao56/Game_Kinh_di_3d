@@ -1794,6 +1794,7 @@ MonoBehaviour:
   allQuests:
   - {fileID: 11400000, guid: 56b1161a3c2062a479c8abd47ee34708, type: 2}
   - {fileID: 11400000, guid: c9e85e807988ead41b4bc77f3ddf9865, type: 2}
+  - {fileID: 11400000, guid: 5063e549f57143528a2eeb5a3bcc19f5, type: 2}
   logVerbose: 1
 --- !u!4 &95046818
 Transform:

@@ -33,6 +33,10 @@ public class DoorInteractable : MonoBehaviour, IInteractable, IInteractableAvail
     [SerializeField] private string reportQuestId = string.Empty;
     [SerializeField] private string reportObjectiveId = string.Empty;
 
+    [Header("Khoa ngoai (doan ket: cua xe lai)")]
+    [Tooltip("Bat = cua tu choi moi tuong tac mo/dong bang E (IsAvailable false). Cua van quay theo lenh code (ForceOpen) va onFullyOpened van bung dung hen.")]
+    [SerializeField] private bool interactionLocked;
+
     [Header("Prompt hiển thị")]
     [Tooltip("Chữ hiện khi cửa đang đóng (nhấn E để mở).")]
     [SerializeField] private string promptWhenClosed = "Mở cửa";
@@ -97,10 +101,12 @@ public class DoorInteractable : MonoBehaviour, IInteractable, IInteractableAvail
     }
 
     /// Interactor: canh phu khong duoc chon, canh dang quay khong nhan E, chua duoc khoa thi khong nhan E.
+    /// Da bi khoa ngoai (SetInteractionLocked) thi khong nhan E duoi bat ky hinh thuc nao.
     public bool IsAvailable
     {
         get
         {
+            if (interactionLocked) return false;
             if (isSlave) return masterDoor != null && masterDoor.IsAvailable;
             if (Moving) return false;
             return GateOpen();
@@ -265,6 +271,23 @@ public class DoorInteractable : MonoBehaviour, IInteractable, IInteractableAvail
         }
 
         return true;
+    }
+
+    // ------------------------------------------------- dieu khien bang code (doan ket)
+
+    // Mo cua cho doan ket: dung dung may mo cua hien co (Update quay quanh ban le,
+    // onFullyOpened/FullyOpened van bung dung hen). Khong chu dong dong cua.
+    public void ForceOpen()
+    {
+        open = true;
+        unlockedOnce = true;
+    }
+
+    // Khoa mo/dong bang phim E nhung van giu Update chay de cua quay tiep den vi tri mo.
+    // Chi dung cho cua xe lai o doan ket; cac cua khac mac dinh interactionLocked = false.
+    public void SetInteractionLocked(bool locked)
+    {
+        interactionLocked = locked;
     }
 
     private void OnValidate()

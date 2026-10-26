@@ -2,10 +2,10 @@
     <Style src="project://database/Assets/khang/Menu.uss?fileID=7433441132597879392&amp;guid=11491b1e439b5d644a14c3aeb713c4d3&amp;type=3#Menu"/>
     <ui:VisualElement name="Background" style="flex-grow: 1;">
         <ui:VisualElement name="MenuContainer" style="flex-grow: 1;">
-            <ui:Button text="Quit" name="Quit" style="background-color: rgba(188, 188, 188, 0); align-self: center; align-items: center; position: absolute; top: 724px; left: 681px; width: 162px; height: 51px; font-size: 46px; color: rgb(229, 229, 229); -unity-font-style: bold; border-top-width: 0; border-right-width: 0; border-bottom-width: 0; border-left-width: 0;"/>
-            <ui:Button text="Options" name="Options" style="background-color: rgba(188, 188, 188, 0); align-self: center; align-items: center; position: absolute; top: 635px; left: 654px; width: 209px; height: 58px; font-size: 46px; color: rgb(229, 229, 229); -unity-font-style: bold; border-top-width: 0; border-right-width: 0; border-bottom-width: 0; border-left-width: 0;"/>
-            <ui:Button text="Start" name="Start" style="background-color: rgba(188, 188, 188, 0); align-self: center; align-items: center; position: absolute; top: 464px; left: 683px; width: 156px; height: 44px; font-size: 46px; color: rgb(229, 229, 229); -unity-font-style: bold; border-top-width: 0; border-right-width: 0; border-bottom-width: 0; border-left-width: 0;"/>
-            <ui:Button text="Continue" name="Continue" style="background-color: rgba(188, 188, 188, 0); align-self: center; align-items: center; position: absolute; top: 542px; left: 622px; width: 271px; height: 58px; font-size: 46px; color: rgb(229, 229, 229); -unity-font-style: bold; border-top-width: 0; border-right-width: 0; border-bottom-width: 0; border-left-width: 0;"/>
+            <ui:VisualElement name="GameTitle" class="game-title" style="height: 580px; width: 932px; top: -35px; left: 349px;"/>
+            <ui:Button text="Start" name="Start" class="menu-button" style="top: 482px; left: 162px;"/>
+            <ui:Button text="Quit" name="Quit" class="menu-button" style="top: 670px; left: 160px;"/>
+            <ui:Button text="Setting" name="Setting" class="menu-button" style="top: 572px; left: 188px;"/>
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

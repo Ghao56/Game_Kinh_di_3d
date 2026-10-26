@@ -19,4 +19,4 @@ MonoBehaviour:
     text: "Ch\u1EA5t \u0111\u1ED3 l\xEAn xe"
     progressSuffix: "M VND"
     required: 50
-  nextQuest: {fileID: 11400000, guid: 56b1161a3c2062a479c8abd47ee34708, type: 2}
+  nextQuest: {fileID: 11400000, guid: 5063e549f57143528a2eeb5a3bcc19f5, type: 2}

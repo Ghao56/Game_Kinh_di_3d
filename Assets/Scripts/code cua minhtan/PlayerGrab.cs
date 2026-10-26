@@ -666,11 +666,15 @@ public class PlayerGrab : MonoBehaviour
         return item;
     }
 
-    // Đang nhắm ô chất đồ: nhấn E phải là "giữ để chất", không được vứt đồ.
+    // Đang nhắm ô chất đồ (nhấn E phải là "giữ để chất") hoặc vùng thoát trên
+    // cửa xe lái của đoạn kết: không nhặt/vứt đồ cho khỏi phá thao tác giữ E.
     private bool IsTargetingCell()
     {
         if (interactor == null) interactor = FindFirstObjectByType<Interactor>();
-        return interactor != null && interactor.CurrentTarget is TruckLoadZone;
+        if (interactor == null || interactor.CurrentTarget == null) return false;
+
+        return interactor.CurrentTarget is TruckLoadZone
+            || interactor.CurrentTarget is TruckEscapeDoor;
     }
 
     private void ResetItemPhysics(GameObject item)
