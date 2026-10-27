@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 /// <summary>
@@ -22,17 +23,40 @@ public class CrosshairUI : MonoBehaviour
     [Tooltip("Để trống: tự tìm canvas chứa 'Interact Prompt'.")]
     [SerializeField] private Canvas canvas;
 
-    private static bool bootstrapped;
     private static Texture2D whiteTexture;
     private static Sprite whiteSprite;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void Bootstrap()
     {
-        if (bootstrapped) return;
-        bootstrapped = true;
+        // Kiểm tra lại nhau mỗi lần load scene, vì scene menu và scene gameplay
+        // có cấu trúc canvas khác nhau.
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+        SceneManager.sceneLoaded += OnSceneLoaded;
+        TryCreate();
+    }
 
+    private static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        TryCreate();
+    }
+
+    private static void TryCreate()
+    {
         if (FindFirstObjectByType<CrosshairUI>() != null) return;
+
+        // Chỉ tạo crosshair ở scene gameplay (có canvas Overlay sẵn, vd. canvas "Interact Prompt").
+        // Scene menu dùng UI Toolkit (UIDocument), không có uGUI Canvas → bỏ qua im lặng.
+        bool hasOverlayCanvas = false;
+        foreach (Canvas c in FindObjectsByType<Canvas>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+        {
+            if (c.renderMode == RenderMode.ScreenSpaceOverlay)
+            {
+                hasOverlayCanvas = true;
+                break;
+            }
+        }
+        if (!hasOverlayCanvas) return;
 
         new GameObject("CrosshairUI", typeof(CrosshairUI));
     }

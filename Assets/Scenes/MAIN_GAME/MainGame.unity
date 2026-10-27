@@ -834,6 +834,19 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 3661935663230098147, guid: bcdae185cd11d5c4fbc4ab40bb00160e, type: 3}
+--- !u!134 &50625768
+PhysicsMaterial:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  serializedVersion: 2
+  m_DynamicFriction: 0.6
+  m_StaticFriction: 0.6
+  m_Bounciness: 0
+  m_FrictionCombine: 0
+  m_BounceCombine: 0
 --- !u!1 &55490127
 GameObject:
   m_ObjectHideFlags: 0
@@ -1120,6 +1133,19 @@ MonoBehaviour:
   fill: {fileID: 60531765}
   background: {fileID: 1694281919}
   drainSpeed: 4
+--- !u!134 &60897624
+PhysicsMaterial:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  serializedVersion: 2
+  m_DynamicFriction: 0.6
+  m_StaticFriction: 0.6
+  m_Bounciness: 0
+  m_FrictionCombine: 0
+  m_BounceCombine: 0
 --- !u!64 &61946307
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -3067,6 +3093,19 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 5353006647991119742, guid: bcdae185cd11d5c4fbc4ab40bb00160e, type: 3}
+--- !u!134 &166063989
+PhysicsMaterial:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  serializedVersion: 2
+  m_DynamicFriction: 0.6
+  m_StaticFriction: 0.6
+  m_Bounciness: 0
+  m_FrictionCombine: 0
+  m_BounceCombine: 0
 --- !u!64 &177782027
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -4165,19 +4204,6 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 6053954600381277616, guid: bcdae185cd11d5c4fbc4ab40bb00160e, type: 3}
---- !u!134 &267718582
-PhysicsMaterial:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: 
-  serializedVersion: 2
-  m_DynamicFriction: 0.6
-  m_StaticFriction: 0.6
-  m_Bounciness: 0
-  m_FrictionCombine: 0
-  m_BounceCombine: 0
 --- !u!64 &268157372
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -4604,6 +4630,19 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 6971394944161671989, guid: bcdae185cd11d5c4fbc4ab40bb00160e, type: 3}
+--- !u!134 &293588115
+PhysicsMaterial:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  serializedVersion: 2
+  m_DynamicFriction: 0.6
+  m_StaticFriction: 0.6
+  m_Bounciness: 0
+  m_FrictionCombine: 0
+  m_BounceCombine: 0
 --- !u!64 &295740856
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -8297,6 +8336,19 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 3424543389172272260, guid: bcdae185cd11d5c4fbc4ab40bb00160e, type: 3}
+--- !u!134 &523598637
+PhysicsMaterial:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  serializedVersion: 2
+  m_DynamicFriction: 0.6
+  m_StaticFriction: 0.6
+  m_Bounciness: 0
+  m_FrictionCombine: 0
+  m_BounceCombine: 0
 --- !u!1 &534220971
 GameObject:
   m_ObjectHideFlags: 0
@@ -8914,7 +8966,7 @@ MeshCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1728283673}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 60897624}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -9579,7 +9631,7 @@ MeshCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1728283672}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 2139961727}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -10728,37 +10780,6 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: -1300339663049830585, guid: bcdae185cd11d5c4fbc4ab40bb00160e, type: 3}
---- !u!1 &666427505
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 666427506}
-  m_Layer: 0
-  m_Name: GameObject
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &666427506
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 666427505}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: 0.7071068, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: -6.83, y: 0.6, z: -1.1}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!64 &666846242
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -11321,8 +11342,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4283236160
-  m_fontColor: {r: 0.25, g: 1, b: 0.3, a: 1}
+    rgba: 4294335627
+  m_fontColor: {r: 0.545, g: 0.361, b: 0.965, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -12339,7 +12360,7 @@ MeshCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 766127306}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 166063989}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -14910,6 +14931,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6494822, guid: d84d9b0d136674146a415ceadd3399f7, type: 3}
+      propertyPath: m_Material
+      value: 
+      objectReference: {fileID: 1221112322}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -15160,7 +15185,7 @@ MeshCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 924539432}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 50625768}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -15446,6 +15471,19 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 944182367}
   m_Mesh: {fileID: 4300004, guid: a7af9488be7d5754aab817cebce8f9b2, type: 3}
+--- !u!134 &945414861
+PhysicsMaterial:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: ' (Instance) (Instance)'
+  serializedVersion: 2
+  m_DynamicFriction: 0.6
+  m_StaticFriction: 0.6
+  m_Bounciness: 0
+  m_FrictionCombine: 0
+  m_BounceCombine: 0
 --- !u!1001 &945538977
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -15837,8 +15875,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4283236160
-  m_fontColor: {r: 0.25, g: 1, b: 0.3, a: 1}
+    rgba: 4278760426
+  m_fontColor: {r: 0.918, g: 0.702, b: 0.031, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -16868,7 +16906,7 @@ MeshCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1728283674}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 1883319010}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -17793,19 +17831,6 @@ RectTransform:
   m_AnchoredPosition: {x: 3, y: 77.57}
   m_SizeDelta: {x: 234.5699, y: 37.8702}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!134 &1067580732
-PhysicsMaterial:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: ' (Instance)'
-  serializedVersion: 2
-  m_DynamicFriction: 0.6
-  m_StaticFriction: 0.6
-  m_Bounciness: 0
-  m_FrictionCombine: 0
-  m_BounceCombine: 0
 --- !u!1 &1068178809
 GameObject:
   m_ObjectHideFlags: 0
@@ -18528,7 +18553,7 @@ BoxCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1101281853}
-  m_Material: {fileID: 267718582}
+  m_Material: {fileID: 1312010291}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -18643,6 +18668,7 @@ MonoBehaviour:
   promptWhenReady: "\u0111\u1EC3 ch\u1EA5t \u0111\u1ED3 l\xEAn xe"
   promptDoorClosed: "H\xE3y m\u1EDF c\u1EEDa h\u1EADu tr\u01B0\u1EDBc"
   promptInvalid: "M\xF3n \u0111\u1ED3 n\xE0y kh\xF4ng \u0111\xE1ng gi\xE1."
+  promptFull: "\xD4 ch\u1EA5t \u0111\u1ED3 \u0111\xE3 \u0111\u1EA7y."
   zoneColor: {r: 0, g: 1, b: 0.3, a: 0.55}
 --- !u!1 &1102185623
 GameObject:
@@ -19067,8 +19093,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4283236160
-  m_fontColor: {r: 0.25, g: 1, b: 0.3, a: 1}
+    rgba: 4290098613
+  m_fontColor: {r: 0.71, g: 0.71, b: 0.71, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -19871,7 +19897,7 @@ Transform:
   m_GameObject: {fileID: 1182339979}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.002, y: 85.6, z: 0.5278}
+  m_LocalPosition: {x: 0, y: 85.6, z: 0.5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -19884,7 +19910,7 @@ BoxCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1182339979}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 1753964743}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -19976,7 +20002,7 @@ MeshCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1728283675}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 523598637}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -20626,6 +20652,19 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: -7269173089721441667, guid: bcdae185cd11d5c4fbc4ab40bb00160e, type: 3}
+--- !u!134 &1221112322
+PhysicsMaterial:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  serializedVersion: 2
+  m_DynamicFriction: 0.6
+  m_StaticFriction: 0.6
+  m_Bounciness: 0
+  m_FrictionCombine: 0
+  m_BounceCombine: 0
 --- !u!1 &1230278782
 GameObject:
   m_ObjectHideFlags: 0
@@ -20903,8 +20942,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4283236160
-  m_fontColor: {r: 0.25, g: 1, b: 0.3, a: 1}
+    rgba: 4294111986
+  m_fontColor: {r: 0.949, g: 0.949, b: 0.949, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -21686,6 +21725,19 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: -1485243683742885738, guid: bcdae185cd11d5c4fbc4ab40bb00160e, type: 3}
+--- !u!134 &1312010291
+PhysicsMaterial:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: ' (Instance)'
+  serializedVersion: 2
+  m_DynamicFriction: 0.6
+  m_StaticFriction: 0.6
+  m_Bounciness: 0
+  m_FrictionCombine: 0
+  m_BounceCombine: 0
 --- !u!64 &1320360699
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -23051,19 +23103,6 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 8113558426105011885, guid: bcdae185cd11d5c4fbc4ab40bb00160e, type: 3}
---- !u!134 &1446563085
-PhysicsMaterial:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: ' (Instance)'
-  serializedVersion: 2
-  m_DynamicFriction: 0.6
-  m_StaticFriction: 0.6
-  m_Bounciness: 0
-  m_FrictionCombine: 0
-  m_BounceCombine: 0
 --- !u!64 &1449444791
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -23152,8 +23191,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4283236160
-  m_fontColor: {r: 0.25, g: 1, b: 0.3, a: 1}
+    rgba: 4294111986
+  m_fontColor: {r: 0.949, g: 0.949, b: 0.949, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -25396,7 +25435,7 @@ CharacterController:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1555408343}
-  m_Material: {fileID: 1446563085}
+  m_Material: {fileID: 1772235312}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -25421,7 +25460,7 @@ CapsuleCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1555408343}
-  m_Material: {fileID: 1067580732}
+  m_Material: {fileID: 945414861}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -25680,8 +25719,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4283236160
-  m_fontColor: {r: 0.25, g: 1, b: 0.3, a: 1}
+    rgba: 4290098613
+  m_fontColor: {r: 0.71, g: 0.71, b: 0.71, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -27660,6 +27699,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LootValueLabel
   labelColor: {r: 0.25, g: 1, b: 0.3, a: 1}
+  useRarityValueColor: 1
+  valueCommonColor: {r: 0.949, g: 0.949, b: 0.949, a: 1}
+  valueRareColor: {r: 0.231, g: 0.51, b: 0.965, a: 1}
+  valueLegendaryColor: {r: 0.545, g: 0.361, b: 0.965, a: 1}
+  valueEpicColor: {r: 0.918, g: 0.702, b: 0.031, a: 1}
+  nameColor: {r: 0.949, g: 0.949, b: 0.949, a: 1}
+  weightColor: {r: 0.71, g: 0.71, b: 0.71, a: 1}
   fontSize: 42
   labelWidth: 22
   labelScale: 0.1
@@ -27682,6 +27728,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LootValueLabel
   labelColor: {r: 0.25, g: 1, b: 0.3, a: 1}
+  useRarityValueColor: 1
+  valueCommonColor: {r: 0.949, g: 0.949, b: 0.949, a: 1}
+  valueRareColor: {r: 0.231, g: 0.51, b: 0.965, a: 1}
+  valueLegendaryColor: {r: 0.545, g: 0.361, b: 0.965, a: 1}
+  valueEpicColor: {r: 0.918, g: 0.702, b: 0.031, a: 1}
+  nameColor: {r: 0.949, g: 0.949, b: 0.949, a: 1}
+  weightColor: {r: 0.71, g: 0.71, b: 0.71, a: 1}
   fontSize: 42
   labelWidth: 22
   labelScale: 0.1
@@ -27704,6 +27757,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LootValueLabel
   labelColor: {r: 0.25, g: 1, b: 0.3, a: 1}
+  useRarityValueColor: 1
+  valueCommonColor: {r: 0.949, g: 0.949, b: 0.949, a: 1}
+  valueRareColor: {r: 0.231, g: 0.51, b: 0.965, a: 1}
+  valueLegendaryColor: {r: 0.545, g: 0.361, b: 0.965, a: 1}
+  valueEpicColor: {r: 0.918, g: 0.702, b: 0.031, a: 1}
+  nameColor: {r: 0.949, g: 0.949, b: 0.949, a: 1}
+  weightColor: {r: 0.71, g: 0.71, b: 0.71, a: 1}
   fontSize: 42
   labelWidth: 22
   labelScale: 0.1
@@ -27995,8 +28055,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4283236160
-  m_fontColor: {r: 0.25, g: 1, b: 0.3, a: 1}
+    rgba: 4290098613
+  m_fontColor: {r: 0.71, g: 0.71, b: 0.71, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -32924,7 +32984,7 @@ MeshCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1739563151}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 293588115}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -33165,6 +33225,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1752019059}
   m_CullTransparentMesh: 1
+--- !u!134 &1753964743
+PhysicsMaterial:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  serializedVersion: 2
+  m_DynamicFriction: 0.6
+  m_StaticFriction: 0.6
+  m_Bounciness: 0
+  m_FrictionCombine: 0
+  m_BounceCombine: 0
 --- !u!64 &1763075430
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -33345,6 +33418,19 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 4393068729037308659, guid: bcdae185cd11d5c4fbc4ab40bb00160e, type: 3}
+--- !u!134 &1772235312
+PhysicsMaterial:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: ' (Instance) (Instance)'
+  serializedVersion: 2
+  m_DynamicFriction: 0.6
+  m_StaticFriction: 0.6
+  m_Bounciness: 0
+  m_FrictionCombine: 0
+  m_BounceCombine: 0
 --- !u!64 &1772619627
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -33699,8 +33785,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4283236160
-  m_fontColor: {r: 0.25, g: 1, b: 0.3, a: 1}
+    rgba: 4294111986
+  m_fontColor: {r: 0.949, g: 0.949, b: 0.949, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -33965,6 +34051,7 @@ GameObject:
   - component: {fileID: 1819602451}
   - component: {fileID: 1819602450}
   - component: {fileID: 1819602453}
+  - component: {fileID: 1819602454}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -34123,6 +34210,20 @@ MonoBehaviour:
       m_PostInfinity: 2
       m_RotationOrder: 4
   CustomBlends: {fileID: 0}
+--- !u!114 &1819602454
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1819602448}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 77937a6b6f8dab9438a9857d30c6594c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SkyboxRotation
+  rotationSpeed: 0.8
+  useUnscaledTime: 1
 --- !u!64 &1820186494
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -1247100,6 +1247201,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionReference
   m_Asset: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   m_ActionId: 6b444451-8a00-4d00-a97e-f47457f736a8
+--- !u!134 &1883319010
+PhysicsMaterial:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  serializedVersion: 2
+  m_DynamicFriction: 0.6
+  m_StaticFriction: 0.6
+  m_Bounciness: 0
+  m_FrictionCombine: 0
+  m_BounceCombine: 0
 --- !u!64 &1883940567
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -1247290,7 +1247404,7 @@ Transform:
   m_GameObject: {fileID: 1902082899}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 15.539999, y: 1.8399999, z: 18.75}
+  m_LocalPosition: {x: 15.985, y: 1.861, z: 18.75}
   m_LocalScale: {x: 0.35, y: 0.35, z: 0.35}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1249601,6 +1249715,19 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: -6515963787792118782, guid: bcdae185cd11d5c4fbc4ab40bb00160e, type: 3}
+--- !u!134 &2062237776
+PhysicsMaterial:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  serializedVersion: 2
+  m_DynamicFriction: 0.6
+  m_StaticFriction: 0.6
+  m_Bounciness: 0
+  m_FrictionCombine: 0
+  m_BounceCombine: 0
 --- !u!64 &2064468566
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -1249935,8 +1250062,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4283236160
-  m_fontColor: {r: 0.25, g: 1, b: 0.3, a: 1}
+    rgba: 4294335627
+  m_fontColor: {r: 0.545, g: 0.361, b: 0.965, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -1250956,7 +1251083,7 @@ MeshCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2127370500}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 2062237776}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -1251188,6 +1251315,19 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: -9212501730176165869, guid: bcdae185cd11d5c4fbc4ab40bb00160e, type: 3}
+--- !u!134 &2139961727
+PhysicsMaterial:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  serializedVersion: 2
+  m_DynamicFriction: 0.6
+  m_StaticFriction: 0.6
+  m_Bounciness: 0
+  m_FrictionCombine: 0
+  m_BounceCombine: 0
 --- !u!64 &2143795245
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -1251275,5 +1251415,4 @@ SceneRoots:
   - {fileID: 86475934}
   - {fileID: 1902082904}
   - {fileID: 1101281858}
-  - {fileID: 666427506}
   - {fileID: 964595198}

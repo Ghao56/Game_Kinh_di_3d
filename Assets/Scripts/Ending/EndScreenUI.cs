@@ -99,7 +99,11 @@ public class EndScreenUI : MonoBehaviour
         blackGroup.alpha = 1f;
 
         // 2) Đen hoàn toàn: dừng mọi gameplay phía sau rồi chữ mới xuất hiện.
-        if (freezeTime) Time.timeScale = 0f;
+        if (freezeTime)
+        {
+            Debug.LogWarning("[Watchdog] END SCREEN — Time.timeScale = 0 (freeze sau màn đen)", this);
+            Time.timeScale = 0f;
+        }
 
         endText.text = string.IsNullOrEmpty(message) ? DefaultEndText : message;
         endText.gameObject.SetActive(true);

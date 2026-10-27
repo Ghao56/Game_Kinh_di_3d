@@ -69,6 +69,8 @@ public class JumpscareManager : MonoBehaviour
         if (isTriggered) return;
         isTriggered = true;
 
+        Debug.LogWarning($"[Watchdog] JUMPSCARE kích hoạt — game sẽ đứng hình {displayDuration}s rồi load lại scene.", this);
+
         StartCoroutine(JumpscareRoutine());
     }
 

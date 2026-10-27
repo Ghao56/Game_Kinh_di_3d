@@ -63,8 +63,8 @@ public class MainMenu : MonoBehaviour
         if (optionsButton != null) optionsButton.clicked -= OnOptionsClicked;
         if (quitButton != null) quitButton.clicked -= OnQuitClicked;
 
-        if (glowRestTexture != null) Destroy(glowRestTexture);
-        if (glowHoverTexture != null) Destroy(glowHoverTexture);
+        if (glowRestTexture != null) { if (Application.isPlaying) Destroy(glowRestTexture); else DestroyImmediate(glowRestTexture); }
+        if (glowHoverTexture != null) { if (Application.isPlaying) Destroy(glowHoverTexture); else DestroyImmediate(glowHoverTexture); }
         glowRestTexture = null;
         glowHoverTexture = null;
     }
@@ -135,13 +135,28 @@ public class MainMenu : MonoBehaviour
 
     void OnStartClicked()
     {
+        // Anti-lag freeze: nếu player mở Setting trong menu (SettingsMenu pauseWhileOpen
+        // đặt timeScale = 0) rồi bấm Start mà không đóng panel, timeScale=0 sẽ kéo sang
+        // scene game khiến nhân vật đứng hình + camera không xoay (deltaTime = 0).
+        Time.timeScale = 1f;
+
         SceneManager.LoadScene(gameSceneName);
     }
 
     void OnOptionsClicked()
     {
-        // TODO: mở panel Setting (sẽ làm sau)
-        Debug.Log("Setting - chưa làm, sẽ bổ sung sau.");
+        Debug.Log("[MainMenu] Setting clicked → tìm SettingsMenu...");
+
+        var settings = FindFirstObjectByType<SettingsMenu>(FindObjectsInactive.Include);
+        if (settings != null)
+        {
+            Debug.Log($"[MainMenu] Tìm thấy '{settings.gameObject.name}' → Toggle()");
+            settings.Toggle();
+        }
+        else
+        {
+            Debug.LogWarning("Setting - chưa thấy SettingsPanel.prefab trong scene! Kéo prefab vào scene để dùng.");
+        }
     }
 
     void OnQuitClicked()
