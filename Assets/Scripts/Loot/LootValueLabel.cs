@@ -24,7 +24,16 @@ public class LootValueLabel : MonoBehaviour
     private const float weightFontScale = 0.6f; // chữ Weight nhỏ hơn ~60%
 
     [Header("Giá tiền (áp cho tất cả label trong scene)")]
+    [Tooltip("Màu dòng chủ đạo (= màu giá, band 0 < M < 10M). Bỏ value band màu thường. Đặt để giữ tương thích cũ.")]
     [SerializeField] private Color labelColor = new Color(0.25f, 1f, 0.3f, 1f);
+    [Tooltip("Đổi màu giá theo độ hiếm (M = valueInMillions): <5 trắng, 5-9 xanh dương, 10-19 tím, ≥20 vàng.")]
+    [SerializeField] private bool useRarityValueColor = true;
+    [SerializeField] private Color valueCommonColor = new Color(0.949f, 0.949f, 0.949f);  // F2F2F2 trắng
+    [SerializeField] private Color valueRareColor = new Color(0.231f, 0.510f, 0.965f);   // 3B82F6 xanh dương
+    [SerializeField] private Color valueLegendaryColor = new Color(0.545f, 0.361f, 0.965f); // 8B5CF6 tím
+    [SerializeField] private Color valueEpicColor = new Color(0.918f, 0.702f, 0.031f);   // EAB308 vàng (cực hiếm)
+    [SerializeField] private Color nameColor = new Color(0.949f, 0.949f, 0.949f, 1f);     // F2F2F2 trắng
+    [SerializeField] private Color weightColor = new Color(0.71f, 0.71f, 0.71f, 1f);      // B5B5B5 xám
     [SerializeField] private float fontSize = 42f;
     [Tooltip("Độ rộng khung chữ (đơn vị world trước khi nhân Scale).")]
     [SerializeField] private float labelWidth = 22f;
@@ -52,6 +61,7 @@ public class LootValueLabel : MonoBehaviour
     private TextMeshPro weightLabel;
     private Camera cam;
     private bool shown;
+    private bool styleDirty;
     private static Material overlayMaterial;
     private static bool overlayLoaded;
     private static bool syncing;
@@ -204,9 +214,12 @@ public class LootValueLabel : MonoBehaviour
         nameLabel.transform.localPosition = new Vector3(0f, lineGap, 0f);
         weightLabel.transform.localPosition = new Vector3(0f, -lineGap, 0f);
 
+        // Màu riêng từng dòng: giá theo hiếm, tên trắng, weight xám.
         foreach (TextMeshPro tmp in new[] { nameLabel, valueLabel, weightLabel })
         {
-            tmp.color = labelColor;
+            tmp.color = tmp == weightLabel ? weightColor
+                      : tmp == nameLabel ? nameColor
+                      : ValueColorByRarity();
             // Weight nhỏ hơn ~60% so với các dòng còn lại.
             tmp.fontSize = tmp == weightLabel ? fontSize * weightFontScale : fontSize;
         }
@@ -221,6 +234,20 @@ public class LootValueLabel : MonoBehaviour
         FitWidth(weightLabel);
     }
 
+    // Màu dòng giá: bật useRarityValueColor thì phân band theo valueInMillions,
+    // không thì dùng labelColor (tương thích setting cũ).
+    private Color ValueColorByRarity()
+    {
+        if (!useRarityValueColor) return labelColor;
+        if (loot == null) loot = GetComponent<LootItem>();
+        int value = loot != null ? loot.valueInMillions : 0;
+
+        if (value >= 20) return valueEpicColor;      // cực hiếm: vàng
+        if (value >= 10) return valueLegendaryColor; // quý: tím
+        if (value >= 5) return valueRareColor;       // hiếm: xanh dương
+        return valueCommonColor;                     // thường: trắng
+    }
+
     private void OnValidate()
     {
         labelScale = Mathf.Max(0.01f, labelScale);
@@ -229,10 +256,43 @@ public class LootValueLabel : MonoBehaviour
         lineGap = Mathf.Max(0.1f, lineGap);
         aimDistance = Mathf.Max(1f, aimDistance);
 
+        ScheduleApply();
+    }
+
+    // Unity cấm đụng RectTransform (set_sizeDelta → SendMessage) ngay trong OnValidate,
+    // nên dồn EnsureLabel/UpdateText/ApplyStyle/SyncOthers sang cuối frame.
+    private void ScheduleApply()
+    {
+#if UNITY_EDITOR
+        if (!Application.isPlaying)
+        {
+            // Edit mode: chạy 1 lần sau khi OnValidate xong hẳn.
+            EditorApplication.delayCall -= ApplyScheduled;
+            EditorApplication.delayCall += ApplyScheduled;
+            return;
+        }
+#endif
+        // Play mode: xử lý ở Update kế tiếp.
+        styleDirty = true;
+    }
+
+    private void ApplyScheduled()
+    {
+#if UNITY_EDITOR
+        EditorApplication.delayCall -= ApplyScheduled;
+        if (this == null) return; // object đã bị xóa trước khi delayCall chạy
+#endif
+        styleDirty = false;
+
         EnsureLabel();
         UpdateText();
         ApplyStyle();
         SyncOthers();
+    }
+
+    private void Update()
+    {
+        if (styleDirty) ApplyScheduled();
     }
 
     // Sửa style ở một label -> mọi label khác trong scene theo y hệt.
@@ -248,6 +308,13 @@ public class LootValueLabel : MonoBehaviour
             if (other == null || other == this) continue;
 
             other.labelColor = labelColor;
+            other.useRarityValueColor = useRarityValueColor;
+            other.valueCommonColor = valueCommonColor;
+            other.valueRareColor = valueRareColor;
+            other.valueLegendaryColor = valueLegendaryColor;
+            other.valueEpicColor = valueEpicColor;
+            other.nameColor = nameColor;
+            other.weightColor = weightColor;
             other.fontSize = fontSize;
             other.labelWidth = labelWidth;
             other.labelScale = labelScale;

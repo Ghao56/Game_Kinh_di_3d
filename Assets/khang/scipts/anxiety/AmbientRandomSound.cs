@@ -43,8 +43,13 @@ public class AmbientRandomSound : MonoBehaviour
 
     void Awake()
     {
-        if (audioSource == null) audioSource = GetComponent<AudioSource>();
-        if (audioSource == null) audioSource = gameObject.AddComponent<AudioSource>();
+        // AudioSource nằm trên object con riêng để PlayRandom() không dịch rig khi script nằm trên root 'Player'.
+        if (audioSource == null)
+        {
+            var emitterGo = new GameObject("AmbientEmitter");
+            emitterGo.transform.SetParent(transform, false);
+            audioSource = emitterGo.AddComponent<AudioSource>();
+        }
         audioSource.playOnAwake = false;
         audioSource.loop = false;
     }
@@ -115,7 +120,8 @@ public class AmbientRandomSound : MonoBehaviour
             float a = Random.value * Mathf.PI * 2f;
             float d = Random.Range(minDistance, maxDistance);
             Vector3 offset = new Vector3(Mathf.Cos(a), 0f, Mathf.Sin(a)) * d;
-            transform.position = AnxietyManager.Instance.Player.position + offset;
+            // Chỉ dời emitter, không dời transform của script.
+            audioSource.transform.position = AnxietyManager.Instance.Player.position + offset;
             audioSource.spatialBlend = 1f;
         }
 

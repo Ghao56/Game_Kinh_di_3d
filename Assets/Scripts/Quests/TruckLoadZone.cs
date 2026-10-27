@@ -60,6 +60,9 @@ public class TruckLoadZone : MonoBehaviour, IInteractable, IInteractableAvailabi
     [SerializeField] private string promptDoorClosed = "Hãy mở cửa hậu trước";
     [SerializeField] private string promptInvalid = "Món đồ này không đáng giá.";
 
+    [Tooltip("Cửa hậu đã mở, tay cầm loot hợp lệ nhưng ô chất đồ đã đầy.")]
+    [SerializeField] private string promptFull = "Ô chất đồ đã đầy.";
+
     // Text cố định trong code: muối/rượu là đồ hỗ trợ, không phải hàng bán.
     private const string promptNotSellable = "Đồ không bán được.";
 
@@ -67,7 +70,8 @@ public class TruckLoadZone : MonoBehaviour, IInteractable, IInteractableAvailabi
     [Tooltip("Màu phát sáng của vùng khi cửa hậu mở và còn chỗ.")]
     [SerializeField] private Color zoneColor = new Color(0f, 1f, 0.3f, 0.55f);
 
-    // Mỗi itemId chỉ được tính đã chất một lần trong cả xe.
+    // itemId đang "nằm trên xe": chất vào thì thêm, món bị nhặt ra lại thì nhả
+    // ô — số ô/full-slot luôn phản ánh sản phẩm hiện có của khoang đổ.
     private static readonly System.Collections.Generic.HashSet<string> loadedIds = new System.Collections.Generic.HashSet<string>();
 
     // Latch chống chớp: chỉ tắt sau khi điều kiện sai liên tục HoldOffSeconds.
@@ -83,11 +87,23 @@ public class TruckLoadZone : MonoBehaviour, IInteractable, IInteractableAvailabi
     // Chỗ đổ món (MỘT cái duy nhất).
     private Transform dropMarker;
 
+    // Các món ĐÃ TỪNG được chất vào ô này (quản lý theo đối tượng thật, không
+    // phải id): người chơi nhặt món đã chất ra khỏi xe thì vẫn được chất lại,
+    // nhưng không cộng lấp ô/tiến độ nhiệm vụ lần nữa (chống ăn gian).
+    private readonly System.Collections.Generic.HashSet<LootItem> placedLoots =
+        new System.Collections.Generic.HashSet<LootItem>();
+
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     private static void ResetStatics() => loadedIds.Clear();
 
     private bool DoorFullyOpen => rearDoor != null && rearDoor.IsFullyOpen;
     private bool HasEmptySlot => filled < slotCount;
+
+    // Chất được khi còn chỗ trống, HOẶC món này đã từng được chất rồi (bị
+    // nhặt ra khỏi xe và cầm lại trên tay) — món đó đã từng chiếm ô nên cho
+    // trả vào xuôi, kể cả khi mọi ô đều đã được tính.
+    private bool FitsHeld(LootItem loot) =>
+        HasEmptySlot || (loot != null && placedLoots.Contains(loot));
 
     // ------------------------------------------------------------ IInteractable
 
@@ -105,6 +121,7 @@ public class TruckLoadZone : MonoBehaviour, IInteractable, IInteractableAvailabi
 
             HeldState held = EvaluateHeld();
             if (held == HeldState.Invalid) return promptInvalid;
+            if (!FitsHeld(HeldLootItem())) return promptFull;
             return promptWhenReady;
         }
     }
@@ -114,7 +131,7 @@ public class TruckLoadZone : MonoBehaviour, IInteractable, IInteractableAvailabi
     // -> tiền tố của Interactor buộc phải là "[E] ", không nhầm "Giữ E" khi
     // người chơi chưa cầm gì hay flow chưa mở.
     public bool HoldToInteract =>
-        DoorFullyOpen && EvaluateHeld() == HeldState.Valid && HasEmptySlot;
+        DoorFullyOpen && EvaluateHeld() == HeldState.Valid && FitsHeld(HeldLootItem());
     public float HoldDuration => holdDuration;
 
     // Cầm món hợp lệ (hoặc món sai để hiện lý do) hoặc đang chọn muối/rượu
@@ -141,8 +158,8 @@ public class TruckLoadZone : MonoBehaviour, IInteractable, IInteractableAvailabi
     {
         if (!DoorFullyOpen) return;
 
-        // Chỉ món trên tay.
-        if (EvaluateHeld() == HeldState.Valid && HasEmptySlot)
+        // Chỉ món trên tay; món đã từng chất (nhặt ra lại) được chất lại kể cả khi "đầy ô".
+        if (EvaluateHeld() == HeldState.Valid && FitsHeld(HeldLootItem()))
             PlaceLoot(playerGrab.TakeHeld());
     }
 
@@ -150,13 +167,20 @@ public class TruckLoadZone : MonoBehaviour, IInteractable, IInteractableAvailabi
 
     private void PlaceLoot(GameObject item)
     {
-        if (item == null || !HasEmptySlot) return;
+        if (item == null) return;
 
         LootItem loot = item.GetComponent<LootItem>();
-        if (loot != null && !string.IsNullOrEmpty(loot.ItemId))
-            loadedIds.Add(loot.ItemId);
+        bool rePlaced = loot != null && placedLoots.Contains(loot);
+        if (!rePlaced && !HasEmptySlot) return;
 
-        filled++;
+        if (!rePlaced)
+        {
+            if (loot != null && !string.IsNullOrEmpty(loot.ItemId))
+                loadedIds.Add(loot.ItemId);
+
+            placedLoots.Add(loot); // HashSet nhận luôn cả loot == null, vô hại
+            filled++;
+        }
 
         item.SetActive(true);
 
@@ -199,9 +223,14 @@ public class TruckLoadZone : MonoBehaviour, IInteractable, IInteractableAvailabi
             }
         }
 
-        QuestManager manager = QuestManager.Instance;
-        if (manager != null && !string.IsNullOrEmpty(loadQuestId) && !string.IsNullOrEmpty(loadObjectiveId))
-            manager.ReportProgress(loadQuestId, loadObjectiveId, Mathf.Max(1, loot != null ? loot.valueInMillions : 1));
+        // Chỉ cộng tiến độ nhiệm vụ MỘT LẦN cho mỗi món: chất lại món bị nhặt
+        // ra không được cộng thêm, nếu không người chơi ăn gian được tiến độ.
+        if (!rePlaced)
+        {
+            QuestManager manager = QuestManager.Instance;
+            if (manager != null && !string.IsNullOrEmpty(loadQuestId) && !string.IsNullOrEmpty(loadObjectiveId))
+                manager.ReportProgress(loadQuestId, loadObjectiveId, Mathf.Max(1, loot != null ? loot.valueInMillions : 1));
+        }
 
         onFilled?.Invoke();
         Debug.Log($"[TruckLoadZone] {item.name} được thả vào {name} ({filled}/{slotCount}).", this);
@@ -218,15 +247,22 @@ public class TruckLoadZone : MonoBehaviour, IInteractable, IInteractableAvailabi
         if (dropMarker != null)
         {
             BoxCollider box = dropMarker.GetComponent<BoxCollider>();
-            Vector3 center = box != null ? box.center : Vector3.zero;
-            Vector3 half = box != null ? Vector3.Scale(box.size, dropMarker.lossyScale) * 0.5f : Vector3.zero;
-
-            // Điểm random trong range box (nội bộ marker) rồi ra world.
-            Vector3 localRandom = new Vector3(
-                Random.Range(-half.x, half.x),
-                Random.Range(-half.y, half.y),
-                Random.Range(-half.z, half.z)) * 0.6f; // 60% để không chạm thành
-            basePoint = dropMarker.TransformPoint(center + localRandom);
+            if (box != null)
+            {
+                // Random theo ĐƠN VỊ LOCAL của marker (box.center/size vốn là
+                // tọa độ local). TransformPoint sẽ nhân đúng MỘT lần với scale
+                // thật của marker — kể cả khi cha scale không đều như
+                // VungChatDoTrenXe (2.9/0.01/4.95). Nếu nhân nửa size world
+                // (box.size * lossyScale) rồi lại đưa qua TransformPoint như
+                // cũ thì offset bị nhân scale HAI lần, điểm rơi tràn ra ngoài
+                // khoang/x → đồ "nằm ở ngoài xe".
+                Vector3 halfLocal = box.size * 0.5f;
+                Vector3 localRandom = new Vector3(
+                    Random.Range(-halfLocal.x, halfLocal.x),
+                    Random.Range(-halfLocal.y, halfLocal.y),
+                    Random.Range(-halfLocal.z, halfLocal.z)) * 0.6f; // 60% để không chạm thành
+                basePoint = dropMarker.TransformPoint(box.center + localRandom);
+            }
         }
 
         return basePoint + Vector3.up * dropHeight;
@@ -297,23 +333,34 @@ public class TruckLoadZone : MonoBehaviour, IInteractable, IInteractableAvailabi
 
     // ------------------------------------------------------------ điều kiện
 
-    private HeldState EvaluateHeld()
+    // Món loot đang cầm trên tay (null khi tay trống). Dùng GetComponentInParent
+    // cho an toàn như PlayerGrab vì mon có thể là collider con của chỗ gắn LootItem.
+    private LootItem HeldLootItem()
     {
         if (playerGrab == null) playerGrab = FindFirstObjectByType<PlayerGrab>();
-
         GameObject held = playerGrab != null ? playerGrab.HeldItem : null;
-        if (held == null) return HeldState.None;
-
-        // Tay trống = None (không gợi ý), món sai loại = Invalid (để hiện lý do).
-        return IsAccepted(held) ? HeldState.Valid : HeldState.Invalid;
+        return held != null ? held.GetComponentInParent<LootItem>() : null;
     }
 
-    // Rượu/muối (không có LootItem.ItemId) hoặc món đã chất rồi → không đáng giá.
-    private bool IsAccepted(GameObject item)
+    private HeldState EvaluateHeld()
     {
-        LootItem loot = item != null ? item.GetComponent<LootItem>() : null;
-        string id = loot != null ? loot.ItemId : null;
+        LootItem loot = HeldLootItem();
+        if (loot == null) return HeldState.None;
+
+        // Tay trống = None (không gợi ý), món sai loại = Invalid (để hiện lý do).
+        return IsAccepted(loot) ? HeldState.Valid : HeldState.Invalid;
+    }
+
+    // Rượu/muối (không có LootItem.ItemId) hoặc id đã được chất lần nào rồi →
+    // không đáng giá. NGOẠI LỆ: chính chiếc món đã được chất từ ô này — người
+    // chơi nhặt nó ra khỏi xe thì vẫn được chất lại (xem PlaceLoot), không
+    // bị chặn vì id của nó đã nằm trong loadedIds từ lần chất trước.
+    private bool IsAccepted(LootItem loot)
+    {
+        if (loot == null) return false;
+        string id = loot.ItemId;
         if (string.IsNullOrEmpty(id)) return false;
+        if (placedLoots.Contains(loot)) return true;
         if (loadedIds.Contains(id)) return false;
 
         if (validItemIds != null && validItemIds.Length > 0 && System.Array.IndexOf(validItemIds, id) < 0)
@@ -355,6 +402,8 @@ public class TruckLoadZone : MonoBehaviour, IInteractable, IInteractableAvailabi
 
     private void Update()
     {
+        ReclaimTakenOutLoot(); // món đang bị cầm ra khỏi xe = đã lấy ra, hoàn ô/tiến độ
+
         if (zoneRenderer == null || zoneMaterial == null) return;
 
         if (DoorFullyOpen && HasEmptySlot)
@@ -375,6 +424,54 @@ public class TruckLoadZone : MonoBehaviour, IInteractable, IInteractableAvailabi
         Color c = zoneColor;
         c.r *= pulse; c.g *= pulse; c.b *= pulse;
         zoneMaterial.color = c;
+    }
+
+    // ------------------------------------------------------------ lấy đồ ra khỏi xe
+
+    // Người chơi NHẶT một món đã chất lên tay (hoặc món đó bị hủy): coi như
+    // món đã rời xe — giải phóng ô, nhả itemId và TRỪ LẠI đúng số tiến độ đã
+    // cộng khi chất. Nhờ vậy UI nhiệm vụ/ô chất đồ luôn phản ánh CHÍNH XÁC
+    // những gì đang nằm trên xe: chất lại sau đó được tính như lần chất mới.
+    private void ReclaimTakenOutLoot()
+    {
+        if (placedLoots.Count == 0) return;
+        if (playerGrab == null) playerGrab = FindFirstObjectByType<PlayerGrab>();
+
+        LootItem held = HeldLootItem();
+
+        // Chọn danh sách cần thu hồi TRƯỚC, sửa tập sau khi duyệt xong
+        // (HashSet không cho thêm/bớt ngay trong vòng foreach).
+        System.Collections.Generic.List<LootItem> reclaimed = null;
+        foreach (LootItem loot in placedLoots)
+        {
+            if (loot == null || (held != null && loot == held) || !IsStillInTruck(loot))
+                (reclaimed ?? (reclaimed = new System.Collections.Generic.List<LootItem>())).Add(loot);
+        }
+        if (reclaimed == null) return;
+
+        foreach (LootItem loot in reclaimed)
+        {
+            placedLoots.Remove(loot);
+
+            string id = loot != null ? loot.ItemId : null;
+            if (!string.IsNullOrEmpty(id)) loadedIds.Remove(id); // ô id trống lại
+
+            filled = Mathf.Max(0, filled - 1);
+
+            // Trừ đúng số đã cộng khi chất (valueInMillions tối thiểu 1).
+            int amount = Mathf.Max(1, loot != null ? loot.valueInMillions : 1);
+            QuestManager manager = QuestManager.Instance;
+            if (manager != null && !string.IsNullOrEmpty(loadQuestId) && !string.IsNullOrEmpty(loadObjectiveId))
+                manager.ReportProgress(loadQuestId, loadObjectiveId, -amount);
+        }
+    }
+
+    // Món vẫn "đang trong xe" khi vật lý/khác đẩy nó rời khoang đổ quá xa:
+    // trục Z khu khoang chỉ độ sâu ~1m, cho phép trượt nhẹ 2m cho an toàn.
+    private bool IsStillInTruck(LootItem loot)
+    {
+        if (loot == null || dropMarker == null) return true;
+        return Vector3.Distance(loot.transform.position, dropMarker.position) < 2f;
     }
 
     private void OnDrawGizmosSelected()
