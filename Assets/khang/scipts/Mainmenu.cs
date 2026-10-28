@@ -145,12 +145,9 @@ public class MainMenu : MonoBehaviour
 
     void OnOptionsClicked()
     {
-        Debug.Log("[MainMenu] Setting clicked → tìm SettingsMenu...");
-
         var settings = FindFirstObjectByType<SettingsMenu>(FindObjectsInactive.Include);
         if (settings != null)
         {
-            Debug.Log($"[MainMenu] Tìm thấy '{settings.gameObject.name}' → Toggle()");
             settings.Toggle();
         }
         else

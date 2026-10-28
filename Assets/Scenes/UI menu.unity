@@ -542,6 +542,7 @@ MonoBehaviour:
   uiDocument: {fileID: 1008207100}
   videoPlayer: {fileID: 1993799348}
   videoTexture: {fileID: 8400000, guid: 25024fceefe81784391ae1e9646a91a5, type: 2}
+  hideCornerWatermarkPixels: 160
 --- !u!1 &2056056090
 GameObject:
   m_ObjectHideFlags: 0
@@ -682,7 +683,8 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 860993230, guid: e2a6f9c4b1d74e3f9c05a7d8b3941f26, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: e2a6f9c4b1d74e3f9c05a7d8b3941f26, type: 3}

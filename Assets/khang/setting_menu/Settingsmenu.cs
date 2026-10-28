@@ -197,8 +197,10 @@ public class SettingsMenu : MonoBehaviour
 
     public void SetSensitivity(float value)
     {
-        PlayerPrefs.SetFloat(GameSettings.SensitivityKey, value);
-        UpdateSensitivityText(value);
+        // Không cho về 0 tuyệt đối: chuột sẽ khoá cứng vĩnh viễn (cả sau khi Save)
+        float clamped = Mathf.Max(value, 0.1f);
+        PlayerPrefs.SetFloat(GameSettings.SensitivityKey, clamped);
+        UpdateSensitivityText(clamped);
     }
 
     private void UpdateSensitivityText(float value)
@@ -272,8 +274,8 @@ public class SettingsMenu : MonoBehaviour
         resolutionDropdown.RefreshShownValue();
         Screen.SetResolution(resolutions[resIndex].x, resolutions[resIndex].y, Screen.fullScreenMode);
 
-        // Sensitivity
-        float sens = GameSettings.MouseSensitivity;
+        // Sensitivity: chặn cả trường hợp PlayerPrefs đang lưu 0 từ phiên cũ
+        float sens = Mathf.Max(GameSettings.MouseSensitivity, 0.1f);
         sensitivitySlider.SetValueWithoutNotify(sens);
         UpdateSensitivityText(sens);
     }

@@ -9,6 +9,9 @@ public class VideoMenuBackground : MonoBehaviour
     public VideoPlayer videoPlayer;
     public RenderTexture videoTexture;
 
+    [Tooltip("So pixel dich video lech len goc tren trai de che watermark (VD: chu 'AI'). Tang dan cho den khi bi an het.")]
+    public int hideCornerWatermarkPixels = 160;
+
     private VisualElement videoBackground;
 
     void Awake()
@@ -29,9 +32,11 @@ public class VideoMenuBackground : MonoBehaviour
         videoBackground.pickingMode = PickingMode.Ignore;
 
         videoBackground.style.position = Position.Absolute;
-        videoBackground.style.left = 0;
+        // Lech video len goc tren trai de watermark "AI" o goc roi ra khoi man hinh.
+        // Van dam bao che kin toan man hinh vi keo dai them phia ben phai / duoi.
+        videoBackground.style.left = -hideCornerWatermarkPixels;
+        videoBackground.style.top = -hideCornerWatermarkPixels;
         videoBackground.style.right = 0;
-        videoBackground.style.top = 0;
         videoBackground.style.bottom = 0;
         videoBackground.style.backgroundImage =
             Background.FromRenderTexture(videoTexture);

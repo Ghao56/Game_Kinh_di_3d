@@ -417,31 +417,57 @@ public class SettingsUIRestyler : MonoBehaviour
 
     private void StyleBackButton(Transform root)
     {
+        // Nếu scene có thêm nút Exit (instance trong scene game, không có trong prefab)
+        // thì Back/Exit chia đôi hai bên, còn một mình thì Back nằm giữa như cũ.
+        Transform exitT = root.Find("Btn_Exit");
+        bool hasExit = exitT != null;
+
         Transform backT = root.Find("BackButton");
-        if (backT == null) return;
-
-        RectTransform rt = backT as RectTransform;
-        rt.anchorMin = new Vector2(0.5f, 0.5f);
-        rt.anchorMax = new Vector2(0.5f, 0.5f);
-        rt.pivot = new Vector2(0.5f, 0.5f);
-        rt.sizeDelta = new Vector2(260f, 54f);
-        rt.anchoredPosition = new Vector2(0f, YOf(backT.name));
-
-        Image img = backT.GetComponent<Image>();
-        if (img != null) img.color = ControlDark;
-
-        TMP_Text text = backT.GetComponentInChildren<TMP_Text>(true);
-        if (text != null) { text.fontSize = 30f; text.color = TextMain; text.text = "BACK"; }
-
-        Button btn = backT.GetComponent<Button>();
-        if (btn != null)
+        if (backT != null)
         {
-            ColorBlock cb = btn.colors;
-            cb.highlightedColor = new Color(0.40f, 0.20f, 0.18f, 1f);
-            cb.pressedColor = new Color(0.62f, 0.28f, 0.24f, 1f);
-            cb.fadeDuration = 0.1f;
-            btn.colors = cb;
+            RectTransform rt = backT as RectTransform;
+            rt.anchorMin = new Vector2(0.5f, 0.5f);
+            rt.anchorMax = new Vector2(0.5f, 0.5f);
+            rt.pivot = new Vector2(0.5f, 0.5f);
+            rt.sizeDelta = new Vector2(260f, 54f);
+            rt.anchoredPosition = new Vector2(hasExit ? -140f : 0f, YOf(backT.name));
+
+            Image img = backT.GetComponent<Image>();
+            if (img != null) img.color = ControlDark;
+
+            TMP_Text text = backT.GetComponentInChildren<TMP_Text>(true);
+            if (text != null) { text.fontSize = 30f; text.color = TextMain; text.text = "BACK"; }
+
+            StyleButtonColors(backT.GetComponent<Button>());
         }
+
+        if (hasExit)
+        {
+            RectTransform rt = exitT as RectTransform;
+            rt.anchorMin = new Vector2(0.5f, 0.5f);
+            rt.anchorMax = new Vector2(0.5f, 0.5f);
+            rt.pivot = new Vector2(0.5f, 0.5f);
+            rt.sizeDelta = new Vector2(260f, 54f);
+            rt.anchoredPosition = new Vector2(140f, YOf(backT.name));
+
+            Image img = exitT.GetComponent<Image>();
+            if (img != null) img.color = ControlDark;
+
+            TMP_Text text = exitT.GetComponentInChildren<TMP_Text>(true);
+            if (text != null) { text.fontSize = 30f; text.color = TextMain; text.text = "EXIT"; text.alignment = TextAlignmentOptions.Center; }
+
+            StyleButtonColors(exitT.GetComponent<Button>());
+        }
+    }
+
+    private static void StyleButtonColors(Button btn)
+    {
+        if (btn == null) return;
+        ColorBlock cb = btn.colors;
+        cb.highlightedColor = new Color(0.40f, 0.20f, 0.18f, 1f);
+        cb.pressedColor = new Color(0.62f, 0.28f, 0.24f, 1f);
+        cb.fadeDuration = 0.1f;
+        btn.colors = cb;
     }
 
     // ───────────────────────── Tiêu đề + header nhóm ─────────────────────────
