@@ -281,6 +281,13 @@ public class LootValueLabel : MonoBehaviour
         ScheduleApply();
     }
 
+    /// Bên ngoài (LootItem.OnValidate) gọi khi itemName/value/slotCost đổi
+    /// -> label Name/Value/Weight tự theo, chỉ cần sửa 1 chỗ trong Inspector.
+    public void Refresh()
+    {
+        ScheduleApply();
+    }
+
     // Unity cấm đụng RectTransform (set_sizeDelta → SendMessage) ngay trong OnValidate,
     // nên dồn EnsureLabel/UpdateText/ApplyStyle/SyncOthers sang cuối frame.
     private void ScheduleApply()

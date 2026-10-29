@@ -25,6 +25,14 @@ public class LootItem : MonoBehaviour
     /// Khóa nhận diện (TruckLoadZone / PlayerGrab đọc). Rượu/muối không có món này nên không chất được.
     public string ItemId => itemId;
 
+    // Sửa itemName/value/slotCost trong Inspector -> nhãn 3D (Name/Value/Weight)
+    // tự đọc lại và của món này, khỏi phải cập nhật chữ Label tay 2 lần.
+    private void OnValidate()
+    {
+        LootValueLabel label = GetComponent<LootValueLabel>();
+        if (label != null) label.Refresh();
+    }
+
     // Nút chuột phải trên component: căn collider khít model NGAY TRONG EDIT MODE
     // và ghi vào scene (cần Save sau đó). Khác với autofit trong Awake (chỉ runtime).
     [ContextMenu("Fit Collider")]

@@ -3213,7 +3213,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 183749961}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.07332476, y: 0.92605156, z: -0.27916497, w: 0.24314417}
+  m_LocalRotation: {x: -0.03077555, y: 0.31133327, z: -0.010111979, w: -0.9497485}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 0.1, y: 0.1, z: 0.1}
   m_ConstrainProportionsScale: 0
@@ -26257,7 +26257,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1562356925}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.22377731, y: 0.8522167, z: 0.4574179, w: 0.12008044}
+  m_LocalRotation: {x: -0.69333524, y: 0.22729613, z: 0.21299563, w: -0.64981204}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 0.1, y: 0.1, z: 0.1}
   m_ConstrainProportionsScale: 0
@@ -34491,7 +34491,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 4.5}
-  m_SizeDelta: {x: 35.67, y: 22}
+  m_SizeDelta: {x: 24.08, y: 22}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1810930932
 MonoBehaviour:
@@ -34513,7 +34513,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "B\xECnh g\u1ED1m s\u1EE9 c\u1ED5"
+  m_text: "Tivi \u0111\u1EDDi c\u0169"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2100000, guid: 5ba4bcbc4c6a7454aa69cb96a82f6718, type: 2}
@@ -1248186,7 +1248186,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 40d3266a89291cd4eb4c472d6fb130c4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LootItem
-  itemName: "B\xECnh g\u1ED1m s\u1EE9 c\u1ED5"
+  itemName: "Tivi \u0111\u1EDDi c\u0169"
   valueInMillions: 10
   slotCost: 1
   itemId: loot_vase
@@ -1249784,7 +1249784,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1993791357}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.07332476, y: 0.92605156, z: -0.27916497, w: 0.24314417}
+  m_LocalRotation: {x: -0.03077555, y: 0.31133327, z: -0.010111979, w: -0.9497485}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 0.1, y: 0.1, z: 0.1}
   m_ConstrainProportionsScale: 0
