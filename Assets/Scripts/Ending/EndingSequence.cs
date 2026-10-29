@@ -2,6 +2,8 @@ using System;
 using System.Collections;
 using Unity.Cinemachine;
 using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
 // Bộ điều phối đoạn kết thắng của "Món Nợ Cuối Cùng".
 //
@@ -17,6 +19,9 @@ using UnityEngine;
 //  4) Người chơi giữ E đủ lâu tại vùng -> TruckEscapeDoor gọi BeginEnding():
 //     khoá gameplay, ẩn HUD/prompt, hoàn thành quest 've_thoi' cho StoryFlow,
 //     fade đen rồi hiện "BẠN ĐÃ TRẢ HẾT NỢ" (EndScreenUI).
+//  5) Sau màn đen: đợi vài giây rồi (mặc định) chờ người chơi nhấn phím bất kỳ
+//     -> trả lại Time.timeScale = 1, xoá trắng trạng thái, load scene menu
+//     "UI menu" để vòng chơi sau chạy lại từ đầu.
 //
 // Object này tự tạo bằng Bootstrap sau khi scene có QuestManager, không cần
 // setup Inspector trong scene.
@@ -49,6 +54,14 @@ public sealed class EndingSequence : MonoBehaviour
     [SerializeField] private string endText = "B\u1EA0N \u0110\u00C3 TR\u1EA2 H\u1EBET N\u1EE2";
     [Tooltip("Dừng toàn bộ gameplay phía sau (Time.timeScale = 0) khi màn hình đen xong.")]
     [SerializeField] private bool freezeTimeAfterFade = true;
+
+    [Header("Quay về menu sau kết thúc")]
+    [Tooltip("Scene menu quay về khi màn 'trả hết nợ' hiển thị xong. Rỗng = đứng lại.")]
+    [SerializeField] private string returnToMenuScene = "UI menu";
+    [Tooltip("Số giây giữ màn chữ kết trước khi quay về menu (để đọc hết dòng chữ).")]
+    [SerializeField, Range(0f, 10f)] private float returnMenuDelay = 2f;
+    [Tooltip("Bật = người chơi phải nhấn phím bất kỳ mới về menu; tắt = tự về sau delay.")]
+    [SerializeField] private bool waitInputToReturn = true;
 
     public bool EscapeUnlocked { get; private set; }
     public bool EndingStarted { get; private set; }
@@ -127,6 +140,29 @@ public sealed class EndingSequence : MonoBehaviour
             hookedManager.QuestStarted -= HandleQuestStarted;
         }
         if (Instance == this) Instance = null;
+    }
+
+    // Vào scene menu (do đoạn kết vừa load, hoặc vào từ nơi khác): xoá trắng
+    // trạng thái để lượt chơi sau chạy lại từ đầu — Domain Reload tắt khiến
+    // các cờ này còn giữ giá trị cũ giữa các scene.
+    private void OnEnable() => SceneManager.sceneLoaded += HandleSceneLoaded;
+    private void OnDisable() => SceneManager.sceneLoaded -= HandleSceneLoaded;
+
+    private void HandleSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        if (!string.IsNullOrEmpty(returnToMenuScene) && scene.name == returnToMenuScene)
+            ResetRunState();
+    }
+
+    // Xoá trắng trạng thái của một lượt kết (được gọi trước khi về menu).
+    private void ResetRunState()
+    {
+        EscapeUnlocked = false;
+        EndingStarted = false;
+        doorsClosedChecked = false;
+        driverDoor = null;
+        doorGlow = null;
+        escapeZone = null;
     }
 
     private void HandleQuestStarted(QuestRuntime runtime)
@@ -297,14 +333,65 @@ public sealed class EndingSequence : MonoBehaviour
         if (doorGlow != null) doorGlow.SetQuestHint(false);
 
         EndScreenUI screen = EndScreenUI.Create();
-        StartCoroutine(screen.PlayRoutine(endText, fadeSeconds, freezeTimeAfterFade));
-        Debug.Log($"[Ending] Bắt đầu kết thúc — fade {fadeSeconds:0.0}s rồi hiện '{endText}'.", this);
+        StartCoroutine(PlayEndRoutine(screen));
+        Debug.Log($"[Ending] Bắt đầu kết thúc — fade {fadeSeconds:0.0}s rồi hiện '{endText}', sau đó về menu '{returnToMenuScene}'.", this);
+    }
+
+    // Chuỗi kết: fade đen + chữ kết (PlayRoutine) -> chờ delay/input -> về menu.
+    // Chạy trên Chính object này (DontDestroyOnLoad) nên sống sót qua LoadScene.
+    private IEnumerator PlayEndRoutine(EndScreenUI screen)
+    {
+        yield return StartCoroutine(screen.PlayRoutine(endText, fadeSeconds, freezeTimeAfterFade));
+
+        bool returning = !string.IsNullOrEmpty(returnToMenuScene);
+        if (returning)
+            screen.ShowHint(waitInputToReturn
+                ? "Nhấn PHÍM BẤT KỲ để quay về menu"
+                : "Đang quay về menu...");
+
+        // Delay bằng giá trị thực: timeScale có thể đã bị freeze = 0.
+        yield return new WaitForSecondsRealtime(Mathf.Max(0f, returnMenuDelay));
+
+        if (returning && waitInputToReturn)
+        {
+            while (!AnyPressThisFrame()) yield return null;
+        }
+
+        if (returning)
+        {
+            // Trả lại tốc độ thời gian bình thường cho scene menu (đoạn kết
+            // có thể đã freeze Time.timeScale = 0).
+            Time.timeScale = 1f;
+            ResetRunState();
+            Debug.Log($"[Ending] Quay về menu '{returnToMenuScene}'.", this);
+            SceneManager.LoadScene(returnToMenuScene);
+        }
+    }
+
+    // Phát hiện phím/chuột nhấn (Input System): dùng cho "nhấn bất kỳ để về menu".
+    private static bool AnyPressThisFrame()
+    {
+        Keyboard keyboard = Keyboard.current;
+        if (keyboard != null && keyboard.anyKey.wasPressedThisFrame) return true;
+
+        Mouse mouse = Mouse.current;
+        if (mouse != null && (mouse.leftButton.wasPressedThisFrame
+            || mouse.rightButton.wasPressedThisFrame
+            || mouse.middleButton.wasPressedThisFrame))
+            return true;
+
+        return false;
     }
 
     // ----------------------------------------------------------- khoá gameplay / ẩn HUD
 
     private void LockGameplay()
     {
+        // 0) Cất món còn trên tay TRƯỚC khi khoá PlayerGrab — nếu khoá trước,
+        //    món kẹt nguyên trên tay suốt màn đen ("đóng cửa xe xong mà vẫn cầm đồ").
+        PlayerGrab grab = FindFirstObjectByType<PlayerGrab>();
+        if (grab != null) grab.StashHandsClear();
+
         // 1) Khoá hành động của player: di chuyển, nhặt/đặt đồ, tương tác E,
         //    quay camera bằng chuột (Cinemachine).
         SetEnabled<ThirdPersonController>(false);

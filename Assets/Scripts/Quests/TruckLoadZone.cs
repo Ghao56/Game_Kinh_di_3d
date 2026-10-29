@@ -96,6 +96,31 @@ public class TruckLoadZone : MonoBehaviour, IInteractable, IInteractableAvailabi
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     private static void ResetStatics() => loadedIds.Clear();
 
+    // Danh sách zone còn sống trong scene: cho phép hỏi NHANH "món này nằm trong
+    // xe không" mà không phải FindObjectsByType mỗi lần nhặt đồ (PlayerGrab dùng).
+    private static readonly System.Collections.Generic.List<TruckLoadZone> liveZones =
+        new System.Collections.Generic.List<TruckLoadZone>();
+
+    private void OnEnable() => liveZones.Add(this);
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetLiveZones() => liveZones.Clear();
+
+    // Món loot ĐANG nằm trong khoang đổ? Vị trí cách ItemSlot dưới 2m (ngưỡng
+    // giống IsStillInTruck). PlayerGrab dùng khi nhiệm vụ đóng cửa đang chạy:
+    // món trong xe = đã bán, không nhặt lại để khỏi tụt tiến độ nhiệm vụ.
+    public static bool IsItemInLoadZone(Vector3 position)
+    {
+        for (int i = 0; i < liveZones.Count; i++)
+        {
+            TruckLoadZone zone = liveZones[i];
+            if (zone == null || zone.dropMarker == null) continue;
+            if (Vector3.Distance(position, zone.dropMarker.position) < InTruckDistance)
+                return true;
+        }
+        return false;
+    }
+
     private bool DoorFullyOpen => rearDoor != null && rearDoor.IsFullyOpen;
     private bool HasEmptySlot => filled < slotCount;
 
@@ -392,7 +417,11 @@ public class TruckLoadZone : MonoBehaviour, IInteractable, IInteractableAvailabi
     private void OnTriggerEnter(Collider other) { if (IsPlayerCollider(other)) playerIn = true; }
     private void OnTriggerStay(Collider other) { if (IsPlayerCollider(other)) playerIn = true; }
     private void OnTriggerExit(Collider other) { if (IsPlayerCollider(other)) playerIn = false; }
-    private void OnDisable() => playerIn = false;
+    private void OnDisable()
+    {
+        playerIn = false;
+        liveZones.Remove(this); // thôi khỏi danh sách "món trong xe"
+    }
 
     private bool IsPlayerCollider(Collider other)
     {
@@ -468,10 +497,12 @@ public class TruckLoadZone : MonoBehaviour, IInteractable, IInteractableAvailabi
 
     // Món vẫn "đang trong xe" khi vật lý/khác đẩy nó rời khoang đổ quá xa:
     // trục Z khu khoang chỉ độ sâu ~1m, cho phép trượt nhẹ 2m cho an toàn.
+    private const float InTruckDistance = 2f;
+
     private bool IsStillInTruck(LootItem loot)
     {
         if (loot == null || dropMarker == null) return true;
-        return Vector3.Distance(loot.transform.position, dropMarker.position) < 2f;
+        return Vector3.Distance(loot.transform.position, dropMarker.position) < InTruckDistance;
     }
 
     private void OnDrawGizmosSelected()

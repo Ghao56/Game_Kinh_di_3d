@@ -33,8 +33,8 @@ public class DoorInteractable : MonoBehaviour, IInteractable, IInteractableAvail
     [SerializeField] private string reportQuestId = string.Empty;
     [SerializeField] private string reportObjectiveId = string.Empty;
 
-    [Header("Bao nhiem vu khi dong")]
-    [Tooltip("Bung voi moi lan canh dong hoc xong khi quest/muc tieu nay DANG CHAY (Dong cua xe). Khong gia han khi quest chua bat dau; de trong = khong bao.")]
+    [Header("Bao nhiem vu khi dong (cua sang glow goi y trong luc quest chay)")]
+    [Tooltip("Bung voi moi lan canh dong hoc xong khi quest/muc tieu nay DANG CHAY (Dong cua xe). Trong luc quest nay chay, cua sang glow goi y cho toi khi dong han. Khong gia han khi quest chua bat dau; de trong = khong bao.")]
     [SerializeField] private string closeReportQuestId = string.Empty;
     [SerializeField] private string closeReportObjectiveId = string.Empty;
 
@@ -227,7 +227,10 @@ public class DoorInteractable : MonoBehaviour, IInteractable, IInteractableAvail
 
     private void UpdateQuestHint()
     {
-        bool on = !unlockedOnce && HintGateOpen();
+        // Sang khi: quest MỞ cửa (gate) còn mở và chưa mở lần nào, HOẶC quest
+        // ĐÓNG cửa (closeReport) ĐANG CHẠY mà chưa đóng hẳn. Vậy là 2 cánh cửa
+        // hậu sáng ngay khi quest "dong_cua" bắt đầu cho người chơi biết.
+        bool on = (!unlockedOnce && HintGateOpen()) || CloseHintOpen();
         if (on == hintOn) return;
 
         hintOn = on;
@@ -249,6 +252,19 @@ public class DoorInteractable : MonoBehaviour, IInteractable, IInteractableAvail
             return manager.GetState(gateQuestId) == QuestState.Active;
 
         return manager.IsObjectiveOpen(gateQuestId, gateObjectiveId);
+    }
+
+    // Cửa có BÁO TIẾN ĐỘ khi đóng (closeReportQuestId): sáng xuyên suốt khi
+    // quest đó ĐANG CHẠY mà cửa (kèm các cánh ghép) chưa đóng hẳn — không cần
+    // có gateQuestId. Đóng xong tự tắt qua IsClosedDoor.
+    private bool CloseHintOpen()
+    {
+        if (string.IsNullOrEmpty(closeReportQuestId)) return false;
+
+        QuestManager manager = QuestManager.Instance;
+        if (manager == null) return false;
+
+        return manager.GetState(closeReportQuestId) == QuestState.Active && !IsClosedDoor;
     }
 
     private void ReportFirstOpened()

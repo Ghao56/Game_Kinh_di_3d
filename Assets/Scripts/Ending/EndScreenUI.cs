@@ -12,13 +12,14 @@ using UnityEngine.UI;
 //  - fade chỉ chạy đúng một lần (chống kích hoạt fade nhiều lần);
 //  - chữ CHỈ xuất hiện sau khi màn hình đã đen hoàn toàn;
 //  - khi đen hoàn tất: tuỳ chọn Time.timeScale = 0 -> mọi gameplay phía sau
-//    đứng im; KHÔNG tự chuyển scene.
+//    đứng im; KHÔNG tự chuyển scene (việc quay về menu do EndingSequence lo).
 public class EndScreenUI : MonoBehaviour
 {
     public const string DefaultEndText = "B\u1EA0N \u0110\u00C3 TR\u1EA2 H\u1EBET N\u1EE2";
 
     private CanvasGroup blackGroup;
     private Text endText;
+    private Text hintText;
     private bool built;
     private bool playStarted;
 
@@ -109,6 +110,38 @@ public class EndScreenUI : MonoBehaviour
         endText.gameObject.SetActive(true);
 
         if (onBlack != null) onBlack.Invoke();
+    }
+
+    /// <summary>
+    /// Dòng phụ nhỏ dưới đáy màn hình (VD "Nhấn phím bất kỳ để quay về menu").
+    /// Rỗng = ẩn. Được EndingSequence gọi sau khi màn đen xong.
+    /// </summary>
+    public void ShowHint(string message)
+    {
+        EnsureHintText();
+        hintText.text = message;
+        hintText.gameObject.SetActive(!string.IsNullOrEmpty(message));
+    }
+
+    private void EnsureHintText()
+    {
+        if (hintText != null) return;
+
+        GameObject hintGo = CreateChild("ReturnHint", (RectTransform)transform);
+        hintText = hintGo.AddComponent<Text>();
+        hintText.font = GetFont();
+        hintText.fontSize = 30;
+        hintText.fontStyle = FontStyle.Bold;
+        hintText.alignment = TextAnchor.MiddleCenter;
+        hintText.color = new Color(0.72f, 0.76f, 0.85f, 1f);
+        hintText.raycastTarget = false;
+
+        RectTransform rect = (RectTransform)hintGo.transform;
+        rect.anchorMin = new Vector2(0.5f, 0.10f);
+        rect.anchorMax = new Vector2(0.5f, 0.10f);
+        rect.pivot = new Vector2(0.5f, 0.5f);
+        rect.sizeDelta = new Vector2(1200f, 60f);
+        rect.anchoredPosition = Vector2.zero;
     }
 
     // ------------------------------------------------------------ dựng scene-ui

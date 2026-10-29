@@ -13,6 +13,8 @@ using UnityEditor.SceneManagement;
 ///   - "Weight" : số ô trong túi slotCost (nếu bật showWeight)
 /// Child "Label" được tạo & hiện ngay trong edit để chỉnh; khi chạy game thì ẩn,
 /// ngắm vào mới hiện. Sửa style ở MỘT món thì mọi LootValueLabel trong scene đổi theo.
+/// Label luôn quay mặt về phía người xem: play-mode hướng theo camera người chơi,
+/// edit-mode (preview) hướng theo camera Scene view — giống hệt lúc chạy game.
 [ExecuteAlways]
 public class LootValueLabel : MonoBehaviour
 {
@@ -83,7 +85,27 @@ public class LootValueLabel : MonoBehaviour
 
     private void LateUpdate()
     {
-        if (!Application.isPlaying) return;
+        if (!Application.isPlaying)
+        {
+            // Edit mode: preview "theo góc nhìn người" — label quay mặt về camera
+            // Scene view, y như lúc chạy game (khi đó nó hướng camera người chơi).
+#if UNITY_EDITOR
+            Camera previewCam = SceneView.lastActiveSceneView != null
+                ? SceneView.lastActiveSceneView.camera
+                : Camera.main;
+#else
+            Camera previewCam = Camera.main;
+#endif
+            if (labelRoot != null)
+            {
+                if (previewCam != null)
+                    labelRoot.rotation = previewCam.transform.rotation;
+                else
+                    labelRoot.localRotation = Quaternion.Inverse(transform.localRotation); // dự phòng: dựng thẳng
+            }
+            return;
+        }
+
         if (cam == null) cam = Camera.main;
         if (cam == null) return;
 

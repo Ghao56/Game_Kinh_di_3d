@@ -23,6 +23,10 @@ public class PlayerGrab : MonoBehaviour
     [Header("Giao diện Hướng dẫn Tương tác")]
     [SerializeField] private GameObject promptUI;
 
+    [Header("Chốt cửa xe (khóa nhặt đồ trong khoang)")]
+    [Tooltip("Quest ĐÓNG CỬA XE. Khi quest này đang chạy hoặc đã xong, món loot nằm trong khoang xe KHÔNG được nhặt nữa — bấm nhầm E gần cửa hậu sẽ nhặt trộm món đã chất và tụt tiến độ nhiệm vụ.")]
+    [SerializeField] private string truckClosingQuestId = "dong_cua";
+
     private GameObject heldItem;
     private Interactor interactor;
     private Camera mainCamera;
@@ -61,6 +65,34 @@ public class PlayerGrab : MonoBehaviour
         if (interactor == null) interactor = FindFirstObjectByType<Interactor>();
 
         hotbar = FindFirstObjectByType<ThrowableSelector>();
+
+        CompensateHoldPointScale();
+    }
+
+    // ================= FIX: nhặt đồ thì scale "nhảy" 1 -> 1.25 =================
+    // HoldPoint là con của PlayerCharacter có scale không đều (0.8, 1, 0.8).
+    // SetParent mặc định của Unity giữ nguyên KÍCH THƯỚC WORLD nên tự tính lại
+    // localScale món đồ = worldScale / scale-cha (1 -> 1/0.8 = 1.25): số trong
+    // Inspector nhảy dù kích thước thật không đổi, và scale lạ có thể dính lại
+    // trên món đồ về sau.
+    // Fix: bù NGƯỢC scale không đều lên chính HoldPoint (scale local nhân 1/x
+    // theo từng trục) để chuỗi cha của nó thu về (1,1,1) — localScale món đồ
+    // giữ nguyên tuyệt đối khi nhặt, cất, thả, chất lên xe. HoldPoint vẫn là
+    // con của PlayerCharacter nên bám theo nhân vật như cũ.
+    private void CompensateHoldPointScale()
+    {
+        if (holdPoint == null) return;
+
+        Vector3 lossy = holdPoint.lossyScale;
+        bool uniform = Mathf.Approximately(lossy.x, lossy.y)
+                    && Mathf.Approximately(lossy.y, lossy.z);
+        if (uniform) return;
+
+        Vector3 local = holdPoint.localScale;
+        holdPoint.localScale = new Vector3(
+            lossy.x > 0.0001f ? local.x / lossy.x : local.x,
+            lossy.y > 0.0001f ? local.y / lossy.y : local.y,
+            lossy.z > 0.0001f ? local.z / lossy.z : local.z);
     }
 
     // ================= FIX BUG 1: chọn hotbar <-> đồ trên tay =================
@@ -157,6 +189,30 @@ public class PlayerGrab : MonoBehaviour
         item.SetActive(false);
     }
 
+    // Đoạn kết: cất MỌI THỨ đang cầm trên tay để tay trống (giữ nguyên ô hotbar,
+    // đồ ẩn đi như đã bỏ vào túi — không vứt, không mất tiến độ nhiệm vụ).
+    // Gọi một lần NGAY khi đoạn kết bắt đầu, TRƯỚC khi PlayerGrab bị khoá;
+    // nếu khoá PlayerGrab trước thì món kẹt nguyên trên tay suốt màn đen.
+    public void StashHandsClear()
+    {
+        GameObject item = heldItem;
+        if (item == null) return;
+
+        heldItem = null;
+        RestoreItemLight();
+
+        Rigidbody rb = item.GetComponent<Rigidbody>();
+        if (rb != null) rb.isKinematic = true;
+
+        Collider itemCollider = item.GetComponent<Collider>();
+        if (itemCollider != null) itemCollider.enabled = false;
+
+        if (holdPoint != null && item.transform.parent != holdPoint)
+            item.transform.SetParent(holdPoint, true);
+
+        item.SetActive(false);
+    }
+
     // Nhấc một món loot lên tay: bật lại, đóng băng, gắn vào holdPoint.
     private void PresentLoot(GameObject item)
     {
@@ -185,6 +241,17 @@ public class PlayerGrab : MonoBehaviour
         {
             defaultLightRotation = itemLight.transform.localRotation;
         }
+    }
+
+    // Trạng thái của một lượt chơi: quest "đóng cửa xe" đang CHẠY hoặc ĐÃ XONG
+    // => giai đoạn loot coi như chốt, món nằm trong khoang xe bị khóa nhặt.
+    private bool IsTruckClosingPhase()
+    {
+        QuestManager manager = QuestManager.Instance;
+        if (manager == null) return false;
+
+        QuestState state = manager.GetState(truckClosingQuestId);
+        return state == QuestState.Active || state == QuestState.Completed;
     }
 
     // Trả đèn (nếu có) của món về trạng thái gốc và bỏ tham chiếu.
@@ -258,8 +325,18 @@ public class PlayerGrab : MonoBehaviour
         // 1. Phím E: Tương tác tủ hoặc Nhặt đồ (KHÔNG còn vứt - vứt là Q)
         if (Keyboard.current.eKey.wasPressedThisFrame)
         {
+            // ƯU TIÊN 1: đang nhắm vào 1 CỬA (cửa hậu xe, cửa xe lái, cửa nhà - Interactor
+            // đã chọn nó làm target sẵn sàng) -> E thuộc về CỬA (đóng/mở). KHÔNG nhặt
+            // món chắn/ngay sau cửa (đặc biệt món đã chất trong khoang xe) — đây là
+            // nguyên nhân "bấm E đóng cửa thì nó cứ nhặt luôn món đồ của xe".
+            if (IsTargetingDoor())
+            {
+                // Không làm gì: Interactor tự xử lý đóng/mở cửa bằng cùng phím E.
+                // Muốn nhặt thì nhắm thẳng vào món ở chỗ cửa không che (hoặc làm khi
+                // quest đóng cửa chưa lên).
+            }
             // Ô chất đồ trên xe vẫn giành ưu tiên như cũ.
-            if (IsTargetingCell())
+            else if (IsTargetingCell())
             {
                 // Đang giữ đồ: để Interactor xử lý giữ E chất, không vứt.
                 if (heldItem == null)
@@ -421,6 +498,12 @@ public class PlayerGrab : MonoBehaviour
         {
             if (!col.CompareTag("Item")) continue;
             if (aimedItem != null && col.gameObject != aimedItem) continue;
+
+            // Đã đủ 50M (quest đóng cửa đang chạy/xong): món trong khoang xe là
+            // "đã bán" — không nhặt lại. Tránh bấm E gần cửa hậu nhặt trộm món
+            // vừa chất và làm tụt tiến độ nhiệm vụ (ReclaimTakenOutLoot).
+            if (IsTruckClosingPhase() && TruckLoadZone.IsItemInLoadZone(col.transform.position))
+                continue;
 
             // Hotbar phải nhận được món này trước khi ta nhấc nó lên.
             // Không đủ ô liên tiếp -> bỏ qua, không làm mất vật phẩm.
@@ -675,6 +758,19 @@ public class PlayerGrab : MonoBehaviour
 
         return interactor.CurrentTarget is TruckLoadZone
             || interactor.CurrentTarget is TruckEscapeDoor;
+    }
+
+    // Đang nhắm 1 CỬA (DoorInteractable) mà cửa sẵn sàng nhận E: Interactor đã
+    // chọn cửa làm target -> E phải là mở/đóng cửa, không phải nhặt món gần,
+    // sau cửa hay trong khoang xe ("đóng cửa mà tay vẫn vơ lấy đồ").
+    private bool IsTargetingDoor()
+    {
+        if (interactor == null) interactor = FindFirstObjectByType<Interactor>();
+        if (interactor == null) return false;
+
+        // CurrentTarget chắc chắn còn IsAvailable (Interactor lọc trước khi chọn),
+        // nên chỉ cần nhìn loại: trúng cửa = E dồn hết cho cửa, xoá sạch nhặt/đổi đồ.
+        return interactor.CurrentTarget is DoorInteractable;
     }
 
     private void ResetItemPhysics(GameObject item)

@@ -56,12 +56,33 @@ public class JumpscareManager : MonoBehaviour
         // để jumpscare có thể kích hoạt lại ở lần chơi tiếp theo.
         isTriggered = false;
 
+        // Panel nằm trong Canvas của scene nên bị phá hủy sau mỗi lần reset,
+        // còn manager thì persistent -> bắt buộc phải tìm lại panel trong scene mới.
+        RebindJumpscarePanel();
+
         if (jumpscarePanel != null)
             jumpscarePanel.SetActive(false);
         else
             Debug.LogWarning($"{nameof(JumpscareManager)}: jumpscarePanel đang NULL sau khi load scene. " +
-                "Nếu panel nằm trong Canvas của scene (không phải object persistent), tham chiếu này sẽ mất sau mỗi lần reload. " +
-                "Hãy đặt JumpscarePanel làm con của cùng object persistent với JumpscareManager.", this);
+                "Hãy chắc chắn scene có một object tên 'JumpscarePanel' (cả khi bị ẩn).", this);
+    }
+
+    private void RebindJumpscarePanel()
+    {
+        // Tham chiếu cũ trỏ vào object đã bị hủy (Unity fake-null) -> tìm lại.
+        if (jumpscarePanel != null) return;
+
+        foreach (GameObject root in SceneManager.GetActiveScene().GetRootGameObjects())
+        {
+            foreach (RectTransform child in root.transform.GetComponentsInChildren<RectTransform>(true))
+            {
+                if (child.name == "JumpscarePanel")
+                {
+                    jumpscarePanel = child.gameObject;
+                    return;
+                }
+            }
+        }
     }
 
     public void TriggerJumpscare()
