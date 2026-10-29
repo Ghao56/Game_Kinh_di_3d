@@ -21,9 +21,17 @@ public class ThirdPersonController : MonoBehaviour
     [Tooltip("Bật để log isGrounded mỗi lần ấn Jump — dùng để kiểm tra lỗi nhảy, xong thì tắt.")]
     [SerializeField] private bool logJumpDebug = true;
 
-    [Header("Crouch")]
-    [Tooltip("Để trống nếu chưa có animation — khi đó trạng thái ngồi/đứng chỉ được log ra Console.")]
+    [Header("Animation")]
+    [Tooltip("Để trống nếu chưa có animation — script sẽ tự tìm Animator trong con. Trạng thái Idle/Walk/Run/Jump được điều khiển tự động.")]
     [SerializeField] private Animator animator;
+    [Tooltip("Tên parameter bool để chuyển sang state Walking.")]
+    [SerializeField] private string walkingBoolParameter = "isWalking";
+    [Tooltip("Tên parameter int để sang state Fast Run (1) / trở lại Walking (0).")]
+    [SerializeField] private string runIntParameter = "Run";
+    [Tooltip("Tên parameter trigger gọi state Jump.")]
+    [SerializeField] private string jumpTriggerParameter = "Jump";
+
+    [Header("Crouch")]
     [SerializeField] private string crouchBoolParameter = "IsCrouching";
     [SerializeField] private bool logCrouchState = true;
     [Tooltip("Nếu bật, không cho nhảy khi đang ngồi.")]
@@ -42,12 +50,35 @@ public class ThirdPersonController : MonoBehaviour
     private InputAction crouchAction;
     private float verticalVelocity;
     private bool isCrouching;
+
+    // Crouching chỉ được dùng nếu Animator controller thực sự có parameter này.
     private int crouchParameterHash;
     private bool hasCrouchParameter;
+
+    // các parameter điều khiển Idle/Walk/Run/Jump trong Animator Controller.
+    private int walkingParameterHash;
+    private bool hasWalkingParameter;
+    private int runParameterHash;
+    private bool hasRunParameter;
+    private AnimatorControllerParameterType runParameterType;
+    private int jumpParameterHash;
+    private bool hasJumpParameter;
 
     private void Awake()
     {
         controller = GetComponent<CharacterController>();
+
+        if (animator == null)
+        {
+            // Field Animator trong Inspector đang trống → tự tìm trong con của object này.
+            animator = GetComponentInChildren<Animator>();
+        }
+
+        if (animator == null)
+        {
+            Debug.LogWarning("[ThirdPersonController] Không tìm thấy Animator nào trên PlayerCharacter hay trong con — " +
+                             "nhân vật sẽ di chuyển nhưng không chạy animation đi/chạy.", this);
+        }
 
         if (actions == null)
         {
@@ -70,31 +101,83 @@ public class ThirdPersonController : MonoBehaviour
         crouchAction = playerMap.FindAction("Crouch", throwIfNotFound: true);
 
         CacheCrouchParameter();
+        CacheLocomotionParameters();
     }
 
     private void CacheCrouchParameter()
     {
-        hasCrouchParameter = false;
+        hasCrouchParameter = TryFindAnimatorParameter(crouchBoolParameter, out var crouchParameter) &&
+                             crouchParameter.type == AnimatorControllerParameterType.Bool;
+        crouchParameterHash = Animator.StringToHash(crouchBoolParameter);
 
-        if (animator == null || string.IsNullOrEmpty(crouchBoolParameter))
+        if (!hasCrouchParameter && animator != null && !string.IsNullOrEmpty(crouchBoolParameter))
+        {
+            Debug.LogWarning(
+                $"[ThirdPersonController] Animator không có bool parameter tên '{crouchBoolParameter}'. " +
+                "Crouch sẽ chỉ log ra Console.", this);
+        }
+    }
+
+    private void CacheLocomotionParameters()
+    {
+        hasWalkingParameter = TryFindAnimatorParameter(walkingBoolParameter, out var walkingParameter) &&
+                              walkingParameter.type == AnimatorControllerParameterType.Bool;
+        walkingParameterHash = Animator.StringToHash(walkingBoolParameter);
+
+        hasRunParameter = TryFindAnimatorParameter(runIntParameter, out var runParameter) &&
+                          (runParameter.type == AnimatorControllerParameterType.Int ||
+                           runParameter.type == AnimatorControllerParameterType.Bool);
+        runParameterType = hasRunParameter ? runParameter.type : AnimatorControllerParameterType.Int;
+        runParameterHash = Animator.StringToHash(runIntParameter);
+
+        hasJumpParameter = TryFindAnimatorParameter(jumpTriggerParameter, out var jumpParameter) &&
+                           jumpParameter.type == AnimatorControllerParameterType.Trigger;
+        jumpParameterHash = Animator.StringToHash(jumpTriggerParameter);
+
+        if (animator == null)
         {
             return;
         }
 
-        crouchParameterHash = Animator.StringToHash(crouchBoolParameter);
-
-        foreach (var parameter in animator.parameters)
+        if (!hasWalkingParameter)
         {
-            if (parameter.type == AnimatorControllerParameterType.Bool && parameter.nameHash == crouchParameterHash)
+            Debug.LogWarning(
+                $"[ThirdPersonController] Animator không có bool parameter tên '{walkingBoolParameter}'. State Walking sẽ không được bật.", this);
+        }
+
+        if (!hasRunParameter)
+        {
+            Debug.LogWarning(
+                $"[ThirdPersonController] Animator không có parameter '{runIntParameter}' (int/bool). State Fast Run sẽ không được bật.", this);
+        }
+
+        if (!hasJumpParameter)
+        {
+            Debug.LogWarning(
+                $"[ThirdPersonController] Animator không có trigger parameter tên '{jumpTriggerParameter}'. State Jump sẽ không được gọi.", this);
+        }
+    }
+
+    private bool TryFindAnimatorParameter(string name, out AnimatorControllerParameter parameter)
+    {
+        parameter = null;
+
+        if (animator == null || string.IsNullOrEmpty(name))
+        {
+            return false;
+        }
+
+        int hash = Animator.StringToHash(name);
+        foreach (var candidate in animator.parameters)
+        {
+            if (candidate.nameHash == hash)
             {
-                hasCrouchParameter = true;
-                return;
+                parameter = candidate;
+                return true;
             }
         }
 
-        Debug.LogWarning(
-            $"[ThirdPersonController] Animator không có bool parameter tên '{crouchBoolParameter}'. " +
-            "Crouch sẽ chỉ log ra Console.", this);
+        return false;
     }
 
     private void OnEnable()
@@ -175,12 +258,42 @@ public class ThirdPersonController : MonoBehaviour
 
         float speedMultiplier = isCrouching ? crouchMultiplier : (sprinting ? sprintMultiplier : 1f);
 
+        UpdateLocomotionAnimation(input, sprinting);
+
         if (camForward.sqrMagnitude > 0.001f)
         {
             RotateTowards(camForward);
         }
 
         return moveDirection * moveSpeed * speedMultiplier;
+    }
+
+    // Set parameter trong Animator để chuyển state Idle / Walking / Fast Run.
+    private void UpdateLocomotionAnimation(Vector2 input, bool sprinting)
+    {
+        if (animator == null)
+        {
+            return;
+        }
+
+        bool moving = input.magnitude > 0.1f;
+
+        if (hasWalkingParameter)
+        {
+            animator.SetBool(walkingParameterHash, moving);
+        }
+
+        if (hasRunParameter)
+        {
+            if (runParameterType == AnimatorControllerParameterType.Bool)
+            {
+                animator.SetBool(runParameterHash, sprinting);
+            }
+            else
+            {
+                animator.SetInteger(runParameterHash, sprinting ? 1 : 0);
+            }
+        }
     }
 
     private void RotateTowards(Vector3 direction)
@@ -208,6 +321,11 @@ public class ThirdPersonController : MonoBehaviour
             if (canJump && jumpPressed)
             {
                 verticalVelocity = Mathf.Sqrt(jumpHeight * -2f * gravity);
+
+                if (hasJumpParameter)
+                {
+                    animator.SetTrigger(jumpParameterHash);
+                }
             }
         }
         else
