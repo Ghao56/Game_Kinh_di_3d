@@ -15,6 +15,25 @@ public class JumpscareManager : MonoBehaviour
     private AudioSource audioSource;
     private bool isTriggered = false;
 
+    // Panel dựng tạm khi scene không có JumpscarePanel (MHoang): panel scene
+    // THẬT khi xuất hiện sẽ được ưu tiên dùng lại (xem OnSceneLoaded).
+    private GameObject fallbackPanel;
+    private bool usingFallback;
+
+    // Auto-bootstrap: scene chapter (MHoang) không đặt JumpscareManager sẵn như
+    // MainGame — tạo bản persistent để thua khi bị bắt hoạt động ở MỌI scene.
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetStatics() => Instance = null;
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+    private static void Bootstrap()
+    {
+        if (Instance != null) return; // bản DDOL từ scene trước còn sống
+        if (FindFirstObjectByType<JumpscareManager>() != null) return; // scene tự đặt sẵn
+
+        new GameObject("JumpscareManager (auto)").AddComponent<JumpscareManager>();
+    }
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -54,35 +73,86 @@ public class JumpscareManager : MonoBehaviour
     {
         // Quan trọng: reset trạng thái mỗi khi scene được load lại,
         // để jumpscare có thể kích hoạt lại ở lần chơi tiếp theo.
-        isTriggered = false;
+        // (Scene additive không phải lượt chơi mới — đừng reset oan.)
+        if (mode != LoadSceneMode.Additive) isTriggered = false;
 
-        // Panel nằm trong Canvas của scene nên bị phá hủy sau mỗi lần reset,
-        // còn manager thì persistent -> bắt buộc phải tìm lại panel trong scene mới.
+        // Panel scene THẬT ("JumpscarePanel") luôn thắng panel dựng tạm: nếu
+        // manager DDOL đang dùng fallback (MHoang) mà rời sang MainGame có sẵn
+        // panel, gỡ fallback và vẫn dùng panel thật.
         RebindJumpscarePanel();
 
         if (jumpscarePanel != null)
             jumpscarePanel.SetActive(false);
-        else
-            Debug.LogWarning($"{nameof(JumpscareManager)}: jumpscarePanel đang NULL sau khi load scene. " +
-                "Hãy chắc chắn scene có một object tên 'JumpscarePanel' (cả khi bị ẩn).", this);
     }
 
     private void RebindJumpscarePanel()
     {
-        // Tham chiếu cũ trỏ vào object đã bị hủy (Unity fake-null) -> tìm lại.
-        if (jumpscarePanel != null) return;
+        // Panel scene nằm trong Canvas của scene, bị phá hủy sau mỗi lần load —
+        // manager persistent nên bắt buộc tìm lại trong scene mới.
+        GameObject scenePanel = FindScenePanel();
+        if (scenePanel != null)
+        {
+            usingFallback = false;
+            if (fallbackPanel != null) Destroy(fallbackPanel);
+            fallbackPanel = null;
+            jumpscarePanel = scenePanel;
+            return;
+        }
 
+        // Scene không có panel (MHoang...): dựng fallback nếu chưa có.
+        if (usingFallback && fallbackPanel != null)
+        {
+            jumpscarePanel = fallbackPanel;
+            return;
+        }
+
+        EnsureFallbackPanel();
+        jumpscarePanel = fallbackPanel;
+        usingFallback = true;
+    }
+
+    private static GameObject FindScenePanel()
+    {
         foreach (GameObject root in SceneManager.GetActiveScene().GetRootGameObjects())
         {
             foreach (RectTransform child in root.transform.GetComponentsInChildren<RectTransform>(true))
             {
-                if (child.name == "JumpscarePanel")
-                {
-                    jumpscarePanel = child.gameObject;
-                    return;
-                }
+                if (child.name == "JumpscarePanel") return child.gameObject;
             }
         }
+
+        return null;
+    }
+
+    // Panel dự phòng dựng bằng code (cùng stack Canvas overlay với EndScreenUI):
+    // nền đỏ sẫm đủ để báo người chơi biết mình vừa bị bắt khi scene không
+    // có panel scare image.
+    private void EnsureFallbackPanel()
+    {
+        if (fallbackPanel != null) return;
+
+        GameObject go = new GameObject("JumpscarePanel (fallback)", typeof(Canvas), typeof(CanvasGroup));
+        Canvas canvas = go.GetComponent<Canvas>();
+        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        canvas.sortingOrder = 2500; // đè HUD, thua EndScreen (3000)
+
+        CanvasGroup group = go.GetComponent<CanvasGroup>();
+        group.interactable = false;
+        group.blocksRaycasts = false;
+
+        RectTransform rect = (RectTransform)go.transform;
+        rect.anchorMin = Vector2.zero;
+        rect.anchorMax = Vector2.one;
+        rect.pivot = new Vector2(0.5f, 0.5f);
+        rect.offsetMin = Vector2.zero;
+        rect.offsetMax = Vector2.zero;
+
+        UnityEngine.UI.Image image = go.AddComponent<UnityEngine.UI.Image>();
+        image.color = new Color(0.18f, 0.0f, 0.0f, 1f);
+        image.raycastTarget = false;
+
+        go.SetActive(false);
+        fallbackPanel = go;
     }
 
     public void TriggerJumpscare()
