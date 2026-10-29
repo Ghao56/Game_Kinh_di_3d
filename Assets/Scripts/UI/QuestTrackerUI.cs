@@ -10,9 +10,12 @@ public class QuestTrackerUI : MonoBehaviour
 {
     private const string TitleChildName = "Title";
     private const string RowsChildName = "Rows";
+    private const string DebtChildName = "DebtLine";
+    private const string DebtDividerChildName = "DebtDivider";
     private const string LegacyChildName = "Objectives";
 
     private const float TitleHeight = 34f;
+    private const float DebtHeight = 30f;
     private const float CheckWidth = 28f;
     private const float LabelLeftPadding = 32f;
     private const float LabelRightPadding = 6f;
@@ -76,6 +79,13 @@ public class QuestTrackerUI : MonoBehaviour
 
     private readonly List<ObjectiveRow> rows = new List<ObjectiveRow>();
 
+    // Dòng nợ persistent (mục 5 concept: "số nợ ban đầu hiển thị rõ"):quest
+    // loot_truck chỉ bật từ S3 nên số nợ cần hiển ngay từ S0 trong chính bảng
+    // quest thay vì một HUD riêng. Nợ xong thì dòng tự ẩn.
+    private Text debtText;       // nhãn trái "NỢ CÒN LẠI"
+    private Text debtAmountText; // số tiền phải (đổi màu theo tiến độ trả)
+    private Image debtDivider;   // kẻ mảnh phân cách với phần quest bên dưới
+
     private QuestRuntime displayed;
     private bool displayedCompleted;
     private float holdTimer;
@@ -96,6 +106,9 @@ public class QuestTrackerUI : MonoBehaviour
             enabled = false;
             return;
         }
+
+        EnsureDebtLine();
+        UpdateDebtLine();
 
         FitToTopRight();
 
@@ -118,28 +131,191 @@ public class QuestTrackerUI : MonoBehaviour
         QuestManager.Instance.QuestStarted += HandleStarted;
         QuestManager.Instance.QuestProgressed += HandleProgressed;
         QuestManager.Instance.QuestCompleted += HandleCompleted;
+
+        DebtTracker.OnPaidChanged += HandlePaidChanged;
     }
 
     private void OnDisable()
     {
-        if (QuestManager.Instance == null) return;
+        if (QuestManager.Instance != null)
+        {
+            QuestManager.Instance.QuestStarted -= HandleStarted;
+            QuestManager.Instance.QuestProgressed -= HandleProgressed;
+            QuestManager.Instance.QuestCompleted -= HandleCompleted;
+        }
 
-        QuestManager.Instance.QuestStarted -= HandleStarted;
-        QuestManager.Instance.QuestProgressed -= HandleProgressed;
-        QuestManager.Instance.QuestCompleted -= HandleCompleted;
+        // Unsub TIỀN phải chạy trong mọi trường hợp: event là static, quên unsub
+        // là NRE lúc tiền đổi sau khi HUD này đã destroy theo scene.
+        // (-= một handler chưa từng += là an toàn, không cần kiểm tra null —
+        // và C# cấm đọc event này từ ngoài DebtTracker.)
+        DebtTracker.OnPaidChanged -= HandlePaidChanged;
     }
 
     private void Update()
     {
         if (holdTimer > 0f) holdTimer -= Time.unscaledDeltaTime;
 
-        bool shouldShow = displayed != null && (!displayedCompleted || holdTimer > 0f);
+        bool debtVisible = debtText != null && debtText.gameObject.activeSelf;
+        bool shouldShow = debtVisible || (displayed != null && (!displayedCompleted || holdTimer > 0f));
         float target = shouldShow ? 1f : 0f;
 
         if (!Mathf.Approximately(canvasGroup.alpha, target))
             canvasGroup.alpha = Mathf.MoveTowards(canvasGroup.alpha, target, fadeSpeed * Time.unscaledDeltaTime);
 
         if (displayed != null && !shouldShow && canvasGroup.alpha <= 0f) Clear();
+    }
+
+    // ------------------------------------------------------------ dòng nợ persistent
+
+    private void HandlePaidChanged(int _) => UpdateDebtLine();
+
+    private void UpdateDebtLine()
+    {
+        if (debtText == null) return;
+
+        int total = DebtTracker.TotalDebtMillions;
+        int paid = DebtTracker.DebtPaidMillions;
+        int bonus = DebtTracker.BonusMillions;
+
+        bool wasActive = debtText.gameObject.activeSelf;
+
+        // Ba trạng thái: còn nợ → hoặc đã đủ nợ mà còn tiền dư → hiện số tiền dư.
+        // Cả hai đều 0 (trả đúng bằng nợ, không chất thêm) thì hàng nhường chỗ
+        // cho bảng quest.
+        bool debtLeft = paid < total;
+        bool active = debtLeft || bonus > 0;
+
+        // Hết nợ: cả hàng + kẻ phân cách nhường chỗ cho bảng quest
+        // (phần thắng sẽ tới màn kết "BẠN ĐÃ TRẢ HẾT NỢ").
+        debtText.gameObject.SetActive(active);
+        if (debtDivider != null) debtDivider.gameObject.SetActive(active);
+
+        if (!active)
+        {
+            ForceLayoutOnce();
+            return;
+        }
+
+        if (!debtLeft && bonus > 0)
+        {
+            // Chế độ tiền dư: nhãn + số xanh lá để khác rõ với lúc còn nợ.
+            debtText.text = "TI\u1EC0N D\u01AF";
+            debtText.color = new Color(0.5f, 0.95f, 0.55f, 1f);
+            debtAmountText.color = new Color(0.5f, 0.95f, 0.55f, 1f);
+            debtAmountText.text = $"+{bonus} TRI\u1EC6U";
+        }
+        else
+        {
+            debtText.text = "N\u1EE2 C\u00D2N L\u1EA0I";
+            debtText.color = new Color(0.92f, 0.86f, 0.74f, 1f);
+
+            // Số tiền đổi màu dần: nợ còn nguyên = đỏ, gần trả xong = vàng ấm —
+            // người chơi "cảm" được đang tiến gần mục tiêu mà không cần số phần trăm.
+            float paidRatio = total > 0 ? Mathf.Clamp01(paid / (float)total) : 0f;
+            debtAmountText.color = Color.Lerp(
+                new Color(0.95f, 0.4f, 0.35f, 1f),
+                new Color(1f, 0.85f, 0.5f, 1f),
+                paidRatio);
+            debtAmountText.text = $"{DebtTracker.RemainingDebtMillions} TRI\u1EC6U";
+        }
+
+        if (wasActive != active) ForceLayoutOnce();
+    }
+
+    // Bảng bên ngoài dùng ContentSizeFitter (Preferred): bật/tắt con đổi tổng
+    // cao nhưng Unity chỉ sắp lại ở model layout frame kế — chủ động ép ngay
+    // để nhảy số không bị lệch 1 frame.
+    private void ForceLayoutOnce()
+    {
+        Canvas.ForceUpdateCanvases();
+        LayoutRebuilder.ForceRebuildLayoutImmediate((RectTransform)transform);
+    }
+
+    // Hàng nợ = "NỢ CÒN LẠI" (trái) + số tiền (phải) + kẻ mảnh, nằm TRÊN tiêu đề
+    // quest trong cùng bảng (cùng VerticalLayoutGroup nên thẳng lề, cùng nền).
+    private void EnsureDebtLine()
+    {
+        if (debtText != null) return;
+
+        // ---- hàng chính: nhãn trái + số tiền phải
+        Transform existingRow = transform.Find(DebtChildName);
+        GameObject row = existingRow != null
+            ? existingRow.gameObject
+            : new GameObject(DebtChildName, typeof(RectTransform), typeof(HorizontalLayoutGroup));
+        row.transform.SetParent(transform, false);
+
+        HorizontalLayoutGroup layout = row.GetComponent<HorizontalLayoutGroup>();
+        if (layout == null) layout = row.AddComponent<HorizontalLayoutGroup>();
+        layout.padding = new RectOffset(2, 6, 0, 4);
+        layout.spacing = 8f;
+        layout.childAlignment = TextAnchor.MiddleLeft;
+        layout.childControlWidth = true;
+        layout.childControlHeight = true;
+        layout.childForceExpandWidth = false;
+        layout.childForceExpandHeight = true;
+        // Cấu hình này phải chạy TRƯỚC khi con được thêm: Unity chỉ build đã
+        // kích hoạt khi cần nhấn layout frame tiếp theo.
+
+        GameObject labelGO = CreateTextObject("Label", (RectTransform)row.transform);
+        debtText = labelGO.GetComponent<Text>();
+        debtText.text = "N\u1EE2 C\u00D2N L\u1EA0I";
+        debtText.fontSize = 20;
+        debtText.fontStyle = FontStyle.Bold;
+        // không wrap để tiêu đề nhãn không bị ngắt dòng trong layout ngang.
+        debtText.horizontalOverflow = HorizontalWrapMode.Overflow;
+        debtText.verticalOverflow = VerticalWrapMode.Overflow;
+        SetPreferredWidth(labelGO, 130f);
+
+        GameObject amountGO = CreateTextObject("Amount", (RectTransform)row.transform);
+        debtAmountText = amountGO.GetComponent<Text>();
+        debtAmountText.text = string.Empty;
+        debtAmountText.fontSize = 26;
+        debtAmountText.fontStyle = FontStyle.Bold;
+        debtAmountText.alignment = TextAnchor.MiddleRight; // số tiền khít lề phải
+        LayoutElement amountElement = GetOrCreateLayoutElement(amountGO);
+        amountElement.flexibleWidth = 1f; // chiếm hết phần còn → nhãn trái, số phải
+        amountElement.ignoreLayout = false;
+
+        SetPreferredHeight(row, DebtHeight);
+
+        // ---- kẻ mảnh phân cách dòng nợ với quest bên dưới
+        Transform existingDivider = transform.Find(DebtDividerChildName);
+        GameObject divider = existingDivider != null
+            ? existingDivider.gameObject
+            : new GameObject(DebtDividerChildName, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+        divider.transform.SetParent(transform, false);
+
+        Image dividerImage = divider.GetComponent<Image>();
+        dividerImage.raycastTarget = false;
+        dividerImage.color = new Color(0.9f, 0.75f, 0.5f, 0.35f);
+        debtDivider = dividerImage;
+
+        LayoutElement dividerElement = GetOrCreateLayoutElement(divider);
+        dividerElement.preferredHeight = 2f;
+        dividerElement.minHeight = 2f;
+        dividerElement.flexibleWidth = 1f; // kẻ căng hết bề rộng bảng
+
+        // Thứ tự trong VerticalLayoutGroup: nợ (top) → kẻ → tiêu đề quest → objectives.
+        row.transform.SetAsFirstSibling();
+        divider.transform.SetSiblingIndex(1);
+
+        row.SetActive(false);
+        divider.SetActive(false); // ẩn tới khi UpdateDebtLine cập nhật số
+    }
+
+    private static void SetPreferredWidth(GameObject go, float width)
+    {
+        LayoutElement element = GetOrCreateLayoutElement(go);
+        element.minWidth = width;
+        element.preferredWidth = width;
+        element.flexibleWidth = 0f;
+    }
+
+    private static LayoutElement GetOrCreateLayoutElement(GameObject go)
+    {
+        LayoutElement element = go.GetComponent<LayoutElement>();
+        if (element == null) element = go.AddComponent<LayoutElement>();
+        return element;
     }
 
     private void HandleStarted(QuestRuntime runtime)

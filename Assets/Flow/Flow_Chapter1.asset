@@ -15,8 +15,8 @@ MonoBehaviour:
   notes: "Ch\u01B0\u01A1ng 1 'M\xF3n N\u1EE3 Cu\u1ED1i C\xF9ng': g\u1EA7m xe \u2192
     tin nh\u1EAFn ch\u1EE7 n\u1EE3 \u2192 m\u1EDF c\u1EEDa h\u1EADu \u2192 \xF4 xanh
     ch\u1EA5t \u0111\u1ED3 \u2192 v\xE0o nh\xE0 l\u1EA5y \u0111\u1ED3 \u2192 \u0111\u1EE7
-    50M: c\u1EEDa xe l\xE1i t\u1EF1 m\u1EDF, GI\u1EEE E \u0111\u1EC3 tho\xE1t
-    \u2192 fade \u0111en \u2192 'B\u1EA0N \u0110\u00C3 TR\u1EA3 H\u1EBET N\u1EE2'."
+    50M: c\u1EEDa xe l\xE1i t\u1EF1 m\u1EDF, GI\u1EEE E \u0111\u1EC3 tho\xE1t \u2192
+    fade \u0111en \u2192 'B\u1EA0N \u0110\xC3 TR\u1EA3 H\u1EBET N\u1EE2'."
   steps:
   - id: S0_ChuiRa
     note: "Ng\u01B0\u1EDDi ch\u01A1i \u1EDF d\u01B0\u1EDBi g\u1EA7m xe, ch\u01B0a
@@ -91,7 +91,9 @@ MonoBehaviour:
       lightingState: 1
       immediate: 0
     - type: 1
-      text: "Khoang xe \u0111\xE3 s\u1EB5n s\xE0ng. Khi t\xECm \u0111\u01B0\u1EE3c \u0111\u1ED3, h\xE3y mang v\u1EC1 \u0111\xE2y \u0111\u1EC3 ch\u1EA5t l\xEAn xe."
+      text: "Khoang xe \u0111\xE3 s\u1EB5n s\xE0ng. Khi t\xECm \u0111\u01B0\u1EE3c
+        \u0111\u1ED3, h\xE3y mang v\u1EC1 \u0111\xE2y \u0111\u1EC3 ch\u1EA5t l\xEAn
+        xe."
       sender: 
       dialogue: {fileID: 11400000, guid: 49c2d862357444de92ed5a14c131a572, type: 3}
       target: {fileID: 0}
@@ -111,7 +113,9 @@ MonoBehaviour:
       seconds: 0
     onEnter:
     - type: 1
-      text: "Ch\u1EC9 c\u1EA7n l\u1EA5y \u0111\u01B0\u1EE3c \u0111\u1EE7 \u0111\u1ED3 c\xF3 gi\xE1 tr\u1ECB, m\xECnh s\u1EBD tr\u1EA3 h\u1EBFt kho\u1EA3n n\u1EE3 n\xE0y."
+      text: "Ch\u1EC9 c\u1EA7n l\u1EA5y \u0111\u01B0\u1EE3c \u0111\u1EE7 \u0111\u1ED3
+        c\xF3 gi\xE1 tr\u1ECB, m\xECnh s\u1EBD tr\u1EA3 h\u1EBFt kho\u1EA3n n\u1EE3
+        n\xE0y."
       sender: 
       dialogue: {fileID: 11400000, guid: 629c276e4f16acd4582663dbfb1e13f7, type: 3}
       target: {fileID: 0}
@@ -121,10 +125,9 @@ MonoBehaviour:
     onExit: []
     nextStepId: S5_TamDung
   - id: S5_TamDung
-    note: "Giai doan ket thuc: khi quest 'loot_truck' (50M) xong, chuoi quest
-      tu start 've_thoi' (UI: 'VE THOI'). Cua xe lai Puerta_Fron.001 tu mo
-      (EndingSequence); giu E tai vung thoat (thoat_xe) de chay hieu ung
-      ket thuc game."
+    note: 'Giai doan ket thuc: khi quest ''loot_truck'' (50M) xong, chuoi quest tu
+      start ''ve_thoi'' (UI: ''VE THOI''). Cua xe lai Puerta_Fron.001 tu mo (EndingSequence);
+      giu E tai vung thoat (thoat_xe) de chay hieu ung ket thuc game.'
     completeWhen:
       type: 5
       signal: 
@@ -133,7 +136,8 @@ MonoBehaviour:
       seconds: 0
     onEnter:
     - type: 1
-      text: "\u0110\u1EE7 ti\u1EC1n r\u1ED3i. L\xEAn xe, r\u1EDDi kh\u1ECFi \u0111\xE2y \u2014 \u0111\u1EEBng nh\u00ECn l\u1EA1i."
+      text: "\u0110\u1EE7 ti\u1EC1n r\u1ED3i. L\xEAn xe, r\u1EDDi kh\u1ECFi \u0111\xE2y
+        \u2014 \u0111\u1EEBng nh\xECn l\u1EA1i."
       sender: 
       dialogue: {fileID: 0}
       target: {fileID: 0}

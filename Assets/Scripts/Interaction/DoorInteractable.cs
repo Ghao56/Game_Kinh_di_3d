@@ -297,6 +297,10 @@ public class DoorInteractable : MonoBehaviour, IInteractable, IInteractableAvail
     public string CloseReportQuestId => closeReportQuestId;
     public string CloseReportObjectiveId => closeReportObjectiveId;
 
+    // Cánh ghép (isSlave) không điều khiển được cụm: nơi cần ForceClose/đọc
+    // trạng thái cụm phải dừng ở cán chính.
+    public bool IsSlaveDoor => isSlave;
+
     /// Canh chinh VA toan bo canh ghep deu da dong hoc (dung de phat hien
     /// truong hop quest 'dong_cua' bat dau khi cua da dong tu truoc).
     public bool IsClosedDoor
@@ -333,6 +337,26 @@ public class DoorInteractable : MonoBehaviour, IInteractable, IInteractableAvail
     {
         open = true;
         unlockedOnce = true;
+    }
+
+    // Dong cua bang CODE (lua chon "DONG LAI" sau khi du no): cua quay theo ban le
+    // nhu nhan E thu cong, onFullyClosed/MaybeReportClosed bung dung hen vi duoc
+    // tinh trong Update — dung cho dong_cua chay ngam chang can nhan E.
+    // Canh ghep quay theo canh chinh giong OnInteract.
+    public void ForceClose()
+    {
+        open = false;
+        unlockedOnce = true;
+
+        for (int i = 0; i < linkedDoors.Length; i++)
+        {
+            DoorInteractable door = linkedDoors[i];
+            if (door != null) door.open = false;
+        }
+
+        // Glow gợi ý đóng (CloseHintOpen) tắt theo vì quest dong_cua sẽ hoàn
+        // thành khi cửa chạm vị trí đóng — Update tự xử, không cần dùng glow tay.
+        Debug.Log($"[DoorInteractable] {name} DONG bang code (kem {linkedDoors.Length} canh ghep)", this);
     }
 
     // Khoa mo/dong bang phim E nhung van giu Update chay de cua quay tiep den vi tri mo.

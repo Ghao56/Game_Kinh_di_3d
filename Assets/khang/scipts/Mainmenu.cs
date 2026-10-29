@@ -69,6 +69,20 @@ public class MainMenu : MonoBehaviour
         glowHoverTexture = null;
     }
 
+    // Scene menu luôn cần chuột để bấm nút. SettingsPanel.prefab bật
+    // lockCursorOnClose (hợp lý cho scene gameplay) nên đóng Settings —
+    // bằng phím Tab hay nút BACK — sẽ khóa + ẩn chuột vĩnh viễn ở menu.
+    // Khung bảo vệ này giữ trạng thái viewport của chuột luôn là hiện hình,
+    // trong khi ở scene game (không có MainMenu) thì không bị ảnh hưởng.
+    void Update()
+    {
+        if (UnityEngine.Cursor.lockState != CursorLockMode.None || !UnityEngine.Cursor.visible)
+        {
+            UnityEngine.Cursor.lockState = CursorLockMode.None;
+            UnityEngine.Cursor.visible = true;
+        }
+    }
+
     // === Gradient Highlight Bar ===
     // Vẽ một texture gradient ngang (trong suốt ở hai đầu, mềm ở trên/dưới)
     // rồi đặt làm background của nút, đứng NGAY SAU chữ → tạo dải sáng sau chữ.

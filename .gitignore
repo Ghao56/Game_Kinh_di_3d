@@ -27,6 +27,9 @@ MemoryCaptures/
 # opencode local config (chua MCP Unity, may nao co Unity moi can)
 .opencode/
 
+# deepwork progress files
+.slim/deepwork/
+
 sysinfo.txt
 *.apk
 *.aab

@@ -34,6 +34,10 @@ public class QuestManager : MonoBehaviour
 
         Instance = this;
         BuildRegistry();
+
+        // Mỗi QuestManager là một lượt chơi mới (scene load/khi chết reload):
+        // tiền thô của lượt trước phải về 0 để HUD nợ khớp registry.
+        DebtTracker.ResetRun();
     }
 
     private void OnDestroy()
@@ -170,6 +174,32 @@ public class QuestManager : MonoBehaviour
     {
         QuestRuntime runtime = GetOrCreateRuntime(questId);
         return runtime != null ? runtime.State : QuestState.Locked;
+    }
+
+    /// Truy cập runtime của quest (tiến độ từng mục tiêu). Lưu ý runtime chỉ
+    /// tồn tại nếu quest đã được start/ghi tiến độ — không có trả null, không tạo rác.
+    public QuestRuntime GetRuntime(string questId)
+    {
+        if (string.IsNullOrEmpty(questId)) return null;
+        runtimes.TryGetValue(questId, out QuestRuntime runtime);
+        return runtime;
+    }
+
+    /// Đọc Required của một mục tiêu NGAY TRONG registry, không cần quest đang
+    /// chạy (GetRuntime chỉ thấy quest đã start). Dùng cho HUD nợ hiện số đúng
+    /// ngay từ đầu lượt trước khi luồng nhiệm vụ tới màn xe.
+    public bool TryGetRequired(string questId, string objectiveId, out int required)
+    {
+        required = 0;
+
+        if (!definitions.TryGetValue(questId, out QuestDefinition definition))
+            return false;
+
+        QuestObjective objective = definition.GetObjective(objectiveId);
+        if (objective == null || objective.Required <= 0) return false;
+
+        required = objective.Required;
+        return true;
     }
 
     private void BuildRegistry()

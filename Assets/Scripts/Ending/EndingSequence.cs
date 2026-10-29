@@ -337,11 +337,40 @@ public sealed class EndingSequence : MonoBehaviour
         Debug.Log($"[Ending] Bắt đầu kết thúc — fade {fadeSeconds:0.0}s rồi hiện '{endText}', sau đó về menu '{returnToMenuScene}'.", this);
     }
 
+    // Dòng kế toán lượt chơi: tiền đã trả (kẹp nợ) + tiền dư nếu chất vượt 50M.
+    // DebtTracker là nguồn sự thật tiền thô; quest chỉ phản ánh phần được kẹp dưới nợ.
+    private string BuildSummaryText()
+    {
+        int total = DebtTracker.TotalDebtMillions;
+        int paid = DebtTracker.DebtPaidMillions;
+        int bonus = DebtTracker.BonusMillions;
+
+        // Tiền trên tay/lần trước... luôn tính động: nếu không đủ nợ (không thể
+        // happen ở đường kết này vì EscapeUnlocked mới cho thoát) cứ hiện số đã chất.
+        string summary = $"ĐÃ TRẢ: {paid}/{total} TRIỆU";
+        if (bonus > 0) summary += $"\nTIỀN DƯ: +{bonus} TRIỆU";
+        return summary;
+    }
+
+    // Chữ kết lớn: chất vượt nợ (tiền dư) thì đọc kèm ngay số dư — không đợi
+    // tới dòng kế toán nhỏ bên dưới mới biết mình chất thêm được bao nhiêu.
+    private string EndingDisplayText
+    {
+        get
+        {
+            int bonus = DebtTracker.BonusMillions;
+            return bonus > 0 ? $"{endText} +{bonus} TRIỆU TIỀN DƯ" : endText;
+        }
+    }
+
     // Chuỗi kết: fade đen + chữ kết (PlayRoutine) -> chờ delay/input -> về menu.
     // Chạy trên Chính object này (DontDestroyOnLoad) nên sống sót qua LoadScene.
     private IEnumerator PlayEndRoutine(EndScreenUI screen)
     {
-        yield return StartCoroutine(screen.PlayRoutine(endText, fadeSeconds, freezeTimeAfterFade));
+        yield return StartCoroutine(screen.PlayRoutine(EndingDisplayText, fadeSeconds, freezeTimeAfterFade));
+
+        // Màn đen đã xong: hiện dòng kế toán tiền ngay dưới dòng chữ kết.
+        screen.ShowSummary(BuildSummaryText());
 
         bool returning = !string.IsNullOrEmpty(returnToMenuScene);
         if (returning)

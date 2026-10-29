@@ -30,6 +30,26 @@ public class SettingsUIRestyler : MonoBehaviour
 
         Transform root = canvas.transform;
 
+        if (IsBaked(root))
+        {
+            // Prefab đã chứa sẵn style (đã bake qua Tools > Settings UI).
+            // Chỉ gắn updater cho % label, KHÔNG restyle lại để mọi chỉnh
+            // sửa làm trên prefab trong Editor được giữ nguyên khi vào game.
+            RegisterValueUpdaters(root);
+            return;
+        }
+
+        RunFullRestyle();
+    }
+
+    // Chạy toàn bộ restyle. Dùng bởi SettingsUIBaker (Editor) để bake vào prefab.
+    public void RunFullRestyle()
+    {
+        Canvas canvas = GetComponentInChildren<Canvas>(true);
+        if (canvas == null) return;
+
+        Transform root = canvas.transform;
+
         StyleBackground(root);
         MakeVeilPanel(root);
         MakeColumnPanel(root);
@@ -38,6 +58,30 @@ public class SettingsUIRestyler : MonoBehaviour
         StyleToggle(root);
         StyleBackButton(root);
         CreateHeaders(root);
+    }
+
+    // Nhận biết prefab đã bake: cả 3 object sinh ra bởi restyle đều tồn tại.
+    private static bool IsBaked(Transform root)
+    {
+        return root.Find("VeilPanel") != null
+            && root.Find("ColumnPanel") != null
+            && root.Find("SETTINGS") != null;
+    }
+
+    // Gắn listener cập nhật % label cho slider (nhánh khi prefab đã bake sẵn,
+    // StyleSliders không chạy nên phải gắn listener riêng).
+    private void RegisterValueUpdaters(Transform root)
+    {
+        foreach (Slider s in root.GetComponentsInChildren<Slider>(true))
+        {
+            Transform valueT = s.transform.Find("ValueLabel");
+            if (valueT == null) continue;
+            TMP_Text value = valueT.GetComponent<TMP_Text>();
+            if (value == null) continue;
+
+            UpdateValueText(s, value);
+            s.onValueChanged.AddListener(_ => UpdateValueText(s, value));
+        }
     }
 
     // LoadSettings của SettingsMenu chạy ở Start (SetValueWithoutNotify không bắn event),

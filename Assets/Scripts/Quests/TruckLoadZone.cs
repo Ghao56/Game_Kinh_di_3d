@@ -60,6 +60,9 @@ public class TruckLoadZone : MonoBehaviour, IInteractable, IInteractableAvailabi
     [SerializeField] private string promptDoorClosed = "Hãy mở cửa hậu trước";
     [SerializeField] private string promptInvalid = "Món đồ này không đáng giá.";
 
+    [Tooltip("Prompt khi đã đủ nợ (50M): nhắc 'đóng cửa để về' nhưng vẫn cho chất thêm lấy tiền dư.")]
+    [SerializeField] private string promptBonusReady = "ĐÃ ĐỦ NỢ! Đóng cửa xe (E) để về — hoặc chất thêm lấy TIỀN DƯ";
+
     [Tooltip("Cửa hậu đã mở, tay cầm loot hợp lệ nhưng ô chất đồ đã đầy.")]
     [SerializeField] private string promptFull = "Ô chất đồ đã đầy.";
 
@@ -69,10 +72,6 @@ public class TruckLoadZone : MonoBehaviour, IInteractable, IInteractableAvailabi
     [Header("Vùng sáng")]
     [Tooltip("Màu phát sáng của vùng khi cửa hậu mở và còn chỗ.")]
     [SerializeField] private Color zoneColor = new Color(0f, 1f, 0.3f, 0.55f);
-
-    // itemId đang "nằm trên xe": chất vào thì thêm, món bị nhặt ra lại thì nhả
-    // ô — số ô/full-slot luôn phản ánh sản phẩm hiện có của khoang đổ.
-    private static readonly System.Collections.Generic.HashSet<string> loadedIds = new System.Collections.Generic.HashSet<string>();
 
     // Latch chống chớp: chỉ tắt sau khi điều kiện sai liên tục HoldOffSeconds.
     private const float HoldOffSeconds = 0.4f;
@@ -92,9 +91,6 @@ public class TruckLoadZone : MonoBehaviour, IInteractable, IInteractableAvailabi
     // nhưng không cộng lấp ô/tiến độ nhiệm vụ lần nữa (chống ăn gian).
     private readonly System.Collections.Generic.HashSet<LootItem> placedLoots =
         new System.Collections.Generic.HashSet<LootItem>();
-
-    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-    private static void ResetStatics() => loadedIds.Clear();
 
     // Danh sách zone còn sống trong scene: cho phép hỏi NHANH "món này nằm trong
     // xe không" mà không phải FindObjectsByType mỗi lần nhặt đồ (PlayerGrab dùng).
@@ -122,7 +118,16 @@ public class TruckLoadZone : MonoBehaviour, IInteractable, IInteractableAvailabi
     }
 
     private bool DoorFullyOpen => rearDoor != null && rearDoor.IsFullyOpen;
-    private bool HasEmptySlot => filled < slotCount;
+
+    // CHẾ ĐỘ TIỀN DƯ: đã đủ nợ (50M) → quest loot_truck xong, dong_cua tự lên
+    // (2 cánh cửa xe SÁNG glow riêng của nó) nhưng vùng chất KHÔNG tắt: người
+    // chơi vừa có thể đóng cửa (E) để về, vừa được chất thêm đồ lấy tiền dư.
+    // Quest chỉ kẹp 50M nên đồ vượt nữa vẫn +tiền thật vào DebtTracker.
+    public static bool BonusMode =>
+        DebtTracker.TotalDebtMillions > 0 && DebtTracker.RemainingDebtMillions <= 0;
+
+    private bool HasEmptySlot =>
+        filled < slotCount || BonusMode; // bonus mode: bỏ trần số ô, chất tới lúc đóng cửa
 
     // Chất được khi còn chỗ trống, HOẶC món này đã từng được chất rồi (bị
     // nhặt ra khỏi xe và cầm lại trên tay) — món đó đã từng chiếm ô nên cho
@@ -147,7 +152,7 @@ public class TruckLoadZone : MonoBehaviour, IInteractable, IInteractableAvailabi
             HeldState held = EvaluateHeld();
             if (held == HeldState.Invalid) return promptInvalid;
             if (!FitsHeld(HeldLootItem())) return promptFull;
-            return promptWhenReady;
+            return BonusMode ? promptBonusReady : promptWhenReady;
         }
     }
 
@@ -200,9 +205,6 @@ public class TruckLoadZone : MonoBehaviour, IInteractable, IInteractableAvailabi
 
         if (!rePlaced)
         {
-            if (loot != null && !string.IsNullOrEmpty(loot.ItemId))
-                loadedIds.Add(loot.ItemId);
-
             placedLoots.Add(loot); // HashSet nhận luôn cả loot == null, vô hại
             filled++;
         }
@@ -252,9 +254,16 @@ public class TruckLoadZone : MonoBehaviour, IInteractable, IInteractableAvailabi
         // ra không được cộng thêm, nếu không người chơi ăn gian được tiến độ.
         if (!rePlaced)
         {
+            // Quest kẹp floor 1 — DebtTracker dùng CÙNG con số để HUD/màn kết
+            // luôn khớp với thanh quest kể cả món valueInMillions = 0.
+            int amount = Mathf.Max(1, loot != null ? loot.valueInMillions : 1);
+
             QuestManager manager = QuestManager.Instance;
             if (manager != null && !string.IsNullOrEmpty(loadQuestId) && !string.IsNullOrEmpty(loadObjectiveId))
-                manager.ReportProgress(loadQuestId, loadObjectiveId, Mathf.Max(1, loot != null ? loot.valueInMillions : 1));
+                manager.ReportProgress(loadQuestId, loadObjectiveId, amount);
+
+            // Tiền thô cho HUD nợ / tiền dư / leo thang của ma (không kẹp 50M).
+            DebtTracker.AddPaid(amount);
         }
 
         onFilled?.Invoke();
@@ -376,17 +385,15 @@ public class TruckLoadZone : MonoBehaviour, IInteractable, IInteractableAvailabi
         return IsAccepted(loot) ? HeldState.Valid : HeldState.Invalid;
     }
 
-    // Rượu/muối (không có LootItem.ItemId) hoặc id đã được chất lần nào rồi →
-    // không đáng giá. NGOẠI LỆ: chính chiếc món đã được chất từ ô này — người
-    // chơi nhặt nó ra khỏi xe thì vẫn được chất lại (xem PlaceLoot), không
-    // bị chặn vì id của nó đã nằm trong loadedIds từ lần chất trước.
+    // Rượu/muối (không có LootItem.ItemId) → không đáng giá. Mỗi LootItem là
+    // MỘT món riêng: chỉ chặn chính instance đã được chất (xem PlaceLoot),
+    // còn các bản copy cùng id trong scene vẫn là hàng riêng, chất bình thường.
     private bool IsAccepted(LootItem loot)
     {
         if (loot == null) return false;
         string id = loot.ItemId;
         if (string.IsNullOrEmpty(id)) return false;
         if (placedLoots.Contains(loot)) return true;
-        if (loadedIds.Contains(id)) return false;
 
         if (validItemIds != null && validItemIds.Length > 0 && System.Array.IndexOf(validItemIds, id) < 0)
             return false;
@@ -433,6 +440,8 @@ public class TruckLoadZone : MonoBehaviour, IInteractable, IInteractableAvailabi
     {
         ReclaimTakenOutLoot(); // món đang bị cầm ra khỏi xe = đã lấy ra, hoàn ô/tiến độ
 
+        TryDebtPaidSms();
+
         if (zoneRenderer == null || zoneMaterial == null) return;
 
         if (DoorFullyOpen && HasEmptySlot)
@@ -453,6 +462,29 @@ public class TruckLoadZone : MonoBehaviour, IInteractable, IInteractableAvailabi
         Color c = zoneColor;
         c.r *= pulse; c.g *= pulse; c.b *= pulse;
         zoneMaterial.color = c;
+    }
+
+    // ------------------------------------------------------------ SMS chủ nợ lúc đủ nợ
+
+    private const string DebtPaidSmsSender = "Chủ nợ";
+    private const string DebtPaidSmsText =
+        "Đủ tiền rồi đấy. Đóng cửa xe lại mà về là xong nợ — mà muốn chất thêm hàng lấy thưởng thì cứ việc, tao tính hết.";
+
+    private bool debtPaidSmsSent;
+
+    // Gửi ĐÚNG MỘT LẦN ngay khi vừa vượt 50M: PushSMS tự kèm Toast trên màn
+    // hình, nhờ vậy người chơi biết ngay "đã đủ nợ, có thể đóng cửa để về"
+    // dù không đứng cạnh xe lúc đó.
+    private void TryDebtPaidSms()
+    {
+        if (debtPaidSmsSent || !BonusMode) return;
+        debtPaidSmsSent = true;
+
+        PhoneUIManager phone = FindFirstObjectByType<PhoneUIManager>();
+        if (phone == null) return;
+
+        phone.PushSMS(DebtPaidSmsSender, DebtPaidSmsText);
+        Debug.Log("[TruckLoadZone] Đã đủ nợ — SMS chủ nợ báo 'đóng cửa để về, chất thêm lấy tiền dư'.", this);
     }
 
     // ------------------------------------------------------------ lấy đồ ra khỏi xe
@@ -482,16 +514,16 @@ public class TruckLoadZone : MonoBehaviour, IInteractable, IInteractableAvailabi
         {
             placedLoots.Remove(loot);
 
-            string id = loot != null ? loot.ItemId : null;
-            if (!string.IsNullOrEmpty(id)) loadedIds.Remove(id); // ô id trống lại
-
             filled = Mathf.Max(0, filled - 1);
 
-            // Trừ đúng số đã cộng khi chất (valueInMillions tối thiểu 1).
+            // Trừ đối xứng với AddPaid khi chất: quest và DebtTracker dùng
+            // CÙNG con số amount, kể cả khi loot bị destroy (null).
             int amount = Mathf.Max(1, loot != null ? loot.valueInMillions : 1);
             QuestManager manager = QuestManager.Instance;
             if (manager != null && !string.IsNullOrEmpty(loadQuestId) && !string.IsNullOrEmpty(loadObjectiveId))
                 manager.ReportProgress(loadQuestId, loadObjectiveId, -amount);
+
+            DebtTracker.SubtractPaid(amount);
         }
     }
 

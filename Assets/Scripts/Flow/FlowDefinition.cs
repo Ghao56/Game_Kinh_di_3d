@@ -14,7 +14,6 @@ public enum FlowConditionType
     DialogueEnded,
     NightFallen,
     Never,
-    // Thêm cuối để giữ nguyên giá trị số của các mục cũ trong asset đã serialise.
     SmsRead
 }
 
@@ -46,7 +45,6 @@ public enum FlowActionType
     RaiseSignal,
     SetActive,
     ShowCaption,
-    // Thêm cuối để giữ nguyên giá trị số của các mục cũ trong asset đã serialise.
     PhoneSms
 }
 

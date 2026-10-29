@@ -26,7 +26,10 @@ public static class TimeScaleGuard
             if (!Mathf.Approximately(Time.timeScale, last))
             {
                 last = Time.timeScale;
-                Debug.LogWarning(
+                // Log thường (không màu vàng): phần lớn thời điểm timeScale đổi là
+                // hành động CHỦ ĐỊNH (freeze màn kết, jumpscare...) — chỉ cần dấu
+                // vết để truy nguyên khi nào có bug đứng hình thật sự.
+                Debug.Log(
                     $"[TimeScaleGuard] Frame {Time.frameCount}: timeScale = {Time.timeScale} (scene: {SceneManager.GetActiveScene().name})",
                     this);
             }

@@ -19,6 +19,7 @@ public class EndScreenUI : MonoBehaviour
 
     private CanvasGroup blackGroup;
     private Text endText;
+    private Text summaryText;
     private Text hintText;
     private bool built;
     private bool playStarted;
@@ -102,7 +103,7 @@ public class EndScreenUI : MonoBehaviour
         // 2) Đen hoàn toàn: dừng mọi gameplay phía sau rồi chữ mới xuất hiện.
         if (freezeTime)
         {
-            Debug.LogWarning("[Watchdog] END SCREEN — Time.timeScale = 0 (freeze sau màn đen)", this);
+            Debug.Log("[Watchdog] END SCREEN — Time.timeScale = 0 (freeze sau màn đen)", this);
             Time.timeScale = 0f;
         }
 
@@ -117,10 +118,42 @@ public class EndScreenUI : MonoBehaviour
     /// Rỗng = ẩn. Được EndingSequence gọi sau khi màn đen xong.
     /// </summary>
     public void ShowHint(string message)
-    {
-        EnsureHintText();
+    {        EnsureHintText();
         hintText.text = message;
         hintText.gameObject.SetActive(!string.IsNullOrEmpty(message));
+    }
+
+    /// <summary>
+    /// Dòng kế toán ngay dưới dòng chữ chính (VD "ĐÃ TRẢ: 50/50 TRIỆU",
+    /// "TIỀN DƯ: 3 TRIỆU"). Rỗng = ẩn. EndingSequence gọi sau khi màn đen xong.
+    /// </summary>
+    public void ShowSummary(string message)
+    {
+        EnsureSummaryText();
+        summaryText.text = message;
+        summaryText.gameObject.SetActive(!string.IsNullOrEmpty(message));
+    }
+
+    private void EnsureSummaryText()
+    {
+        if (summaryText != null) return;
+
+        GameObject summaryGo = CreateChild("Summary", (RectTransform)transform);
+        summaryText = summaryGo.AddComponent<Text>();
+        summaryText.font = GetFont();
+        summaryText.fontSize = 30;
+        summaryText.fontStyle = FontStyle.Bold;
+        summaryText.alignment = TextAnchor.MiddleCenter;
+        summaryText.color = new Color(0.62f, 0.72f, 0.62f, 1f);
+        summaryText.raycastTarget = false;
+
+        RectTransform rect = (RectTransform)summaryGo.transform;
+        rect.anchorMin = new Vector2(0.5f, 0.5f);
+        rect.anchorMax = new Vector2(0.5f, 0.5f);
+        rect.pivot = new Vector2(0.5f, 0.5f);
+        rect.sizeDelta = new Vector2(1200f, 60f);
+        // Cách 70px dưới dòng chữ chính giữa màn hình.
+        rect.anchoredPosition = new Vector2(0f, -70f);
     }
 
     private void EnsureHintText()
